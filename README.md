@@ -1,1 +1,1 @@
-# coresf
+# solidfield-core
