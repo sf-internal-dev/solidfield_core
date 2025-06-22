@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class MobileSyncConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'mobile_sync'
+    name = 'backend.apps.mobile_sync'
