@@ -50,9 +50,15 @@ INSTALLED_APPS = [
     'backend.apps.reporting',
     'backend.apps.filehub',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'drf_spectacular',
     'django_structlog',
     'simple_history',
+    'guardian',
 ]
+
+DJANGO_STRUCTLOG_CELERY_ENABLED = True
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -66,7 +72,34 @@ MIDDLEWARE = [
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SolidField API',
+    'DESCRIPTION': 'SolidField robust way to manage your work',
+    'VERSION': '0.0.1',
+    'SERVE_INCLUDE_SCHEMA': False,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
+    },
+    # available SwaggerUI versions: https://github.com/swagger-api/swagger-ui/releases
+    "SWAGGER_UI_DIST": "https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest", # default
+    # "SWAGGER_UI_FAVICON_HREF": STATIC_URL + "your_company_favicon.png", # default is swagger favicon
+    # OTHER SETTINGS
+}
+
+
+
 ROOT_URLCONF = 'backend.config.urls'
+
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend', 'guardian.backends.ObjectPermissionBackend')
 
 TEMPLATES = [
     {
