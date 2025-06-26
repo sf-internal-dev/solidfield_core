@@ -1,6 +1,6 @@
 # solidfield-core
 
-This Software is made to meet the needs of field operations globaly. robust, centralization, full traceability and lightweight (the last one not a Django thing, it's a Gin thing)
+This Software is made to meet the needs of field operations globaly. robustness, centralization, full traceability and lightweight (the last one not a Django thing, it's a Gin thing)
 
 ![Django](https://img.shields.io/badge/django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white)
 ![DjangoREST](https://img.shields.io/badge/DJANGO-REST-ff1709?style=for-the-badge&logo=django&logoColor=white&color=ff1709&labelColor=gray)
