@@ -23,15 +23,15 @@ STATUS_LABELS = {
 }
 
 
-def get_workflow_for_tenant(tenant):
-    try:
-        return tenant.workflow.workflow_json
-    except AttributeError:
-        return DEFAULT_WORKFLOW
-    except TenantWorkflow.DoesNotExist:
-        return DEFAULT_WORKFLOW
+# def get_workflow_for_tenant(tenant):
+#     try:
+#         return tenant.workflow.workflow_json
+#     except AttributeError:
+#         return DEFAULT_WORKFLOW
+#     except TenantWorkflow.DoesNotExist:
+#         return DEFAULT_WORKFLOW
 
 
-def has_permission_for_status(user, target_status, workflow):
-    user_level = user.technician.technician_level.name
-    return target_status in workflow.get("permissions", {}).get(user_level, [])
+# def has_permission_for_status(user, target_status, workflow):
+#     user_level = user.technician.technician_level.name
+#     return target_status in workflow.get("permissions", {}).get(user_level, [])

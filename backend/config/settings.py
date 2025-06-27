@@ -95,6 +95,7 @@ SPECTACULAR_SETTINGS = {
     # OTHER SETTINGS
 }
 
+AUTH_USER_MODEL = "core.AccountHolderUser"
 
 
 ROOT_URLCONF = 'backend.config.urls'
