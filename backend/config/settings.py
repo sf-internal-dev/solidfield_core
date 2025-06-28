@@ -13,6 +13,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import structlog
+# settings.py
+import sys
+
+# Importe e aplique o patch antes de qualquer coisa
+sys.path.append(str(Path(__file__).resolve().parent))
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -34,7 +40,10 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'jet',
+    # 'jet',
+    'admin_interface',
+    'colorfield',
+
     # 'grappelli',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -60,6 +69,48 @@ INSTALLED_APPS = [
     'nested_admin',
 
 ]
+
+X_FRAME_OPTIONS = "SAMEORIGIN"
+SILENCED_SYSTEM_CHECKS = ["security.W019"]
+
+from django.utils.translation import gettext_lazy as _
+
+# JET_DEFAULT_THEME = 'light-gray'
+
+# JET_THEMES = [
+#     {
+#         'theme': 'default', # theme folder name
+#         'color': '#47bac1', # color of the theme's button in user menu
+#         'title': 'Default' # theme title
+#     },
+#     {
+#         'theme': 'green',
+#         'color': '#44b78b',
+#         'title': 'Green'
+#     },
+#     {
+#         'theme': 'light-green',
+#         'color': '#2faa60',
+#         'title': 'Light Green'
+#     },
+#     {
+#         'theme': 'light-violet',
+#         'color': '#a464c4',
+#         'title': 'Light Violet'
+#     },
+#     {
+#         'theme': 'light-blue',
+#         'color': '#5EADDE',
+#         'title': 'Light Blue'
+#     },
+#     {
+#         'theme': 'light-gray',
+#         'color': '#222',
+#         'title': 'Light Gray'
+#     }
+# ]
+
+
 
 DJANGO_STRUCTLOG_CELERY_ENABLED = True
 
@@ -109,7 +160,7 @@ AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend', 'guardia
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'backend/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -121,7 +172,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.config.wsgi.application'
+APPLICATION = 'backend.config.wsgi.application'
 
 
 # Database
@@ -182,8 +233,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Caminhos onde o Django vai procurar arquivos estáticos
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    os.path.join(BASE_DIR, 'static'),
 ]
+
+
 
 # URL pública para acessar os arquivos estáticos
 STATIC_URL = "/static/"
