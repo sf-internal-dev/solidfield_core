@@ -11,18 +11,14 @@ class ChecklistInline(nested_admin.NestedStackedInline):
     inlines = [ChecklistItemAnswerInline]
     extra = 0
 
-class ChecklistItemTemplateInline(admin.TabularInline):
+class ChecklistItemTemplateInline(nested_admin.NestedTabularInline):
     model = ChecklistItemTemplate
     extra = 1
     ordering = ("order",)
 
 
-
-@admin.register(ChecklistTemplate)
-class ChecklistTemplateAdmin(admin.ModelAdmin):
+class ChecklistTemplateInline(nested_admin.NestedStackedInline):
+    model = ChecklistTemplate
     inlines = [ChecklistItemTemplateInline]
-    list_display = ("name", "version", "created_by", "created_at", "service_type", "is_active")
-    search_fields = ("name", "service_type", "created_by__social_name")
-    list_filter = ("is_active", "service_type", "created_at")
-    ordering = ("-created_at",)
+    extra = 1
 
