@@ -5,4 +5,4 @@
 #     for app in menu:
 #         if 'items' not in app:
 #             app['items'] = []
-#     return menua
+#     return menu

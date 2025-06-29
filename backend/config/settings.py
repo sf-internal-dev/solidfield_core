@@ -20,9 +20,8 @@ import sys
 sys.path.append(str(Path(__file__).resolve().parent))
 
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -43,6 +42,7 @@ INSTALLED_APPS = [
     # 'jet',
     'admin_interface',
     'colorfield',
+    # 'admin_volt.apps.AdminVoltConfig',
 
     # 'grappelli',
     'django.contrib.admin',
@@ -66,12 +66,17 @@ INSTALLED_APPS = [
     'django_structlog',
     'simple_history',
     'guardian',
-    'nested_admin',
+    'nested_admin'
 
 ]
 
-X_FRAME_OPTIONS = "SAMEORIGIN"
-SILENCED_SYSTEM_CHECKS = ["security.W019"]
+
+# LOGIN_REDIRECT_URL = '/'
+# # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# X_FRAME_OPTIONS = "SAMEORIGIN"
+# SILENCED_SYSTEM_CHECKS = ["security.W019"]
 
 from django.utils.translation import gettext_lazy as _
 
@@ -181,7 +186,7 @@ APPLICATION = 'backend.config.wsgi.application'
 import environ
 
 env = environ.Env()
-environ.Env.read_env()
+environ.Env.read_env(BASE_DIR / ".env")
 
 DATABASES = {
     'default': {
