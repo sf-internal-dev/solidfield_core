@@ -28,8 +28,9 @@ class ServiceOrderPhoto(BaseModel):
     device_info = models.CharField(max_length=100, blank=True)
 
     # Optional customer signature
-    customer_signed = models.BooleanField(default=False)
-    signature_image = models.ImageField(upload_to="signatures/", null=True, blank=True)
 
     class Meta:
         ordering = ["uploaded_at"]
+
+    def __str__(self):
+        return f"{self.service_order.identifier} - {self.photo_type} by {self.uploaded_by}"

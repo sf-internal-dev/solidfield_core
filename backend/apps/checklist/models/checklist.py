@@ -14,6 +14,9 @@ class ChecklistTemplate(TenantOwnedModel, SoftDeletableModel):
     class Meta:
         unique_together = ("tenant", "name", "version")
 
+    def __str__(self):
+        return f"{self.name} v{self.version} ({self.service_type})"
+
 
 class ChecklistItemTemplate(BaseModel):
     template = models.ForeignKey(ChecklistTemplate, on_delete=models.CASCADE, related_name="itens")
@@ -40,6 +43,10 @@ class ChecklistItemTemplate(BaseModel):
 
     class Meta:
         ordering = ["order"]
+    
+    def __str__(self):
+        return f"{self.order}. {self.question[:40]}{'...' if len(self.question) > 40 else ''}"
+
 
 
 class Checklist(BaseModel):
@@ -47,6 +54,9 @@ class Checklist(BaseModel):
     template = models.ForeignKey(ChecklistTemplate, on_delete=models.PROTECT)
     filled_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT)
     filled_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Checklist #{self.id} - OS {self.service_order.identifier}"
 
 
 class ChecklistItemAnswer(BaseModel):
@@ -90,3 +100,6 @@ class ChecklistItemAnswer(BaseModel):
                 raise ValidationError(f"Numeric answer required for field type '{type}'.")
         else:
             self.answer_number = None
+
+    def __str__(self):
+        return f"{self.checklist.filled_by} Answer for '{self.item_template.question[:30]}...'"

@@ -39,9 +39,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    # 'jet',
-    'admin_interface',
-    'colorfield',
+    'jet',
+   
     # 'admin_volt.apps.AdminVoltConfig',
 
     # 'grappelli',

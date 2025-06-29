@@ -61,6 +61,10 @@ class ServiceOrder(TenantOwnedModel):
         })
         self.save()
 
+    def __str__(self):
+        return f"Service Order #{self.identifier} - {self.status.replace('_', ' ').title()}"
+
+
 class ServiceOrderDocument(BaseModel):
     service_order = models.OneToOneField("ServiceOrder", on_delete=models.CASCADE, related_name="pdf_document")
     file = models.FileField(upload_to="service_orders/pdfs/")
