@@ -7,8 +7,7 @@ class ClientAdressInline(nested_admin.NestedStackedInline):
     extra = 0
 
 
-
-# class ClientAddressAdmin(admin.ModelAdmin):
-#     list_display = ("client", "label", "city", "state", "zip_code")
-#     search_fields = ("client__name", "label", "city", "state")
-#     list_filter = ("state",)
+class ClientInline(nested_admin.NestedTabularInline):
+    inlines = [ClientAdressInline]
+    model = Client
+    extra = 0

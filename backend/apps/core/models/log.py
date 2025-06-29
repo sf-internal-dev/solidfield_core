@@ -9,3 +9,6 @@ class AuditLog(TenantOwnedModel):
     reference_id = models.CharField(max_length=100)  # Pode ser ID da OS, checklist, etc
     data = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.created_at.date()} | {self.user} → {self.action} (ref: {self.reference_id})"

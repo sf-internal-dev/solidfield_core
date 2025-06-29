@@ -38,3 +38,7 @@ class CompanyTenant(models.Model):
 class TenantWorkflow(TenantOwnedModel):
     workflow_json = models.JSONField()
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.tenant.name} Workflow - Updated at {self.updated_at.date()}"
+

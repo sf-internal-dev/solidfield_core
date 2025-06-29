@@ -45,4 +45,4 @@ mobile/ios/
 *.pid
 *.sock
 
-backend/staticfiles/
+/staticfiles/
