@@ -4,3 +4,6 @@ from .sync_admin import *
 from .technician_admin import *
 from .tenant_admin import *
 from .user_admin import *
+
+admin.site.site_title = "Nome do Sistema"
+admin.site.site_header = "SolidField Admin Panel"

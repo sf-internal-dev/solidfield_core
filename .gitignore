@@ -44,3 +44,5 @@ mobile/ios/
 # Docker / PID
 *.pid
 *.sock
+
+backend/staticfiles/
