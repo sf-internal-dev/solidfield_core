@@ -11,4 +11,4 @@ class AuditLog(TenantOwnedModel):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.created_at.date()} | {self.user} → {self.action} (ref: {self.reference_id})"
+        return f"{self.created_at.date()} | {self.technician} → {self.action} (ref: {self.reference_id})"
