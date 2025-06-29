@@ -19,7 +19,7 @@ class TenantWorkflowInline(nested_admin.NestedStackedInline):
 
 @admin.register(CompanyTenant)
 class CompanyTenantAdmin(nested_admin.NestedModelAdmin):
-    list_display = ("name", "slug", "is_active", "created_at")
+    list_display = ("name", "slug", "tenant_code", "is_active", "created_at")
     inlines = [
         TechnicianInline,
         TenantWorkflowInline,
