@@ -1,9 +1,11 @@
 from django.db import models
 from .abstractions import TenantOwnedModel
+from backend.apps.core.validators import validate_tenant_core
 
 class CompanyTenant(models.Model):
     name = models.CharField(max_length=150)
     slug = models.SlugField(unique=True) 
+    tenant_code = models.CharField(max_length=10,unique=True,db_index=True,editable=False, validators=[validate_tenant_core])
     is_active = models.BooleanField(default=True)
     
     primary_contact_name = models.CharField(max_length=100, blank=True)
@@ -33,7 +35,7 @@ class CompanyTenant(models.Model):
         verbose_name_plural = "Companies / Tenants"
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.tenant_code})"
 
 class TenantWorkflow(TenantOwnedModel):
     workflow_json = models.JSONField()
