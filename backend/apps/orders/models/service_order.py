@@ -4,20 +4,13 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 class ServiceOrder(TenantOwnedModel):
-    STATUS_CHOICES = [
-        ("open", "Open"),
-        ("in_progress", "In Progress"),
-        ("finished", "Finished"),
-        ("awaiting_validation", "Awaiting Validation"),
-        ("approved", "Approved/Closed"),
-    ]
-
+    
     identifier = models.CharField(max_length=50, unique=True)
     created_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT, related_name="created_orders")
     assigned_to = models.ForeignKey("core.Technician", on_delete=models.PROTECT, related_name="assigned_orders")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="open")
+    status = models.CharField(max_length=50)
 
     client = models.ForeignKey("clients.Client", null=True, blank=True, on_delete=models.SET_NULL)
     client_name = models.CharField(max_length=200, blank=True)  # Nome livre preenchido na hora
@@ -29,37 +22,6 @@ class ServiceOrder(TenantOwnedModel):
 
     class Meta:
         ordering = ["-created_at"]
-
-    def can_transition(self, user, new_status):
-        """
-        Verifica se a transição de status é válida de acordo com o workflow configurado do tenant
-        e as permissões do usuário (nível).
-        """
-        from backend.apps.core.workflow import get_workflow_for_tenant, has_permission_for_status
-
-        workflow = get_workflow_for_tenant(self.tenant)
-
-        current = self.status
-        if not any(t["from"] == current and t["to"] == new_status for t in workflow["transitions"]):
-            return False
-
-        return has_permission_for_status(user, new_status, workflow)
-
-    def update_status(self, user, new_status):
-        """
-        Atualiza o status da ordem de serviço com validação do fluxo de trabalho.
-        """
-        if not self.can_transition(user, new_status):
-            raise ValidationError(f"Transition from '{self.status}' to '{new_status}' not allowed.")
-
-        self.status = new_status
-        self.status_history.append({
-            "from": self.status,
-            "to": new_status,
-            "changed_by": str(user),
-            "timestamp": timezone.now().isoformat()
-        })
-        self.save()
 
     def __str__(self):
         return f"Service Order #{self.identifier} - {self.status.replace('_', ' ').title()}"
