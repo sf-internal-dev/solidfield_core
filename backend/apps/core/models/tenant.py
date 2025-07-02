@@ -14,7 +14,7 @@ class CompanyTenant(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    billing_account_id = models.CharField(max_length=100, blank=True, null=True)  # futuro: vincular com Stripe, etc.
+    billing_account_id = models.CharField(max_length=100, blank=True, null=True) 
 
     owner = models.OneToOneField(
         "core.AccountHolderUser",
@@ -28,7 +28,7 @@ class CompanyTenant(models.Model):
     timezone = models.CharField(max_length=50, default="America/Los_Angeles")
 
     logo = models.ImageField(upload_to="tenant_logos/", null=True, blank=True)
-    color_primary = models.CharField(max_length=7, default="#000000")  # Cor base da marca
+    color_primary = models.CharField(max_length=7, default="#000000") 
 
     class Meta:
         verbose_name = "Company / Tenant"
@@ -37,7 +37,12 @@ class CompanyTenant(models.Model):
     def __str__(self):
         return f"{self.name} ({self.tenant_code})"
 
-class TenantWorkflow(TenantOwnedModel):
+class TenantStatusWorkflow(TenantOwnedModel):
+    tenant = models.OneToOneField(
+        "core.CompanyTenant",
+        on_delete=models.CASCADE,
+        related_name="status_workflow" 
+    )
     workflow_json = models.JSONField()
     updated_at = models.DateTimeField(auto_now=True)
 

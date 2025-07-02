@@ -64,8 +64,18 @@ class ServiceOrder(TenantOwnedModel):
     def __str__(self):
         return f"Service Order #{self.identifier} - {self.status.replace('_', ' ').title()}"
 
+'''  ESTE MODEL <ServiceOrderDocument> SERÁ REMOVIDO EM ATUALIZAÇÕES FUTURAS PELO SEGUINTE MOTIVO:
+        - ECONOMIA NO BANCO DE DADOS
+        Percebi que salvar documentos que serão gerados dinamicamente de acordo com a ordem de serviço fabricada
+        (que é suficientemente modular em seus dados e integrada com o banco de dados) além de ser pesado em médio prazo (e aqui se)
+        considere uma economia motivada não pelo quesito custo de investimento (ou ao menos não só esse custo) mas pela falta de
+        necessidade real de investir em salvar esses dados.
 
+        O meu objetivo é salvar a informação de ordem de serviço, as imagens a ela atribuidas, assinaturas, listas, e dinamicamente gerar
+        quando solicitado um pdf com as informações solicitadas, não sendo necessário salvar isso no banco de dados.
+                  '''
 class ServiceOrderDocument(BaseModel):
+
     service_order = models.OneToOneField("ServiceOrder", on_delete=models.CASCADE, related_name="pdf_document")
     file = models.FileField(upload_to="service_orders/pdfs/")
     generated_at = models.DateTimeField(auto_now_add=True)

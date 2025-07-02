@@ -1,7 +1,7 @@
 import re
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
-from models.tenant import CompanyTenant
+from backend.apps.core.models.tenant import CompanyTenant
 
 def generate_tenant_identifier_code(slug: str, max_tries: int = 30) -> str:
     """Generates an unique tenant code based on the tenant slug. 
@@ -11,8 +11,10 @@ def generate_tenant_identifier_code(slug: str, max_tries: int = 30) -> str:
     for i in range(max_tries):
         sufixo = "" if i == 0 else str(i)
         tentativa = f"{base}{sufixo}"
-        if not CompanyTenant.objects.filter(company_code=tentativa).exists():
+        if not CompanyTenant.objects.filter(tenant_code=tentativa).exists():
             return tentativa
 
-    # Fallback forçado: SOLIAB (ex: base + random letters)
+    # forced Fallback: SOLIAB (ex: base + random letters)
     return f"{base}{get_random_string(length=2).upper()}"
+
+
