@@ -22,5 +22,9 @@ ACTION_SCHEMA = {
         "label": "Photo Upload",
         "model": "orders.ServiceOrderPhoto",
     },
+    "temporary_delegation": {
+        "label":"Temporary Permissions Delegation",
+        "model": "technician.Temporary Delegation"
+    },
 }
 

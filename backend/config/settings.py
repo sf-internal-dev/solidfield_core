@@ -65,8 +65,8 @@ INSTALLED_APPS = [
     'django_structlog',
     'simple_history',
     'guardian',
-    'nested_admin'
-
+    'nested_admin',
+    'django_extensions'
 ]
 
 

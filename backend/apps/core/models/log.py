@@ -14,7 +14,7 @@ class AuditLog(TenantOwnedModel):
     action = models.CharField(max_length=150)  # Ex: "status_update", "photo_upload"
     # Esse reference_id pode ser pra varias coisas, como a ServiceOrder quando mudar um status e também 
     # TemporaryDelegation quando for feita um delegação de permissão
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType,null=True,blank=True, on_delete=models.CASCADE)
     object_id = models.CharField(max_length=100)
     reference = GenericForeignKey("content_type", "object_id")
     data = models.JSONField(blank=True, null=True)

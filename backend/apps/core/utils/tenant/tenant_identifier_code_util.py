@@ -17,4 +17,3 @@ def generate_tenant_identifier_code(slug: str, max_tries: int = 30) -> str:
     # forced Fallback: SOLIAB (ex: base + random letters)
     return f"{base}{get_random_string(length=2).upper()}"
 
-
