@@ -1,5 +1,5 @@
 from .status_workflow_label_util import generate_labels_for_workflow
-from backend.apps.core.workflow import DEFAULT_WORKFLOW
+from backend.apps.core.workflow import DEFAULT_STATUS_WORKFLOW
 
 
 def validate_transition(workflow: dict, from_status: str, to_status: str) -> bool:
@@ -20,7 +20,7 @@ def can_access_state(workflow: dict, role: str, state: str) -> bool:
 
 # Teste
 if __name__ == "__main__":
-    labels = generate_labels_for_workflow(DEFAULT_WORKFLOW)
+    labels = generate_labels_for_workflow(DEFAULT_STATUS_WORKFLOW)
     print("Labels gerados:")
     for key, label in labels.items():
         print(f"{key} → {label}")

@@ -1,4 +1,4 @@
-from backend.apps.core.workflow import DEFAULT_WORKFLOW
+from backend.apps.core.workflow import DEFAULT_STATUS_WORKFLOW
 
 def get_workflow_for_tenant(tenant):
     """
@@ -8,7 +8,7 @@ def get_workflow_for_tenant(tenant):
     try:
         return tenant.status_workflow.workflow_json
     except tenant.status_workflow.workflow_json.DoesNotExist:
-        return DEFAULT_WORKFLOW
+        return DEFAULT_STATUS_WORKFLOW
 
 def get_workflow_status_label(status: str) -> str:
     """
