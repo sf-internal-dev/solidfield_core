@@ -1,4 +1,4 @@
-ACTION_SCHEMA = {
+AUDIT_LOG_ACTION_SCHEMA = {
     "status_transition": {
         "label": "Status Transition",
         "model": "orders.ServiceOrder",
@@ -88,5 +88,154 @@ ACTION_SCHEMA = {
         "model": "orders.ChecklistTemplate",
         "description": "Update or version change of a checklist template for operational use.",
         "template": "Checklist Template '{template_name}' updated to version {version} by {user}."
+    }
+}
+
+# Initial Permission Structure. Will be modified (probably)
+ACTIONS_BY_PERMISSION_SCHEMA = {
+    "L1": {
+        "label": "Execution (Field Level)",
+        # Field-level technicians can perform their assigned tasks, upload evidence, and request new service orders.
+        "actions": [
+            {
+                "code": "service_order_request",
+                "label": "Request Service Order",
+                "delegable": False,
+                "description": "Request the creation of a new service order to the supervisor or manager."
+            },
+            {
+                "code": "view_assigned_service_orders",
+                "label": "View Assigned Service Orders",
+                "delegable": False,
+                "description": "Can view and operate only on their assigned service orders."
+            },
+            {
+                "code": "update_service_order_status",
+                "label": "Update Service Order Status",
+                "delegable": True,
+                "description": "Can move the service order through allowed status transitions."
+            },
+            {
+                "code": "submit_checklist",
+                "label": "Submit Checklist",
+                "delegable": True,
+                "description": "Fills out and submits the service order checklist."
+            },
+            {
+                "code": "upload_photos",
+                "label": "Upload Photos",
+                "delegable": True,
+                "description": "Can attach photos to the assigned service order."
+            },
+            {
+                "code": "collect_signature",
+                "label": "Collect Client Signature",
+                "delegable": True,
+                "description": "Can capture the client’s digital signature."
+            },
+            {
+                "code": "generate_feedback_link",
+                "label": "Generate Feedback Link",
+                "delegable": True,
+                "description": "Generates a feedback link after completing the service order."
+            }
+        ]
+    },
+    "L2": {
+        "label": "Coordination (Local Supervision)",
+        "inherits_selectively_from": {
+            "L1": ["view_assigned_service_orders", "upload_photos"]
+                },
+        # Supervisors inherit L1 capabilities and can approve requests, create internal tasks, and organize their local team.
+        "actions": [
+            {
+                "code": "approve_service_order_request",
+                "label": "Approve Service Order Request (L1)",
+                "delegable": True,
+                "description": "Can approve or deny service order requests made by L1 users."
+            },
+            {
+                "code": "create_internal_service_order",
+                "label": "Create Internal Service Order",
+                "delegable": True,
+                "description": "Can create service orders for routine internal tasks."
+            },
+            {
+                "code": "view_team_orders",
+                "label": "View Team Service Orders",
+                "delegable": False,
+                "description": "Can view service orders assigned to their team members."
+            },
+            {
+                "code": "group_assignment_visual",
+                "label": "Visual Group Assignment",
+                "delegable": True,
+                "description": "Organizes team technician distribution without persisting in the database."
+            }
+        ]
+    },
+    "L3": {
+        "label": "Full Control (Operational Management)",
+        "inherits_selectively_from": {
+            "L1": ["view_assigned_service_orders", "upload_photos"],
+            "L2": ["view_team_orders"]
+                },
+        # Managers inherit all permissions and handle distribution, validation, escalation, and user management.
+        "actions": [
+            {
+                "code": "assign_service_order",
+                "label": "Assign Service Order",
+                "delegable": True,
+                "description": "Assigns service orders to technicians or supervisors."
+            },
+            {
+                "code": "reassign_service_order",
+                "label": "Reassign Service Order",
+                "delegable": True,
+                "description": "Can reassign service orders to a different technician."
+            },
+            {
+                "code": "validate_service_order",
+                "label": "Validate Service Order",
+                "delegable": True,
+                "description": "Validates the execution of a service order before releasing it."
+            },
+            {
+                "code": "return_service_order",
+                "label": "Return Service Order for Adjustments",
+                "delegable": True,
+                "description": "Returns the service order to the technician for corrections."
+            },
+            {
+                "code": "create_checklist_template",
+                "label": "Create Checklist Template",
+                "delegable": False,
+                "description": "Can create and version operational checklist templates."
+            },
+            {
+                "code": "edit_checklist_template",
+                "label": "Edit Checklist Template",
+                "delegable": False,
+                "description": "Can edit existing versions of checklist templates."
+            },
+            {
+                "code": "view_all_kpis",
+                "label": "View All KPIs",
+                "delegable": False,
+                "description": "Has access to performance and productivity indicators."
+            },
+            {
+                "code": "manage_users",
+                "label": "Manage Users",
+                "delegable": False,
+                "description": "Creates, edits, blocks, promotes, or demotes user accounts."
+            },
+            {
+                "code": "delegate_permissions",
+                "label": "Delegate Temporary Permissions",
+                "delegable": False,
+                "description": "Can temporarily delegate permissions to other users."
+            }
+        ]
     }
 }
