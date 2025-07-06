@@ -91,7 +91,6 @@ AUDIT_LOG_ACTION_SCHEMA = {
     }
 }
 
-# Initial Permission Structure. Will be modified (probably)
 ACTIONS_BY_PERMISSION_SCHEMA = {
     "L1": {
         "label": "Execution (Field Level)",
@@ -144,7 +143,8 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
     "L2": {
         "label": "Coordination (Local Supervision)",
         "inherits_selectively_from": {
-            "L1": ["view_assigned_service_orders", "upload_photos"]
+            "L1": ["service_order_request","view_assigned_service_orders", "collect_signature","update_service_order_status",
+                   "generate_feedback_link","upload_photos","submit_checklist"]
                 },
         # Supervisors inherit L1 capabilities and can approve requests, create internal tasks, and organize their local team.
         "actions": [
@@ -163,7 +163,7 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
             {
                 "code": "view_team_orders",
                 "label": "View Team Service Orders",
-                "delegable": False,
+                "delegable": True,
                 "description": "Can view service orders assigned to their team members."
             },
             {
@@ -177,8 +177,10 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
     "L3": {
         "label": "Full Control (Operational Management)",
         "inherits_selectively_from": {
-            "L1": ["view_assigned_service_orders", "upload_photos"],
-            "L2": ["view_team_orders"]
+            "L1": ["view_assigned_service_orders", "collect_signature","update_service_order_status",
+                   "generate_feedback_link","upload_photos","submit_checklist"],
+            "L2": ["group_assignment_visual","view_team_orders","create_internal_service_order",
+                   "approve_service_order_request","view_team_orders"]
                 },
         # Managers inherit all permissions and handle distribution, validation, escalation, and user management.
         "actions": [
@@ -209,19 +211,19 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
             {
                 "code": "create_checklist_template",
                 "label": "Create Checklist Template",
-                "delegable": False,
+                "delegable": True,
                 "description": "Can create and version operational checklist templates."
             },
             {
                 "code": "edit_checklist_template",
                 "label": "Edit Checklist Template",
-                "delegable": False,
+                "delegable": True,
                 "description": "Can edit existing versions of checklist templates."
             },
             {
                 "code": "view_all_kpis",
                 "label": "View All KPIs",
-                "delegable": False,
+                "delegable": True,
                 "description": "Has access to performance and productivity indicators."
             },
             {
