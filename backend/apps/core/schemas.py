@@ -233,10 +233,16 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
                 "description": "Creates, edits, blocks, promotes, or demotes user accounts."
             },
             {
-                "code": "delegate_permissions",
+                "code": "delegate_temporary_permissions",
                 "label": "Delegate Temporary Permissions",
                 "delegable": False,
                 "description": "Can temporarily delegate permissions to other users."
+            },
+            {
+                "code": "delegate_permission_levels",
+                "label": "Delegate Permission Levels",
+                "delegable": False,
+                "description": "Can delegate permission levels to other users."
             }
         ]
     }
