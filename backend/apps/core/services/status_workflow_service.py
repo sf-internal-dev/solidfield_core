@@ -6,10 +6,6 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
-""" Eu vou ter que fazer um service pra fazer a mudança de status da ordem de serviço,
-    Utilizando utils como validade transition e can access state
-"""
-
 def create_status_workflow(tenant_id):
     tenant = CompanyTenant.objects.get(id=tenant_id)
     workflow = get_workflow_for_tenant(tenant)
