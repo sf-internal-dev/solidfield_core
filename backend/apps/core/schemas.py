@@ -239,8 +239,8 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
                 "description": "Can temporarily delegate permissions to other users."
             },
             {
-                "code": "delegate_permission_levels",
-                "label": "Delegate Permission Levels",
+                "code": "delegate_permission_level",
+                "label": "Delegate Permission Level",
                 "delegable": False,
                 "description": "Can delegate permission levels to other users."
             }

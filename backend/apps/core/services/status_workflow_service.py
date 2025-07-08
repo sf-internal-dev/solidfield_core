@@ -1,6 +1,7 @@
 from backend.apps.core.utils.status_workflow.status_workflow_label_util import get_workflow_for_tenant, generate_labels_for_workflow
 from backend.apps.core.utils.status_workflow.status_workflow_control_util import can_access_state, validate_transition
 from core.models.tenant import CompanyTenant
+from core.models.technician import Technician
 from core.models.log import AuditLog
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib.contenttypes.models import ContentType
@@ -15,7 +16,7 @@ def create_status_workflow(tenant_id):
         return error
     return labeled_workflow
 
-def transition_service_order_status(service_order, new_status: str, technician):
+def transition_service_order_status(service_order, new_status: str, technician: Technician):
     tenant = service_order.tenant 
     technician_permission = technician.technician_permission 
     current_status = service_order.status
