@@ -11,11 +11,18 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "description": "Upload of a photo to a service order, typically for before/after documentation.",
         "template": "Photo uploaded for Service Order #{order_id} by {user} at {timestamp}."
     },
+    "permission_level_delegation": {
+        "label": "Permission Level Delegation",
+        "model": "technician.Technician",
+        "description": "Complete permisssion level delegation from a manager to another technician.",
+        "template": "Permission Level {permission_level} granted to {delegate_user} by {delegator_user}."
+    },
     "temporary_delegation": {
         "label": "Temporary Permissions Delegation",
         "model": "technician.TemporaryDelegation",
         "description": "Temporary delegation of elevated permissions from a manager to another user.",
-        "template": "Temporary delegation granted to {delegate_user} by {delegator_user} for scope: {scope}."
+        "template": "Temporary delegation granted to {delegate_user} by {delegator_user} valid from {valid_from} to {valid_until}.",
+        "extra_info": "Actions granted in the temporary delegation include: {actions_delegated}"
     },
     "feedback_request_generation": {
         "label": "Feedback Request Generation",

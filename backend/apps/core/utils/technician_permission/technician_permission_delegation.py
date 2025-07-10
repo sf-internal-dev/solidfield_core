@@ -5,10 +5,10 @@ def is_manager(technician) -> bool:
     return technician.technician_permission == "L3"
     
 # Faz a delegação completa de nível de permissão a um técnico
-def delegate_complete_permission_level(granter, grantee, target_level: str) -> bool:
-    if is_manager(granter):
-        grantee.technician_permission = target_level
-        grantee.save()
+def delegate_complete_permission_level(delegator, delegate, target_level: str) -> bool:
+    if is_manager(delegator):
+        delegate.technician_permission = target_level
+        delegate.save()
         return True
     return False
 
