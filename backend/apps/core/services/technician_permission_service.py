@@ -2,6 +2,8 @@ from backend.apps.core.utils.technician_permission.technician_permission_delegat
 from backend.apps.core.utils.technician_permission.technician_permission_temporary_delegation import technician_has_permission_for_action, can_delegate_action
 from backend.apps.core.utils.audition_log.audition_log_util import log_audit_action
 from backend.apps.core.models import Technician, TemporaryDelegation, DelegatedAction
+from backend.apps.core.services.audition_log_service import log_permission_level_delegation, log_temporary_delegation, log_revoke_temporary_delegation
+
 from core.models.log import AuditLog
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
@@ -12,16 +14,8 @@ def delegate_permission_level(delegator: Technician, delegate: Technician, level
         return False
     delegate.technician_permission = level
     delegate.save()
-    log_audit_action(
-        technician=delegator,
-        action="delegate_permission_level",
-        object_instance=Technician,
-        data={
-            "permission_level": level,
-            "delegate_user": delegate.username,
-            "delegator_user": delegator.username,
-        }
-    )
+    log_permission_level_delegation(delegator, delegate, level)
+    
     return True
 
 @transaction.atomic
@@ -48,18 +42,7 @@ def create_temporary_delegation(from_user, to_user, actions: list[str], valid_fr
 
     DelegatedAction.objects.bulk_create(valid_actions)
 
-    log_audit_action(
-        technician=delegation.from_user,
-        action="delegate_temporary_permissions",
-        object_instance=TemporaryDelegation,
-        data={
-            "delegator_user": delegation.from_user.username,
-            "delegate_user": delegation.to_user.username,
-            "actions_delegated": actions,
-            "valid_from": delegation.valid_from.isoformat(),
-            "valid_until": delegation.valid_until.isoformat(),
-        }
-    )
+    log_temporary_delegation(delegation,actions)
 
     return delegation
 
@@ -89,15 +72,7 @@ def list_effective_permissions(technician: Technician) -> list[str]:
     return list(actions)
 
 def revoke_delegation(delegation: TemporaryDelegation):
-    log_audit_action(
-        technician=delegation.from_user,
-        action="revoke_delegation",
-        object_instance=delegation,
-        data={
-            "delegate_user": delegation.to_user.username,
-            "revoked_at": timezone.now().isoformat()
-        }
-    )
+    log_revoke_temporary_delegation(delegation)
     delegation.delete()
 
 def list_outgoing_delegations(technician: Technician):
