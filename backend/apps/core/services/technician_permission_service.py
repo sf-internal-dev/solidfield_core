@@ -11,6 +11,18 @@ def delegate_permission_level(granter: Technician, grantee: Technician, level: s
         return False
     grantee.technician_permission = level
     grantee.save()
+
+    AuditLog.objects.create(
+        technician=granter,
+        action="delegate_permission_level",
+        content_type=ContentType.objects.get_for_model(Technician),
+        object_id=str(grantee.id),
+        data={
+            "granted_level": grantee.technician_permission,
+            "grantee_username": grantee.username,
+            "grantee_social_name": grantee.social_name,
+        }
+    )
     return True
 
 @transaction.atomic
@@ -36,6 +48,21 @@ def create_temporary_delegation(from_user, to_user, actions: list[str], valid_fr
             raise ValueError(f"Action '{action}' cannot be delegated from {from_user} to {to_user}.")
 
     DelegatedAction.objects.bulk_create(valid_actions)
+
+    AuditLog.objects.create(
+        technician=delegation.from_user,
+        action="delegate_temporary_permissions",
+        content_type=ContentType.objects.get_for_model(TemporaryDelegation),
+        object_id=str(delegation.id),
+        data={
+            "to_user_id": delegation.to_user.id,
+            "to_user_username": delegation.to_user.username,
+            "actions_delegated": actions,
+            "valid_from": delegation.valid_from.isoformat(),
+            "valid_until": delegation.valid_until.isoformat(),
+        }
+    )
+
     return delegation
 
 def has_permission(technician: Technician, action_code: str) -> bool:
@@ -72,30 +99,3 @@ def list_outgoing_delegations(technician: Technician):
 def list_incoming_delegations(technician: Technician):
     return TemporaryDelegation.objects.filter(to_user=technician).order_by("-valid_until")
 
-def audit_permission_level_delegation(technician: Technician, grantee: Technician):
-    AuditLog.objects.create(
-        technician=technician,
-        action="delegate_permission_level",
-        content_type=ContentType.objects.get_for_model(Technician),
-        object_id=str(grantee.id),
-        data={
-            "granted_level": grantee.technician_permission,
-            "grantee_username": grantee.username,
-            "grantee_social_name": grantee.social_name,
-        }
-    )
-
-def audit_temporary_delegation(delegation: TemporaryDelegation, actions: list[str]):
-    AuditLog.objects.create(
-        technician=delegation.from_user,
-        action="delegate_temporary_permissions",
-        content_type=ContentType.objects.get_for_model(TemporaryDelegation),
-        object_id=str(delegation.id),
-        data={
-            "to_user_id": delegation.to_user.id,
-            "to_user_username": delegation.to_user.username,
-            "actions_delegated": actions,
-            "valid_from": delegation.valid_from.isoformat(),
-            "valid_until": delegation.valid_until.isoformat(),
-        }
-    )
