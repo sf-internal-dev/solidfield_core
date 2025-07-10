@@ -22,3 +22,4 @@ class AuditLog(TenantOwnedModel):
 
     def __str__(self):
         return f"{self.created_at.date()} | {self.technician} → {self.action} (ref: {self.reference_id})"
+

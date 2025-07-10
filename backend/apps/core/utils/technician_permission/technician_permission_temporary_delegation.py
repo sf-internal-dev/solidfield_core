@@ -18,20 +18,18 @@ def get_delegable_actions_deep(level_key: str) -> list[str]:
 
     return list(set(collect(level_key)))
 
-def can_delegate_action(granter, grantee, action_code: str) -> bool:
-    granter_level = granter.technician_permission
-    grantee_level = grantee.technician_permission
+def can_delegate_action(delegator, delegate, action_code: str) -> bool:
+    delegator_level = delegator.technician_permission
+    delegate_level = delegate.technician_permission
 
-    # Verifica se delegação é permitida
     allowed_paths = {
         "L3": ["L2", "L1"],
         "L2": ["L1"],
     }
 
-    if grantee_level not in allowed_paths.get(granter_level, []):
+    if delegate_level not in allowed_paths.get(delegator_level, []):
         return False
 
-    # Busca todas as ações delegáveis incluindo herdadas
-    delegable_actions = get_delegable_actions_deep(granter_level)
+    delegable_actions = get_delegable_actions_deep(delegator_level)
 
     return action_code in delegable_actions
