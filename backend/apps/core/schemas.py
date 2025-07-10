@@ -9,7 +9,7 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "label": "Photo Upload",
         "model": "orders.ServiceOrderPhoto",
         "description": "Upload of a photo to a service order, typically for before/after documentation.",
-        "template": "Photo uploaded for Service Order #{order_id} by {user} at {timestamp}."
+        "template": "Photo uploaded for Service Order #{order_id} by {technician} at {timestamp}."
     },
     "permission_level_delegation": {
         "label": "Permission Level Delegation",
