@@ -6,7 +6,7 @@ from core.models.log import AuditLog
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-
+from backend.apps.core.services.audition_log_service import log_service_order_status_transition
 def create_status_workflow(tenant_id):
     tenant = CompanyTenant.objects.get(id=tenant_id)
     workflow = get_workflow_for_tenant(tenant)
@@ -36,15 +36,6 @@ def transition_service_order_status(service_order, new_status: str, technician: 
         "timestamp": timezone.now().isoformat()
     })
 
-    # create log here.
-    # pensar nesse action porque ele é no estilo de um workflow json também ou uma tag
-    # reference_id pensar também porque isso é uma referencia direta ao id de algum model.
-    AuditLog.objects.create(
-        technician=technician,
-        action="status_transition",
-        content_type=ContentType.objects.get_for_model(service_order),
-        object_id=str(service_order.id),
-        data={"from": current_status, "to": new_status}
-    )
+    log_service_order_status_transition(service_order,new_status)
 
     return service_order
