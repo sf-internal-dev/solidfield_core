@@ -20,13 +20,20 @@ def resolve_available_slug_from_name(company_name: str) -> str:
 
     raise ValueError("Couldn't create a slug suggestion for you company. Please create one by yourself.")
 
+def generate_valid_tenant_code(slug: str) -> str:
+    for attempt in generate_tenant_identifier_code(slug):
+        if not CompanyTenant.objects.filter(tenant_code=attempt).exists():
+            return attempt
+        
+    base = generate_tenant_identifier_code(slug)[0][:4]
+    return f"{base}{generate_tenant_identifier_code(length=2).upper()}"
+
 def prepare_company_slug_and_code(company_name: str) -> dict:
     slug = resolve_available_slug_from_name(company_name)
-    code = generate_tenant_identifier_code(slug)
+    code = generate_valid_tenant_code(slug)
 
     return {
         "slug": slug,
         "tenant_code": code
     }
 
-# Lógica de criação total da company será feita posteriormente
