@@ -21,7 +21,6 @@ def suggest_company_slug(name: str) -> list[str]:
     suggestions = []
 
     if len(clean_words) == 1:
-        # Apenas uma palavra limpa
         suggestions.append(clean_words[0])
     else:
         w1, w2 = clean_words[0], clean_words[1]
