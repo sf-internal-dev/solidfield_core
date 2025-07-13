@@ -1,7 +1,32 @@
-from core.models.tenant import CompanyTenant
+from backend.apps.core.utils.tenant.tenant_slug_util import sanitize_tenant_slug,suggest_company_slug
 from backend.apps.core.utils.tenant.tenant_identifier_code_util import generate_tenant_identifier_code
+from core.models.tenant import CompanyTenant
 
-def create_company_with_slug(nome: str, slug: str) -> CompanyTenant:
+def resolve_available_slug_from_name(company_name: str) -> str:
+    suggestions = suggest_company_slug(company_name)
+
+    for suggestion in suggestions:
+        if not CompanyTenant.objects.filter(slug=suggestion).exists():
+            return suggestion
+
+    base_slug = sanitize_tenant_slug(company_name)
+    if not base_slug:
+        base_slug = "tenant"
+
+    for i in range(1, 30):
+        slug_attempt = f"{base_slug}{i}"
+        if not CompanyTenant.objects.filter(slug=slug_attempt).exists():
+            return slug_attempt
+
+    raise ValueError("Couldn't create a slug suggestion for you company. Please create one by yourself.")
+
+def prepare_company_slug_and_code(company_name: str) -> dict:
+    slug = resolve_available_slug_from_name(company_name)
     code = generate_tenant_identifier_code(slug)
-    company = CompanyTenant.objects.create(name=nome, slug=slug, tenant_code=code)
-    return company
+
+    return {
+        "slug": slug,
+        "tenant_code": code
+    }
+
+# Lógica de criação total da company será feita posteriormente
