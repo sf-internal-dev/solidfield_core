@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 class ServiceOrder(TenantOwnedModel):
-    
     identifier = models.CharField(max_length=50, unique=True)
     created_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT, related_name="created_orders")
     assigned_to = models.ForeignKey("core.Technician", on_delete=models.PROTECT, related_name="assigned_orders")
