@@ -1,10 +1,11 @@
 from core.schemas import ACTIONS_BY_PERMISSION_SCHEMA
 
-# Confirma que o Technician tem L3 pra fazer a delegação
+# -> Checks if the technician has managerial level (L3)
 def is_manager(technician) -> bool:
     return technician.technician_permission == "L3"
     
-# Faz a delegação completa de nível de permissão a um técnico
+# -> Assigns a complete permission level to another technician
+# Only allowed if the delegator has level L3
 def delegate_complete_permission_level(delegator, delegate, target_level: str) -> bool:
     if is_manager(delegator):
         delegate.technician_permission = target_level
@@ -12,12 +13,14 @@ def delegate_complete_permission_level(delegator, delegate, target_level: str) -
         return True
     return False
 
+# -> Returns all effective actions available for a given permission level
+# Supports deep selective inheritance defined in the schema
 def get_effective_actions_for_level(level_key: str, visited=None) -> list[str]:
     if visited is None:
         visited = set()
 
     if level_key in visited:
-        return []  # Evita recursão infinita por erro de configuração
+        return []  
 
     visited.add(level_key)
     schema = ACTIONS_BY_PERMISSION_SCHEMA.get(level_key, {})
@@ -26,12 +29,11 @@ def get_effective_actions_for_level(level_key: str, visited=None) -> list[str]:
     inherited = schema.get("inherits_selectively_from", {})
     for inherited_level, actions in inherited.items():
         effective_actions.update(actions)
-        # Inclui também as ações herdadas do nível herdado
-        # (respeitando o modelo de herança seletiva profunda)
         effective_actions.update(get_effective_actions_for_level(inherited_level, visited))
 
     return list(effective_actions)
 
+# -> Checks if the technician has access to a specific action code
 def technician_has_permission_for_action(technician, action_code: str) -> bool:
     level = technician.technician_permission
     return action_code in get_effective_actions_for_level(level)
