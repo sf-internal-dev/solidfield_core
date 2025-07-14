@@ -4,10 +4,16 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import now
 from django.apps import apps
 
+# -> Resolves a Django model class from a schema entry like "core.CompanyTenant"
+# Used internally to validate the instance passed to the logger
 def get_model_from_schema_entry(schema_entry: dict):
     app_label, model_name = schema_entry["model"].split(".")
     return apps.get_model(app_label=app_label, model_name=model_name)
 
+# -> Logs an audit entry for a given action performed by a technician
+# Validates the action against the schema, formats a message using the template,
+# and creates an AuditLog entry tied to the related object
+# Returns the rendered message string
 def log_audit_action(technician, action_code: str, object_instance, context_data: dict = None):
     schema_entry = AUDIT_LOG_ACTION_SCHEMA.get(action_code)
     if not schema_entry:
