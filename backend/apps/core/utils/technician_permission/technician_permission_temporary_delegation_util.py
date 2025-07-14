@@ -1,5 +1,7 @@
 from core.schemas import ACTIONS_BY_PERMISSION_SCHEMA
 
+# -> Recursively returns all actions marked as delegable for a given permission level
+# Includes inherited actions defined in the selective inheritance schema
 def get_delegable_actions_deep(level_key: str) -> list[str]:
     visited = set()
 
@@ -18,6 +20,8 @@ def get_delegable_actions_deep(level_key: str) -> list[str]:
 
     return list(set(collect(level_key)))
 
+# -> Checks if a delegator can delegate a specific action to a target technician
+# Only allowed if the target level is permitted and the action is marked as delegable
 def can_delegate_action(delegator, delegate, action_code: str) -> bool:
     delegator_level = delegator.technician_permission
     delegate_level = delegate.technician_permission
