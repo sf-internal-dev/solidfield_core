@@ -1,6 +1,9 @@
 import re
 import unicodedata
 
+# -> Sanitizes a slug by removing accents, special characters, and non-ASCII symbols
+# Converts the string to lowercase and keeps only a-z and 0-9 characters
+# Ex: "Sóli-d.f!eld" → "soliddfeld"
 def sanitize_tenant_slug(slug: str) -> str:
     normalized = unicodedata.normalize("NFKD", slug)
     ascii_slug = normalized.encode("ascii", "ignore").decode("ascii")
@@ -8,6 +11,12 @@ def sanitize_tenant_slug(slug: str) -> str:
     sanitized = re.sub(r"[^a-z0-9]", "", ascii_slug)
     return sanitized
 
+# -> Suggests slug candidates based on a company name
+# Normalizes and cleans each word using `sanitize_tenant_slug`, ignoring invalid ones
+# If 1 word: returns the single cleaned version
+# If 2+ words: returns combinations like full join, short join, and full triple
+# Removes duplicates and the forbidden term "slug"
+# Ex: "Blue Data Labs" → ["bluedata", "bluedat", "bluedatalabs"]
 def suggest_company_slug(name: str) -> list[str]:
     if not name:
         return []
