@@ -2,12 +2,14 @@ from backend.apps.core.utils.status_workflow.status_workflow_label_util import g
 from backend.apps.core.utils.status_workflow.status_workflow_control_util import can_access_state, validate_transition
 from core.models.tenant import CompanyTenant
 from core.models.technician import Technician
-from core.models.log import AuditLog
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from backend.apps.core.services.audition_log_service import log_service_order_status_transition
 
+# -> Returns the status workflow for a given tenant (as labeled structure)
+# Retrieves the tenant by ID and builds its custom workflow labels
+# Returns an AttributeError if the workflow is malformed
 def create_status_workflow(tenant_id):
     tenant = CompanyTenant.objects.get(id=tenant_id)
     workflow = get_workflow_for_tenant(tenant)
@@ -17,6 +19,10 @@ def create_status_workflow(tenant_id):
         return error
     return labeled_workflow
 
+# -> Attempts to transition a service order from one status to another
+# Validates if the transition is allowed by the workflow definition
+# Also verifies if the technician has permission to reach the target status
+# Appends the change to status_history and logs the transition
 def transition_service_order_status(service_order, new_status: str, technician: Technician):
     tenant = service_order.tenant 
     technician_permission = technician.technician_permission 
