@@ -15,7 +15,7 @@ class ServiceOrder(TenantOwnedModel):
     client_email = models.EmailField(blank=True)
     client_phone = models.CharField(max_length=30, blank=True)
 
-    # Auto-tracking for audit (optional)
+    # Auto-tracking for audit
     status_history = models.JSONField(default=list)
 
     class Meta:
