@@ -4,6 +4,8 @@ from backend.apps.core.schemas import AUDIT_LOG_ACTION_SCHEMA
 from backend.apps.core.utils.audition_log.audition_log_util import log_audit_action
 from django.utils import timezone
 
+# -> Logs a permission level delegation from one technician to another
+# Includes context with usernames and assigned permission level
 def log_permission_level_delegation(delegator: Technician, delegate: Technician, permission_level: str):
     return log_audit_action(
         technician=delegator,
@@ -16,6 +18,8 @@ def log_permission_level_delegation(delegator: Technician, delegate: Technician,
         }
     )
 
+# -> Logs a temporary delegation of actions from one technician to another
+# Includes validity period and list of delegated actions in the context
 def log_temporary_delegation(delegation: TemporaryDelegation, actions: list[str]):
     return log_audit_action(
         technician=delegation.from_user,
@@ -30,6 +34,8 @@ def log_temporary_delegation(delegation: TemporaryDelegation, actions: list[str]
         }
     )
 
+# -> Logs a service order status transition
+# Includes previous and new status in the audit context
 def log_service_order_status_transition(service_order: ServiceOrder, new_status: str):
     return log_audit_action(
         technician=service_order.technician,
@@ -41,6 +47,8 @@ def log_service_order_status_transition(service_order: ServiceOrder, new_status:
         }
     )
 
+# -> Logs the revocation of a temporary delegation
+# Includes the affected user and timestamp of revocation
 def log_revoke_temporary_delegation(delegation: TemporaryDelegation):
     log_audit_action(
         technician=delegation.from_user,
