@@ -116,7 +116,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 
-DJANGO_STRUCTLOG_CELERY_ENABLED = True
 
 
 MIDDLEWARE = [
