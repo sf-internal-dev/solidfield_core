@@ -29,11 +29,7 @@ venv/
 */migrations/*.pyo
 */migrations/__pycache__/
 
-# Node / Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/build/
-
+**/node_modules
 # Capacitor / Mobile
 mobile/node_modules/
 mobile/dist/
