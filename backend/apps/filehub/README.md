@@ -1,31 +1,23 @@
 # App: Filehub
 
-## Descrição
-Responsável pelo gerenciamento, armazenamento e tratamento de arquivos enviados pelos usuários da plataforma, incluindo fotos de execução, assinaturas digitais, documentos PDF e outros anexos relacionados às Ordens de Serviço.
+## Description
+Responsible for managing, storing, and processing user-uploaded files on the SolidField platform. This includes execution photos, digital signatures, PDF documents, and other attachments related to Service Orders.
 
+## Key Features
 
-## Principais Funcionalidades
-- Upload de arquivos por Técnicos em campo (via Mobile ou Web)
+- File uploads by field technicians (via Mobile or Web)
+- Client digital signature uploads
+- Image processing and optimization (e.g., compression, resizing, timestamp watermarking)
+- Secure file storage via Wasabi (using `django-storages` + `boto3`)
+- Upload traceability control (who uploaded, when, from which device)
+- Hardware API integration (e.g., mobile camera capture)
+- Attachment linking and access control for Service Orders
+- Generation of secure signed URLs for file downloads (when applicable)
+- Validation of file types, sizes, and metadata during upload (e.g., blocking invalid formats)
 
-- Upload de assinaturas digitais do cliente
+## Notes
 
-- Processamento e otimização de imagens (Exemplo: compressão, redimensionamento, marcação de data/hora)
+This app works closely with the **Service Order** and **Operational Dashboard** apps, ensuring full traceability of uploaded files.
 
-- Armazenamento seguro de arquivos via Wasabi (utilizando django-storages + boto3)
-
-- Controle de rastreabilidade de uploads (quem enviou, quando, de qual dispositivo)
-
-- Integração com APIs de Hardware (câmera) via Mobile
-
-- Gerenciamento de links e acessos a arquivos anexados a Ordens de Serviço
-
-- Geração de URLs temporárias (signed URLs) para download seguro de arquivos, quando aplicável
-
-- Validação de formatos, tamanhos e metadados durante o upload (Exemplo: bloqueio de formatos inválidos)
-
-
-## Observação
-Este app trabalhará fortemente em conjunto com o app de Ordem de Serviço e com o Painel Operacional, garantindo total rastreabilidade sobre os arquivos enviados.
-Usuários de Permissão de Execução e Permissão de Coordenação terão acesso restrito apenas a uploads e visualização dos próprios arquivos ou dos arquivos vinculados às suas Ordens de Serviço.
-Usuários com Permissão de Controle Total terão acesso administrativo a todos os arquivos da empresa.
-
+- Users with **Execution** or **Coordination** permissions have restricted access to uploads and can only view files linked to their own Service Orders.
+- Users with **Full Control** permissions have administrative access to all company files.
