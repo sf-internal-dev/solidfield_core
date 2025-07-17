@@ -14,7 +14,7 @@ def create_service_order_with_identifier(company: CompanyTenant, **order_data):
     tenant_code = company.tenant_code
     last_identifier = (
         ServiceOrder.objects
-        .filter(tenant_code=tenant_code)
+        .filter(tenant__tenant_code=tenant_code)
         .aggregate(max_id=Max("identifier"))
         .get("max_id")
     )
