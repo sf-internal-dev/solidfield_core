@@ -6,22 +6,22 @@
 SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA = {
     "client_review":{
         "purpose_rules": 
-            {"life_time":"",
+            {"...":"",
              }
     },
     "client_receipt":{
         "purpose_rules":
-            {"life_time":"",
+            {"...":"",
              }
     },
     "audit_and_compliance":{
         "purpose_rules":
-            {"life_time":"",
+            {"...":"",
              }
     },
     "client_temporary_download":{
         "purpose_rules":
-            {"life_time":"",
+            {"...":"",
              }
     }
 }

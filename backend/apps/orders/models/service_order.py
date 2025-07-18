@@ -24,6 +24,8 @@ class ServiceOrder(TenantOwnedModel):
     def __str__(self):
         return f"Service Order #{self.identifier} - {self.status.replace('_', ' ').title()}"
 
+
+
 class ServiceOrderDownloadLink(models.Model):
     service_order = models.ForeignKey("ServiceOrder", on_delete=models.CASCADE)
     key = models.CharField(max_length=64, unique=True)
