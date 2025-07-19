@@ -3,7 +3,6 @@ from backend.apps.orders.models.service_order import ServiceOrderDownloadLink, S
 from backend.apps.core.models.technician import Technician
 from datetime import datetime,timedelta
 
-
 def create_service_order_download_link_with_key(service_order: ServiceOrder, technician: Technician, purpose: str):
     download_key = generate_service_order_download_key()
     return ServiceOrderDownloadLink.objects.create(
