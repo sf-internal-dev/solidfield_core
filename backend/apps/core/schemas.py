@@ -34,7 +34,7 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "label": "Service Order Creation",
         "model": "orders.ServiceOrder",
         "description": "Initial creation and registration of a new service order in the system.",
-        "template": "Service Order #{order_id} created by {technician} at {created_at}."
+        "template": "Service Order #{order_id} created by {technician} at {timestamp}."
     },
     "service_order_download_link_creation": {
         "label": "Service Order Download Link Creation",
@@ -76,7 +76,7 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "label": "Order Validation by Management",
         "model": "orders.ServiceOrder",
         "description": "Management-level validation and approval of a finalized service order.",
-        "template": "Service Order #{order_id} validated by {technician} at {validation_date}."
+        "template": "Service Order #{order_id} validated by {technician} at {timestamp}."
     },
     "order_feedback_received": {
         "label": "Client Feedback Received",
