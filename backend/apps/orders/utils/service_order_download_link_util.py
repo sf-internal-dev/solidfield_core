@@ -2,12 +2,18 @@
 import secrets
 from backend.apps.orders.schemas import SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA
 
-# Complementar quando o schema estiver composto
 def get_purpose_rules(purpose: str):
     purpose_schema = SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA.get(purpose, {})
     purpose_rules = purpose_schema.get("purpose_rules",{})
-    # life_time = purpose_rules.get("life_time")
-    rules = {"...": ...}
+    rules = {
+        "client_as_first": purpose_rules.get("client_as_first"),
+        "available_to_client": purpose_rules.get("available_to_client"),
+        "access_level_required": purpose_rules.get("access_level_required"),
+        "include_technician_notes": purpose_rules.get("include_technician_notes"),
+        "include_signature": purpose_rules.get("include_signature"),
+        "include_checklist": purpose_rules.get("include_checklist"),
+        "offline_friendly": purpose_rules.get("offline_friendly"),
+             }
 
     return rules
 
