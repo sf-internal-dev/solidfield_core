@@ -32,7 +32,7 @@ class ServiceOrderDownloadLink(models.Model):
     created_by = models.ForeignKey("core.Technician", null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(null=True, blank=True)
-    purpose = models.CharField(max_length=100, blank=True)  # ex: "cliente-avaliacao", "recibo"
+    purpose = models.CharField(max_length=100, blank=True) 
 
     def __str__(self):
         short_key = self.key[:8] + "..." if self.key else "no-key"
