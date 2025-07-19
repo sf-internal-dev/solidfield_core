@@ -6,10 +6,11 @@ from datetime import datetime,timedelta
 
 def create_service_order_download_link_with_key(service_order: ServiceOrder, technician: Technician, purpose: str):
     download_key = generate_service_order_download_key()
-    download_link = ServiceOrderDownloadLink.objects.create(
+    return ServiceOrderDownloadLink.objects.create(
         service_order = service_order,
         key = download_key,
         technician = technician,
+        created_at = datetime.now(),
         purpose = purpose,
     )
 
@@ -18,9 +19,10 @@ def calculate_defined_download_link_life_time(service_order_download_link: Servi
     expires_at = created_at + timedelta(days)
     service_order_download_link.expires_at = expires_at
 
-def add_purpose_rules_for_service_order_download_link(service_order_download_link: ServiceOrderDownloadLink):
+def get_purpose_rules_for_service_order_download_link(service_order_download_link: ServiceOrderDownloadLink):
     purpose = service_order_download_link.purpose
     purpose_rules = get_purpose_rules(purpose)
-    creation_time = service_order_download_link.created_at
-  
+
+
+    
 
