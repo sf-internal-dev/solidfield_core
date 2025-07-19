@@ -4,6 +4,8 @@ from backend.apps.core.schemas import AUDIT_LOG_ACTION_SCHEMA
 from backend.apps.core.utils.audition_log.audition_log_util import log_audit_action
 from django.utils import timezone
 
+
+""" Permission Delegation """
 # -> Logs a permission level delegation from one technician to another
 # Includes context with usernames and assigned permission level
 def log_permission_level_delegation(delegator: Technician, delegate: Technician, permission_level: str):
@@ -34,20 +36,6 @@ def log_temporary_delegation(delegation: TemporaryDelegation, actions: list[str]
         }
     )
 
-# -> Logs a service order status transition
-# Includes previous and new status in the audit context
-def log_service_order_status_transition(service_order: ServiceOrder, new_status: str):
-    return log_audit_action(
-        technician=service_order.technician,
-        action="status_transition",
-        object_instance=service_order,
-        data={
-            "order_id": service_order.identifier,
-            "from": service_order.status, 
-            "to": new_status
-        }
-    )
-
 # -> Logs the revocation of a temporary delegation
 # Includes the affected user and timestamp of revocation
 def log_revoke_temporary_delegation(delegation: TemporaryDelegation):
@@ -61,8 +49,9 @@ def log_revoke_temporary_delegation(delegation: TemporaryDelegation):
         }
     )
 
+""" Service Order """
 # -> Logs the creation of a service order
-# Includes assigned technician and creation date
+# Includes order identifier and creation date
 def log_service_order_creation(service_order: ServiceOrder):
     log_audit_action(
         technician=service_order.created_by,
@@ -71,6 +60,61 @@ def log_service_order_creation(service_order: ServiceOrder):
         data={
             "order_id": service_order.identifier,
             "creation_date": timezone.now().isoformat(),
+        }
+    )
+
+# -> Logs the first assignment of a service order to a technician
+# Includes order identifier assigned technician
+def log_service_order_assignment(service_order: ServiceOrder):
+    log_audit_action(
+        technician=service_order.created_by,
+        action="service_order_assignment",
+        object_instance=service_order,
+        data={
+            "order_id": service_order.identifier,
+            "assigned_technician":service_order.assigned_to,
+        }
+    )
+
+# -> Logs the reassignment of a service order to a new technician
+# Includes order identifier, old and new technician assigned
+def log_service_order_reassignment(service_order: ServiceOrder, current_technician: Technician, new_technician):
+    log_audit_action(
+        technician=service_order.created_by,
+        action="service_order_reassignment",
+        object_instance=service_order,
+        data={
+            "order_id": service_order.identifier,
+            "old_technician":current_technician,
+            "new_technician":new_technician,
+        }
+    )
+
+# -> Logs the management-level validation of a finalizes service order
+# Includes order identified and validation date
+def log_service_order_validation(service_order: ServiceOrder):
+    log_audit_action(
+        technician=service_order.created_by,
+        action="service_order_validation",
+        object_instance=service_order,
+        data={
+            "order_id": service_order.identifier,
+            "validation_date": timezone.now().isoformat(),
+        }
+    )
+
+
+# -> Logs a service order status transition
+# Includes previous and new status in the audit context
+def log_service_order_status_transition(service_order: ServiceOrder, new_status: str):
+    return log_audit_action(
+        technician=service_order.technician,
+        action="status_transition",
+        object_instance=service_order,
+        data={
+            "order_id": service_order.identifier,
+            "from": service_order.status, 
+            "to": new_status
         }
     )
 
