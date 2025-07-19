@@ -60,17 +60,23 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "description": "Upload of a digital client signature linked to a completed service order.",
         "template": "Signature uploaded for Service Order #{order_id} by {technician}."
     },
-    "order_reassignment": {
+    "service_order_assignment": {
+        "label": "Service Order Assignment",
+        "model": "orders.ServiceOrder",
+        "description": "First assignment of a service order to a technician.",
+        "template": "Service Order #{order_id} originally assigned to {assigned_technician} by {technician}."
+    },
+    "service_order_reassignment": {
         "label": "Service Order Reassignment",
         "model": "orders.ServiceOrder",
         "description": "Reassignment of a service order to a different technician or team.",
         "template": "Service Order #{order_id} reassigned from {old_technician} to {new_technician} by {technician}."
     },
-    "order_validation": {
+    "service_order_validation": {
         "label": "Order Validation by Management",
         "model": "orders.ServiceOrder",
         "description": "Management-level validation and approval of a finalized service order.",
-        "template": "Service Order #{order_id} validated by {technician}."
+        "template": "Service Order #{order_id} validated by {technician} at {validation_date}."
     },
     "order_feedback_received": {
         "label": "Client Feedback Received",
