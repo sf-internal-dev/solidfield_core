@@ -15,6 +15,7 @@ SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA = {
              "include_technician_notes": False,
              "include_signature": False,
              "include_checklist": True,
+             "offline_friendly": False,
              }
     },
     "client_receipt":{
@@ -27,6 +28,7 @@ SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA = {
              "include_signature": True,
              "include_technician_notes": False,
              "include_checklist": True,
+             "offline_friendly": False,
              }
     },
     "audit_and_compliance":{
