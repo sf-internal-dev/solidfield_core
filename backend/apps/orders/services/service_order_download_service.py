@@ -22,6 +22,8 @@ def get_purpose_rules_for_service_order_download_link(service_order_download_lin
     purpose = service_order_download_link.purpose
     purpose_rules = get_purpose_rules(purpose)
 
+    
+
 
     
 
