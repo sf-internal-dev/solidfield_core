@@ -5,8 +5,8 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "description": "Transition of a service order from one operational status to another.",
         "template": "Service Order #{order_id} status changed from '{old_status}' to '{new_status}' by {technician}."
     },
-    "photo_upload": {
-        "label": "Photo Upload",
+    "service_order_photo_upload": {
+        "label": "Service Order Photo Upload",
         "model": "orders.ServiceOrderPhoto",
         "description": "Upload of a photo to a service order, typically for before/after documentation.",
         "template": "Photo uploaded for Service Order #{order_id} by {technician} at {timestamp}."
@@ -54,11 +54,11 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "description": "Submission of a checklist associated with the service order execution.",
         "template": "Checklist submitted for Service Order #{order_id} by {technician}."
     },
-    "signature_upload": {
-        "label": "Client Signature Upload",
+    "service_order_client_signature_upload": {
+        "label": "Service Order Client Signature Upload",
         "model": "orders.ServiceOrderSignature",
         "description": "Upload of a digital client signature linked to a completed service order.",
-        "template": "Signature uploaded for Service Order #{order_id} by {technician}."
+        "template": "Signature uploaded for Service Order #{order_id} by client {client_name} at {timestamp}."
     },
     "service_order_assignment": {
         "label": "Service Order Assignment",

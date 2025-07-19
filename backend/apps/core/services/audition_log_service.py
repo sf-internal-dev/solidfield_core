@@ -1,5 +1,7 @@
 from backend.apps.core.models import Technician, TemporaryDelegation
 from backend.apps.orders.models import ServiceOrder, ServiceOrderDownloadLink
+from backend.apps.filehub.models import ServiceOrderPhoto, ServiceOrderSignature
+
 from backend.apps.core.schemas import AUDIT_LOG_ACTION_SCHEMA
 from backend.apps.core.utils.audition_log.audition_log_util import log_audit_action
 from django.utils import timezone
@@ -118,6 +120,7 @@ def log_service_order_status_transition(service_order: ServiceOrder, new_status:
         }
     )
 
+""" Service Order Download Link """
 # -> Logs the creation of a service order
 # Includes order id, download link key and generation purpose
 def log_service_order_download_link_creation(service_order_download_link: ServiceOrderDownloadLink):
@@ -142,4 +145,33 @@ def log_service_order_pdf_generation(service_order_download_link: ServiceOrderDo
         data={
             "key":service_order_download_link.key,
         }
+    )
+
+""" Service Order Files """
+
+# -> Logs the upload of a audit photo to a service order
+# Includes order identifier and act timestamp
+def log_service_order_photo_upload(service_order_photo: ServiceOrderPhoto):
+    log_audit_action(
+        technician=service_order_photo.service_order.from_user,
+        action="service_order_pdf_generation",
+        object_instance=service_order_photo,
+        data={
+            "order_id": service_order_photo.service_order.identifier,
+            "timestamp": timezone.now().isoformat(),
+        }
+    )
+
+# -> Logs the upload of a client signature to a service order
+# Includes order identifier, client name and act timestamp
+def log_service_order_client_signature_upload(service_order_signature: ServiceOrderSignature, client_name: str):
+    log_audit_action(
+        technician=service_order_signature.service_order.from_user,
+        action="service_order_pdf_generation",
+        object_instance=service_order_signature,
+        data={
+            "order_id": service_order_signature.service_order.identifier,
+            "timestamp": timezone.now().isoformat(),
+            "client_name":client_name,
+        }   
     )
