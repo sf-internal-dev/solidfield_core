@@ -61,7 +61,7 @@ def log_service_order_creation(service_order: ServiceOrder):
         object_instance=service_order,
         data={
             "order_id": service_order.identifier,
-            "creation_date": timezone.now().isoformat(),
+            "timestamp": timezone.now().isoformat(),
         }
     )
 
@@ -101,7 +101,7 @@ def log_service_order_validation(service_order: ServiceOrder):
         object_instance=service_order,
         data={
             "order_id": service_order.identifier,
-            "validation_date": timezone.now().isoformat(),
+            "timestamp": timezone.now().isoformat(),
         }
     )
 
