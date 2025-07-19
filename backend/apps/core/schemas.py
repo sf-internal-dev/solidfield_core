@@ -3,7 +3,7 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "label": "Status Transition",
         "model": "orders.ServiceOrder",
         "description": "Transition of a service order from one operational status to another.",
-        "template": "Service Order #{order_id} status changed from '{old_status}' to '{new_status}' by {user}."
+        "template": "Service Order #{order_id} status changed from '{old_status}' to '{new_status}' by {technician}."
     },
     "photo_upload": {
         "label": "Photo Upload",
@@ -15,20 +15,20 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "label": "Permission Level Delegation",
         "model": "technician.Technician",
         "description": "Complete permisssion level delegation from a manager to another technician.",
-        "template": "Permission Level {permission_level} granted to {delegate_user} by {delegator_user}."
+        "template": "Permission Level {permission_level} granted to {delegate_technician} by {delegator_technician}."
     },
     "temporary_delegation": {
         "label": "Temporary Permissions Delegation",
         "model": "technician.TemporaryDelegation",
-        "description": "Temporary delegation of elevated permissions from a manager to another user.",
-        "template": "Temporary delegation granted to {delegate_user} by {delegator_user} valid from {valid_from} to {valid_until}.",
+        "description": "Temporary delegation of elevated permissions from a manager to another technician.",
+        "template": "Temporary delegation granted to {delegate_technician} by {delegator_technician} valid from {valid_from} to {valid_until}.",
         "extra_info": "Actions granted in the temporary delegation include: {actions_delegated}"
     },
     "feedback_request_generation": {
         "label": "Feedback Request Generation",
         "model": "clients.feedback.FeedbackLink",
         "description": "Generation of a client feedback request link after service execution.",
-        "template": "Feedback request generated for Service Order #{order_id} by {user}."
+        "template": "Feedback request generated for Service Order #{order_id} by {technician}."
     },
     "service_order_creation": {
         "label": "Service Order Creation",
@@ -52,25 +52,25 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "label": "Checklist Submission",
         "model": "orders.ServiceOrderChecklist",
         "description": "Submission of a checklist associated with the service order execution.",
-        "template": "Checklist submitted for Service Order #{order_id} by {user}."
+        "template": "Checklist submitted for Service Order #{order_id} by {technician}."
     },
     "signature_upload": {
         "label": "Client Signature Upload",
         "model": "orders.ServiceOrderSignature",
         "description": "Upload of a digital client signature linked to a completed service order.",
-        "template": "Signature uploaded for Service Order #{order_id} by {user}."
+        "template": "Signature uploaded for Service Order #{order_id} by {technician}."
     },
     "order_reassignment": {
         "label": "Service Order Reassignment",
         "model": "orders.ServiceOrder",
         "description": "Reassignment of a service order to a different technician or team.",
-        "template": "Service Order #{order_id} reassigned from {old_technician} to {new_technician} by {user}."
+        "template": "Service Order #{order_id} reassigned from {old_technician} to {new_technician} by {technician}."
     },
     "order_validation": {
         "label": "Order Validation by Management",
         "model": "orders.ServiceOrder",
         "description": "Management-level validation and approval of a finalized service order.",
-        "template": "Service Order #{order_id} validated by {user}."
+        "template": "Service Order #{order_id} validated by {technician}."
     },
     "order_feedback_received": {
         "label": "Client Feedback Received",
@@ -82,25 +82,25 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "label": "Offline Sync Event",
         "model": "sync.SyncLog",
         "description": "Successful synchronization of offline data with the central system.",
-        "template": "Offline sync completed by {user} at {timestamp}, items synced: {items_synced}."
+        "template": "Offline sync completed by {technician} at {timestamp}, items synced: {items_synced}."
     },
     "technician_login_event": {
         "label": "Technician Login",
         "model": "core.technician",
         "description": "Login event of a technician into the mobile or web platform.",
-        "template": "Technician {user} logged in at {timestamp}."
+        "template": "Technician {technician} logged in at {timestamp}."
     },
     "group_assignment": {
         "label": "Technician Group Assignment",
         "model": "core.Technician",
         "description": "Visual assignment of a technician or service order to a logical operational group.",
-        "template": "Group assignment applied by {user} for technician(s): {technicians} into group: '{group_name}'."
+        "template": "Group assignment applied by {technician} for technician(s): {technicians} into group: '{group_name}'."
     },
     "template_version_update": {
         "label": "Checklist Template Version Update",
         "model": "orders.ChecklistTemplate",
         "description": "Update or version change of a checklist template for operational use.",
-        "template": "Checklist Template '{template_name}' updated to version {version} by {user}."
+        "template": "Checklist Template '{template_name}' updated to version {version} by {technician}."
     }
 }
 
@@ -165,7 +165,7 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
                 "code": "approve_service_order_request",
                 "label": "Approve Service Order Request (L1)",
                 "delegable": True,
-                "description": "Can approve or deny service order requests made by L1 users."
+                "description": "Can approve or deny service order requests made by L1 technicians."
             },
             {
                 "code": "create_internal_service_order",
@@ -195,7 +195,7 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
             "L2": ["group_assignment_visual","view_team_orders","create_internal_service_order",
                    "approve_service_order_request","view_team_orders"]
                 },
-        # Managers inherit all permissions and handle distribution, validation, escalation, and user management.
+        # Managers inherit all permissions and handle distribution, validation, escalation, and technician management.
         "actions": [
             {
                 "code": "assign_service_order",
@@ -240,22 +240,22 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
                 "description": "Has access to performance and productivity indicators."
             },
             {
-                "code": "manage_users",
-                "label": "Manage Users",
+                "code": "manage_technicians",
+                "label": "Manage technicians",
                 "delegable": False,
-                "description": "Creates, edits, blocks, promotes, or demotes user accounts."
+                "description": "Creates, edits, blocks, promotes, or demotes technician accounts."
             },
             {
                 "code": "delegate_temporary_permissions",
                 "label": "Delegate Temporary Permissions",
                 "delegable": False,
-                "description": "Can temporarily delegate permissions to other users."
+                "description": "Can temporarily delegate permissions to other technicians."
             },
             {
                 "code": "delegate_permission_level",
                 "label": "Delegate Permission Level",
                 "delegable": False,
-                "description": "Can delegate permission levels to other users."
+                "description": "Can delegate permission levels to other technicians."
             }
         ]
     }
