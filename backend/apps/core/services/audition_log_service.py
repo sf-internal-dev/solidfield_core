@@ -204,6 +204,8 @@ def log_service_order_feedback_received(client_feedback: ClientFeedback):
     
 
 """ Offline Sync"""
+# -> Logs the offline sync event of a technician
+# Includes timestamp and items synced
 # sync_event to define as model
 def log_offline_sync_event(sync_event: str, items_synced: list):
     log_audit_action(
@@ -218,6 +220,8 @@ def log_offline_sync_event(sync_event: str, items_synced: list):
 
 
 """ Checklist & Template """
+# -> Logs the checklist submission to a service order
+# Includes timestamp
 def log_checklist_submission(checklist: Checklist):
     log_audit_action(
         technician=checklist.template.service_order.technician,
@@ -228,6 +232,8 @@ def log_checklist_submission(checklist: Checklist):
         }
     )
 
+# -> Logs the update of a template version
+# Includes template name and version
 def log_template_version_update(checklist_template: ChecklistTemplate):
     log_audit_action(
         technician=checklist_template.service_order.technician,
@@ -240,6 +246,9 @@ def log_template_version_update(checklist_template: ChecklistTemplate):
     )
 
 """ Technician Tracking """
+
+# -> Logs the login event of a technician
+# Includes timestamp
 def log_login_event(technician: Technician):
     log_audit_action(
         technician=technician,
@@ -250,6 +259,8 @@ def log_login_event(technician: Technician):
         }
     )
 
+# -> Logs the assignment of technicians for a operational aggroupment
+# Includes technicians assigned and operational aggroupment name
 def log_group_assignment(technician: Technician, technicians: list, group_name: str):
     log_audit_action(
         technician=technician,
