@@ -1,7 +1,8 @@
 from backend.apps.core.models import Technician, TemporaryDelegation
 from backend.apps.orders.models import ServiceOrder, ServiceOrderDownloadLink
+from backend.apps.checklist.models import Checklist, ChecklistTemplate, ChecklistItemTemplate, ChecklistItemAnswer
 from backend.apps.filehub.models import ServiceOrderPhoto, ServiceOrderSignature
-
+from backend.apps.clients.models import Client, ClientAddress, ClientFeedback, FeedbackLink
 from backend.apps.core.schemas import AUDIT_LOG_ACTION_SCHEMA
 from backend.apps.core.utils.audition_log.audition_log_util import log_audit_action
 from django.utils import timezone
@@ -174,4 +175,66 @@ def log_service_order_client_signature_upload(service_order_signature: ServiceOr
             "timestamp": timezone.now().isoformat(),
             "client_name":client_name,
         }   
+    )
+    
+""" Client Feedback """
+# -> Logs the generation of a feedback request link
+# Includes order identifier
+def log_feedback_request_generation(client_feedback_link: FeedbackLink):
+    log_audit_action(
+        technician=client_feedback_link.service_order.technician,
+        action="feedback_request_generation",
+        object_instance=client_feedback_link,
+        data = {
+            "order_id": client_feedback_link.service_order.identifier,
+        }
+    )
+
+# -> Logs the feedback received for a service execution
+# Includes order identifier
+def log_service_order_feedback_received(client_feedback: ClientFeedback):
+     log_audit_action(
+        technician=client_feedback.service_order.technician,
+        action="service_order_feedback_received",
+        object_instance=client_feedback,
+        data = {
+            "order_id": client_feedback.service_order.identifier,
+        }
+    )
+    
+
+""" Offline Sync"""
+# sync_event to define as model
+def log_offline_sync_event(sync_event: str, items_synced: list):
+    log_audit_action(
+        technician=sync_event.technician,
+        action="offline_sync_event",
+        object_instance=sync_event,
+        data = {
+            "timestamp": timezone.now().isoformat(),
+            items_synced: items_synced
+        }
+    )
+
+
+""" Checklist & Template """
+def log_checklist_submission(checklist: Checklist):
+    log_audit_action(
+        technician=checklist.template.service_order.technician,
+        action="checklist_submission",
+        object_instance=checklist,
+        data = {
+            "timestamp": timezone.now().isoformat(),
+        }
+    )
+
+def log_template_version_update(checklist_template: ChecklistTemplate):
+    log_audit_action(
+        technician=checklist_template.service_order.technician,
+        action="template_version_update",
+        object_instance=checklist_template,
+        data = {
+            "template_name": checklist_template.name,
+            "version": checklist_template.version
+        }
     )
