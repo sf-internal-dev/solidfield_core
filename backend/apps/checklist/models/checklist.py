@@ -50,7 +50,6 @@ class ChecklistItemTemplate(BaseModel):
 
 
 class Checklist(BaseModel):
-    service_order = models.OneToOneField("orders.ServiceOrder", on_delete=models.CASCADE)
     template = models.ForeignKey(ChecklistTemplate, on_delete=models.PROTECT)
     filled_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT)
     filled_at = models.DateTimeField(auto_now_add=True)

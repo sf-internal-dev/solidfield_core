@@ -50,7 +50,7 @@ AUDIT_LOG_ACTION_SCHEMA = {
     },
     "checklist_submission": {
         "label": "Checklist Submission",
-        "model": "orders.ServiceOrderChecklist",
+        "model": "checklist.Checklist",
         "description": "Submission of a checklist associated with the service order execution.",
         "template": "Checklist submitted for Service Order #{order_id} by {technician}."
     },
@@ -78,14 +78,14 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "description": "Management-level validation and approval of a finalized service order.",
         "template": "Service Order #{order_id} validated by {technician} at {timestamp}."
     },
-    "order_feedback_received": {
-        "label": "Client Feedback Received",
+    "service_order_feedback_received": {
+        "label": "Service Order Feedback Received",
         "model": "clients.ClientFeedback",
         "description": "Receipt and registration of client feedback for a service performed.",
         "template": "Feedback received from client for Service Order #{order_id}."
     },
     "offline_sync_event": {
-        "label": "Offline Sync Event",
+        "label": "Offline Sync",
         "model": "sync.SyncLog",
         "description": "Successful synchronization of offline data with the central system.",
         "template": "Offline sync completed by {technician} at {timestamp}, items synced: {items_synced}."
