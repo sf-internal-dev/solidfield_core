@@ -16,12 +16,14 @@ def create_service_order_download_link_with_key(service_order: ServiceOrder, tec
 def calculate_defined_download_link_life_time(service_order_download_link: ServiceOrderDownloadLink, days: int):
     created_at = service_order_download_link.created_at
     expires_at = created_at + timedelta(days)
-    service_order_download_link.expires_at = expires_at
+    timestamp = service_order_download_link.expires_at = expires_at
+    return timestamp
 
+# Função deve retornar valores com propósito de enviar-los para leitura pelo corex
 def get_purpose_rules_for_service_order_download_link(service_order_download_link: ServiceOrderDownloadLink):
     purpose = service_order_download_link.purpose
     purpose_rules = get_purpose_rules(purpose)
-
+    return purpose_rules
     
 
 
