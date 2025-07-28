@@ -13,6 +13,7 @@ SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA = {
              "available_to_client":True,
              "access_level_required":"ANY",
              "include_technician_notes": False,
+             "include_photos": False,
              "include_signature": False,
              "include_checklist": True,
              "offline_friendly": False,
@@ -26,6 +27,7 @@ SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA = {
              "available_to_client":True,
              "access_level_required":">L2",
              "include_signature": True,
+             "include_photos": False,
              "include_technician_notes": False,
              "include_checklist": True,
              "offline_friendly": False,
@@ -37,6 +39,7 @@ SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA = {
         "purpose_rules":
             {"client_as_first":False,
              "access_level_required":"L3",
+             "available_to_client":False,
              "include_photos": True,
              "include_signature": True,
              "include_checklist": True,
@@ -51,6 +54,7 @@ SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA = {
             {
              "client_as_first":False,
              "access_level_required":">L2",
+             "available_to_client":False,
              "include_photos": False,
              "include_signature": False,
              "include_checklist": True,
