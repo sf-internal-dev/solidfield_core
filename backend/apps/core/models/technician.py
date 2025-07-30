@@ -7,6 +7,9 @@ class PermissionLevel(models.TextChoices):
     L2 = "L2", "Local Control"
     L3 = "L3", "Operational Management"
 
+class TechniciansAggroupment(TenantOwnedModel, BaseModel):
+    tag = models.CharField(max_length=1)
+
 class Technician(TenantOwnedModel, SoftDeletableModel):
     username = models.CharField(max_length=12)
     social_name = models.CharField(max_length=150)
@@ -14,10 +17,18 @@ class Technician(TenantOwnedModel, SoftDeletableModel):
         max_length=3,
         choices=PermissionLevel.choices
     )
+    aggroupment = models.ForeignKey(
+        TechniciansAggroupment, 
+        on_delete=models.CASCADE, 
+        related_name="aggroupment_technician",
+        blank=True,
+        null=True
+    )
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.social_name} ({self.username})"
+
 
 class PermissionFlag(BaseModel):
     level = models.CharField(max_length=2, 
