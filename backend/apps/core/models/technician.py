@@ -10,6 +10,9 @@ class PermissionLevel(models.TextChoices):
 class TechniciansAggroupment(TenantOwnedModel, BaseModel):
     tag = models.CharField(max_length=1)
 
+    def __str__(self):
+        return f"Aggroupment {self.tag}"
+
 class Technician(TenantOwnedModel, SoftDeletableModel):
     username = models.CharField(max_length=12)
     social_name = models.CharField(max_length=150)
