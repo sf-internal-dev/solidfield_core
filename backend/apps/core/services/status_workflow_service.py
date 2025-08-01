@@ -24,8 +24,8 @@ def create_status_workflow(tenant_id):
 # Also verifies if the technician has permission to reach the target status
 # Appends the change to status_history and logs the transition
 def transition_service_order_status(service_order, new_status: str, technician: Technician):
-    tenant = service_order.tenant 
-    technician_permission = technician.technician_permission 
+    tenant = service_order.tenant
+    technician_permission = technician.technician_permission
     current_status = service_order.status
 
     workflow = get_workflow_for_tenant(tenant)
@@ -44,5 +44,5 @@ def transition_service_order_status(service_order, new_status: str, technician: 
     })
 
     log_service_order_status_transition(service_order,new_status)
-
+    current_status = new_status
     return service_order
