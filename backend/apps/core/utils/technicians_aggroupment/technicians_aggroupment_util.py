@@ -1,9 +1,3 @@
-
-# função que faça a adição automatica de tag ao agrupamento
-# as tags serão A B C D
-# apenas 4 agrupamentos por vez serão permitidos
-# cada agrupamento precisa de ao menos 2 pessoas
-
 def check_reached_aggroupment_limit(last_aggroupment_tag: str) -> bool:
     if last_aggroupment_tag != None:
         return True if last_aggroupment_tag == "D" else False
