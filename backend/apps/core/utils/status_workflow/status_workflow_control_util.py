@@ -29,7 +29,7 @@ def validate_single_terminal(declared_states, transitions):
     froms = {t["from"] for t in transitions if isinstance(t, dict) and "from" in t}
     terminals = [s for s in declared_states if s not in froms]
     if len(terminals) != 1:
-        return False, [f"Workflow must have exactly 1 terminal state, found {terminals or 'none']}."]
+        return False, [f"Workflow must have exactly 1 terminal state, found {terminals or 'none'}."]
     return True, []
 
 def validate_permissions(permissions, declared_states):
