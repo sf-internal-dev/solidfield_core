@@ -1,6 +1,53 @@
 from .status_workflow_label_util import generate_labels_for_workflow
 from backend.apps.core.workflow import DEFAULT_STATUS_WORKFLOW
 from typing import Set
+
+def has_required_keys(workflow, required_keys):
+    if not isinstance(workflow, dict):
+        return False, ["Workflow must be a dictionary."]
+    missing = required_keys - workflow.keys()
+    return len(missing) == 0, [f"Missing required keys: {', '.join(missing)}."] if missing else []
+
+def validate_states(states):
+    if not isinstance(states, list) or not states or not all(isinstance(s, str) for s in states):
+        return False, ["'states' must be a non-empty list of strings."]
+    return True, []
+
+def validate_transitions(transitions, declared_states):
+    errors = []
+    if not isinstance(transitions, list) or not transitions:
+        return False, ["'transitions' must be a non-empty list."]
+    for t in transitions:
+        if not isinstance(t, dict) or "from" not in t or "to" not in t:
+            errors.append("Each transition must be a dict with 'from' and 'to'.")
+            continue
+        if t["from"] not in declared_states or t["to"] not in declared_states:
+            errors.append(f"Invalid transition: '{t.get('from')}' → '{t.get('to')}' not in 'states'.")
+    return len(errors) == 0, errors
+
+def validate_single_terminal(declared_states, transitions):
+    froms = {t["from"] for t in transitions if isinstance(t, dict) and "from" in t}
+    terminals = [s for s in declared_states if s not in froms]
+    if len(terminals) != 1:
+        return False, [f"Workflow must have exactly 1 terminal state, found {terminals or 'none']}."]
+    return True, []
+
+def validate_permissions(permissions, declared_states):
+    errors = []
+    if not isinstance(permissions, dict):
+        return False, ["'permissions' must be a dictionary."]
+    for role, allowed_states in permissions.items():
+        if not isinstance(role, str):
+            errors.append(f"Invalid permission key: {role} (must be string).")
+            continue
+        if not isinstance(allowed_states, list) or not all(isinstance(s, str) for s in allowed_states):
+            errors.append(f"Permissions for '{role}' must be a list of strings.")
+            continue
+        invalid_states = [s for s in allowed_states if s not in declared_states]
+        if invalid_states:
+            errors.append(f"Permissions for '{role}' reference invalid states: {invalid_states}.")
+    return len(errors) == 0, errors
+
 # -> Validates if a status transition is allowed in the given workflow
 # Returns True only if a defined transition from `from_status` to `to_status` exists
 def validate_transition(workflow: dict, from_status: str, to_status: str) -> bool:
