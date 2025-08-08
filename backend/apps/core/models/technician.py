@@ -9,7 +9,7 @@ class PermissionLevel(models.TextChoices):
 
 class TechniciansAggroupment(TenantOwnedModel, BaseModel):
     tag = models.CharField(max_length=1)
-
+    allowed_to_operate = models.BooleanField(default=False)
     def __str__(self):
         return f"Aggroupment {self.tag}"
 
@@ -23,7 +23,7 @@ class Technician(TenantOwnedModel, SoftDeletableModel):
     aggroupment = models.ForeignKey(
         TechniciansAggroupment, 
         on_delete=models.CASCADE, 
-        related_name="aggroupment_technician",
+        related_name="members",
         blank=True,
         null=True
     )

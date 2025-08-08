@@ -7,7 +7,6 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from backend.apps.core.services.audition_log_service import log_service_order_status_transition
-
 # -> Receives custom workflow created by user and checks if it's valid
 # If validation functions return False, then error logs are returned to a list
 # If all validation functions return True, changes the tenant workflow for the custom workflow
