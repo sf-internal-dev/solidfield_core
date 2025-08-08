@@ -8,7 +8,11 @@ class BaseModel(models.Model):
         abstract = True
 
 class TenantOwnedModel(BaseModel):
-    tenant = models.ForeignKey("core.CompanyTenant", on_delete=models.PROTECT)
+    tenant = models.ForeignKey(
+        "core.CompanyTenant",
+        on_delete=models.PROTECT,
+        related_name="%(class)ss" 
+    )
     class Meta:
         abstract = True
 
