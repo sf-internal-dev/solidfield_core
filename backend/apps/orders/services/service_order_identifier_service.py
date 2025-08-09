@@ -5,6 +5,7 @@ from django.db.models import Max
 from backend.apps.orders.utils.service_order_identifier_util import generate_service_order_identifier
 from backend.apps.orders.models.service_order import ServiceOrder
 from backend.apps.core.models.tenant import CompanyTenant
+from backend.apps.core.services.audition_log_service import log_service_order_creation
 
 # -> Creates a service order linked to a company with a unique tenant-based identifier
 # Format: <TENANT_CODE><4-digit number>, e.g., SOLI0001, UGAF0010
@@ -29,9 +30,12 @@ def create_service_order_with_identifier(company: CompanyTenant, **order_data):
         last_number = 0
 
     new_identifier = generate_service_order_identifier(tenant_code, last_number)
-
-    return ServiceOrder.objects.create(
+    service_order = ServiceOrder.objects.create(
         tenant=company,
         identifier=new_identifier,
         **order_data
     )
+
+    log_service_order_creation(service_order)
+
+    return service_order
