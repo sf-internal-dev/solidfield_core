@@ -22,7 +22,7 @@ class FeedbackLink(BaseModel):
     created_at = models.DateTimeField(auto_now_add=True)
     used = models.BooleanField(default=False)
 
-    def save(self, *args, **kwargs):
-        if not self.key:
-            self.key = secrets.token_urlsafe(12)[:20]
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if not self.key:
+    #         self.key = secrets.token_urlsafe(12)[:20]
+    #     super().save(*args, **kwargs)

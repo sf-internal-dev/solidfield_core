@@ -23,7 +23,7 @@ def get_purpose_rules(purpose: str) -> dict:
 
     return rules
 
-def generate_service_order_download_key(length: int = 16) -> str:
+def generate_service_order_download_key(length: int = 14) -> str:
     "solidfield.co/os_download/..."
-    return secrets.token_urlsafe(length)[:length]
+    return f"SODL{secrets.token_urlsafe(length)[:length]}"
 
