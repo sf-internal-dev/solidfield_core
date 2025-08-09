@@ -109,11 +109,11 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "description": "Login event of a technician into the mobile or web platform.",
         "template": "Technician {technician} logged in at {timestamp}."
     },
-    "group_assignment": {
-        "label": "Technician Group Assignment",
+    "aggroupment_assignment": {
+        "label": "Technician Aggroupment Assignment",
         "model": "core.Technician",
-        "description": "Visual assignment of a technician or service order to a logical operational group.",
-        "template": "Group assignment applied by {technician} for technician(s): {technicians} into group: '{group_name}'."
+        "description": "Visual assignment of a technician or service order to a logical operational aggroupment.",
+        "template": "Aggroupment assignment applied by {technician} for technician(s): {technicians} into aggroupment: '{aggroupment_tag}'."
     },
     "template_version_update": {
         "label": "Checklist Template Version Update",
