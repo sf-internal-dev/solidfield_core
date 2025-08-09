@@ -1,4 +1,5 @@
 AUDIT_LOG_ACTION_SCHEMA = {
+    # made 
     "status_transition": {
         "label": "Status Transition",
         "model": "orders.ServiceOrder",
@@ -11,12 +12,14 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "description": "Upload of a photo to a service order, typically for before/after documentation.",
         "template": "Photo uploaded for Service Order #{order_id} by {technician} at {timestamp}."
     },
+    # made 
     "permission_level_delegation": {
         "label": "Permission Level Delegation",
         "model": "technician.Technician",
         "description": "Complete permisssion level delegation from a manager to another technician.",
         "template": "Permission Level {permission_level} granted to {delegate_technician} by {delegator_technician}."
     },
+    # made
     "temporary_delegation": {
         "label": "Temporary Permissions Delegation",
         "model": "technician.TemporaryDelegation",
@@ -24,6 +27,7 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "template": "Temporary delegation granted to {delegate_technician} by {delegator_technician} valid from {valid_from} to {valid_until}.",
         "extra_info": "Actions granted in the temporary delegation include: {actions_delegated}"
     },
+    # made 
     "feedback_request_generation": {
         "label": "Feedback Request Generation",
         "model": "clients.feedback.FeedbackLink",
@@ -36,12 +40,14 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "description": "Registration of a client.",
         "template": "Feedback request generated for Service Order #{order_id} by {technician}."
     },
+    # made 
     "service_order_creation": {
         "label": "Service Order Creation",
         "model": "orders.ServiceOrder",
         "description": "Initial creation and registration of a new service order in the system.",
         "template": "Service Order #{order_id} created by {technician} at {timestamp}."
     },
+    # made 
     "service_order_download_link_creation": {
         "label": "Service Order Download Link Creation",
         "model": "orders.ServiceOrderDownloadLink",
@@ -66,6 +72,7 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "description": "Upload of a digital client signature linked to a completed service order.",
         "template": "Signature uploaded for Service Order #{order_id} by client {client_name} at {timestamp}."
     },
+    # made util
     "service_order_assignment": {
         "label": "Service Order Assignment",
         "model": "orders.ServiceOrder",
