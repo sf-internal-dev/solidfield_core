@@ -261,13 +261,13 @@ def log_login_event(technician: Technician):
 
 # -> Logs the assignment of technicians for a operational aggroupment
 # Includes technicians assigned and operational aggroupment name
-def log_group_assignment(technician: Technician, technicians: list, group_name: str):
+def log_group_assignment(technician: Technician, technicians: list, aggroupment_tag: str):
     log_audit_action(
         technician=technician,
         action="group_assignment",
         object_instance=technician,
         data = {
             technicians: technicians,
-            group_name: group_name,
+            aggroupment_tag: aggroupment_tag,
         }
     )

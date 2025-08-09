@@ -1,5 +1,6 @@
 from backend.apps.core.utils.technicians_aggroupment.technicians_aggroupment_util import define_aggroupment_tag, allowed_aggroupment,can_add_technician_to_aggroupment
 from backend.apps.core.models import Technician, TechniciansAggroupment, CompanyTenant
+from backend.apps.core.services.audition_log_service import log_group_assignment
 
 def create_technicians_aggroupment(tenant: CompanyTenant):
     last_aggroupment = tenant.techniciansaggroupments.order_by("-id").first()
@@ -8,6 +9,7 @@ def create_technicians_aggroupment(tenant: CompanyTenant):
 def add_technician_to_aggroupment(aggroupment: TechniciansAggroupment,technician: Technician):
     can_add, error = can_add_technician_to_aggroupment(technician=technician, target_aggroupment=aggroupment)
     if can_add:
+        log_group_assignment(technician=technician,technicians=aggroupment.members.username,aggroupment_tag=aggroupment.tag)
         return technician.aggroupment == aggroupment
     return error
 
