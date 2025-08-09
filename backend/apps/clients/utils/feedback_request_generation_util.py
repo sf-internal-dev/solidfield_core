@@ -1,5 +1,5 @@
 import secrets
 
 def generate_feedback_request_key(length: int = 14) -> str:
-    "solidfield.co/os_download/..."
+    "solidfield.co/feedback/..."
     return f"FRL{secrets.token_urlsafe(length)[:length]}"
