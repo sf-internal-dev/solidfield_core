@@ -68,14 +68,14 @@ def log_service_order_creation(service_order: ServiceOrder):
 
 # -> Logs the first assignment of a service order to a technician
 # Includes order identifier assigned technician
-def log_service_order_assignment(service_order: ServiceOrder):
+def log_service_order_assignment(service_order: ServiceOrder, technician: Technician):
     log_audit_action(
         technician=service_order.created_by,
         action="service_order_assignment",
         object_instance=service_order,
         data={
             "order_id": service_order.identifier,
-            "assigned_technician":service_order.assigned_to,
+            "assigned_technician":technician,
         }
     )
 
