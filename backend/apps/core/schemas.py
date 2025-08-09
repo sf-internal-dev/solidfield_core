@@ -30,6 +30,12 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "description": "Generation of a client feedback request link after service execution.",
         "template": "Feedback request generated for Service Order #{order_id} by {technician}."
     },
+    "client_registration": {
+        "label": "Client Registration",
+        "model": "clients.client.FeedbackLink",
+        "description": "Registration of a client.",
+        "template": "Feedback request generated for Service Order #{order_id} by {technician}."
+    },
     "service_order_creation": {
         "label": "Service Order Creation",
         "model": "orders.ServiceOrder",
