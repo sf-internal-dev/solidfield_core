@@ -34,10 +34,18 @@ class ClientAddress(BaseModel):
     neighborhood = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=50)
-    zip_code = models.CharField(max_length=20)
+    postal_code = models.CharField(max_length=20)
 
     gps_latitude = models.FloatField(null=True, blank=True)
     gps_longitude = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.label} - {self.city}"
+        parts = [
+            self.label,
+            f"{self.street}, {self.number}",
+            self.complement if self.complement else "",
+            self.neighborhood,
+            f"{self.city} - {self.state}",
+            self.zip_code
+        ]
+        return ", ".join(filter(None, parts))

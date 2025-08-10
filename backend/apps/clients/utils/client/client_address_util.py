@@ -43,32 +43,3 @@ def validate_coordinates(lat: Optional[float], lng: Optional[float]) -> bool:
     if lat is None or lng is None:
         return True  # coordinates are optional
     return -90.0 <= float(lat) <= 90.0 and -180.0 <= float(lng) <= 180.0
-
-
-# --- one-shot validator raising ValidationError (use in forms/services) ---
-def validate_address_fields(*, country: str, state: str, zip_code: str,
-                            city: str, street: str, number: str,
-                            gps_latitude: Optional[float] = None,
-                            gps_longitude: Optional[float] = None) -> None:
-    if not street or not number or not city:
-        raise ValidationError("Street, number and city are required.")
-    if not validate_region_code(state, country):
-        raise ValidationError(f"Invalid state/province for {country}: {state!r}")
-    if not validate_postal_code(zip_code, country):
-        raise ValidationError(f"Invalid postal/ZIP code for {country}: {zip_code!r}")
-    if not validate_coordinates(gps_latitude, gps_longitude):
-        raise ValidationError("Invalid latitude/longitude range.")
-
-# --- formatting (for UI/logs) ---
-def format_address_line(street: str, number: str, complement: str = "") -> str:
-    base = f"{street}, {number}"
-    return f"{base} - {complement}".strip(" -")
-
-def format_city_state_postal(city: str, state: str, zip_code: str, country: str) -> str:
-    return f"{city} - {state}, {zip_code, country}"
-
-def format_full_address(*, street: str, number: str, complement: str, neighborhood: str,
-                        city: str, state: str, zip_code: str, country: str) -> str:
-    line1 = format_address_line(street, number, complement)
-    line2 = ", ".join(x for x in [neighborhood.strip(), format_city_state_postal(city, state, zip_code, country)] if x)
-    return f"{line1}\n{line2}"
