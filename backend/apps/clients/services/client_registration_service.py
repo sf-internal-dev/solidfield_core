@@ -1,6 +1,5 @@
 from backend.apps.clients.utils.client.client_address_util import (validate_postal_code, validate_region_code, 
-                                                                   validate_coordinates, validate_address_fields,
-                                                                   format_full_address,
+                                                                   validate_coordinates
                                                                    )
 from backend.apps.clients.utils.client.client_registration_util import validate_document_id,validate_phone_number
 from backend.apps.clients.models.client import Client, ClientAddress
