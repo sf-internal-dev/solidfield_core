@@ -15,7 +15,7 @@ def stars_given(stars: int, max_stars: int = 5):
     return stars, labels.get(stars, "Unknown")
 
 def reached_comment_max_characters(comment: str, max_lenght: int = 150) -> bool:
-    return True if len(comment) >= max_lenght else False
+    return True if len(comment) > max_lenght else False
 
 def feedback_preview(comment: str, length: int = 50) -> str:
     comment = comment.strip()
