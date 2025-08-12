@@ -20,7 +20,7 @@ def return_feedback_preview(feedback: ClientFeedback):
 def create_client_feedback(service_order: ServiceOrder, client: Client, client_name: str,
                         client_email: str, stars: int, comment: str, strengths):
     client_stars, feedback_label = stars_given(stars)
-    is_positive = is_positive_feedback(client_stars)
+    # is_positive = is_positive_feedback(client_stars)
     log_service_order_feedback_received(service_order, feedback_label)
     if not reached_comment_max_characters(comment):
         if client:
@@ -40,18 +40,3 @@ def create_client_feedback(service_order: ServiceOrder, client: Client, client_n
                 strengths = strengths if strengths else None,
             )
     return client_feedback
-
-"""
-class ClientFeedback(BaseModel):
-    service_order = models.OneToOneField("orders.ServiceOrder", on_delete=models.CASCADE)
-
-    client = models.ForeignKey("Client", null=True, blank=True, on_delete=models.SET_NULL)
-
-    client_name = models.CharField(max_length=200, blank=True)
-    client_email = models.EmailField(blank=True)
-
-    stars = models.PositiveIntegerField()
-    comment = models.TextField(blank=True)
-    strengths = models.TextField(blank=True)
-    submitted_at = models.DateTimeField(auto_now_add=True)
-"""
