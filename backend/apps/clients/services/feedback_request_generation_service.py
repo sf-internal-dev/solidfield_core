@@ -13,9 +13,14 @@ def add_key_for_feedback_request(feedback_link: FeedbackLink):
     feedback_link.save()
     return feedback_link
 
+def return_feedback_preview(feedback: ClientFeedback):
+    return feedback_preview(feedback)
+
 def create_client_feedback(service_order: ServiceOrder, client: Client, client_name: str,
                         client_email: str, stars: int, comment: str, strengths):
     client_stars, feedback_label = stars_given(stars)
+    is_positive = is_positive_feedback(client_stars)
+    
     if not reached_comment_max_characters(comment):
         if client:
             client_feedback = ClientFeedback.objects.create(
