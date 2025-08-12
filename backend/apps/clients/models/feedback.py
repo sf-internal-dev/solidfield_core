@@ -14,8 +14,6 @@ class ClientFeedback(BaseModel):
     strengths = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
 
-import secrets
-
 class FeedbackLink(BaseModel):
     service_order = models.OneToOneField("orders.ServiceOrder", on_delete=models.CASCADE)
     key = models.CharField(max_length=20, unique=True)
