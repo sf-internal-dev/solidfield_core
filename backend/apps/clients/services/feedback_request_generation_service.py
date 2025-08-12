@@ -6,6 +6,7 @@ from backend.apps.clients.utils.feedback.feedback_validation_util import (
 from backend.apps.clients.models.feedback import FeedbackLink, ClientFeedback
 from backend.apps.clients.models.client import Client
 from backend.apps.orders.models.service_order import ServiceOrder
+from backend.apps.core.services.audition_log_service import log_service_order_feedback_received
 
 def add_key_for_feedback_request(feedback_link: FeedbackLink):
     key = generate_feedback_request_key()
@@ -20,7 +21,7 @@ def create_client_feedback(service_order: ServiceOrder, client: Client, client_n
                         client_email: str, stars: int, comment: str, strengths):
     client_stars, feedback_label = stars_given(stars)
     is_positive = is_positive_feedback(client_stars)
-    
+    log_service_order_feedback_received(service_order, feedback_label)
     if not reached_comment_max_characters(comment):
         if client:
             client_feedback = ClientFeedback.objects.create(
