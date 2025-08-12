@@ -95,7 +95,7 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "label": "Service Order Feedback Received",
         "model": "clients.ClientFeedback",
         "description": "Receipt and registration of client feedback for a service performed.",
-        "template": "Feedback received from client for Service Order #{order_id}."
+        "template": "Feedback received from client for Service Order #{order_id}: {feedback_label}"
     },
     "offline_sync_event": {
         "label": "Offline Sync",

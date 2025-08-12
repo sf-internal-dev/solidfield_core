@@ -192,15 +192,17 @@ def log_feedback_request_generation(client_feedback_link: FeedbackLink):
 
 # -> Logs the feedback received for a service execution
 # Includes order identifier
-def log_service_order_feedback_received(client_feedback: ClientFeedback):
+def log_service_order_feedback_received(client_feedback: ClientFeedback, feedback_label: str):
      log_audit_action(
         technician=client_feedback.service_order.technician,
         action="service_order_feedback_received",
         object_instance=client_feedback,
         data = {
             "order_id": client_feedback.service_order.identifier,
+            "feedback_label": feedback_label,
         }
     )
+
     
 
 """ Offline Sync"""
