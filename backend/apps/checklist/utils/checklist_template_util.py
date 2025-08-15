@@ -1,35 +1,6 @@
 from typing import Optional, Any, List
 from backend.apps.checklist.types import NUMERIC_TYPES
 
-# -> Returns True if the template is global.
-# Needed when you must branch logic based on global vs scoped templates.
-def is_template_global(template) -> bool:
-    return bool(template.is_global)
-
-# =========================
-# ChecklistItemTemplate utils
-# =========================
-
-# -> Returns True if the item is a boolean (yes/no) field.
-# Needed when rendering a boolean UI or validating boolean-like answers.
-def is_boolean_item(item) -> bool:
-    return item.answer_type == "bool"
-
-def is_text_item(item) -> bool:
-    return item.answer_type == "text"
-
-def is_number_item(item) -> bool:
-    return item.answer_type in NUMERIC_TYPES
-
-def is_choice_item(item) -> bool:
-    return item.answer_type == "choice"
-# -> Returns True if the item is required.
-# Needed when checking whether an answer must be provided.
-def is_required_item(item) -> bool:
-    return bool(item.required)
-
-
-
 # -> Parses raw options into a clean, unique, ordered list (comma or newline separated).
 # Needed when normalizing the 'choice_options' free-text field into a list of unique options.
 def parse_choice_options(raw: Optional[str]) -> List[str]:
@@ -90,8 +61,6 @@ def unit_for_item(item) -> Optional[str]:
     }
 
     return mapping.get(item.answer_type)
-
-
 
 
 # -> Returns True if the 'order' value is unique within the item's template.
