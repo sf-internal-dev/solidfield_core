@@ -1,5 +1,5 @@
 from typing import Optional, Tuple, List 
-from backend.apps.checklist.types import NUMERIC_TYPES
+from backend.common.datatypes import NUMERIC_TYPES
 
 # -> Parses raw options into a clean, unique, ordered list (comma or newline separated).
 # Needed when normalizing the 'choice_options' free-text field into a list of unique options.

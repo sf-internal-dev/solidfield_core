@@ -1,6 +1,6 @@
 # backend.apps.orders.utils.service_order_donwload_link_util.py
 import secrets
-from backend.apps.orders.schemas import SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA
+from backend.common.schemas.feedback_schemas import SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA
 
 def validate_purpose_existance(purpose_schema: dict) -> bool:
     if purpose_schema == {}:

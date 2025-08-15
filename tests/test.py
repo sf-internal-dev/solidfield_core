@@ -12,7 +12,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.exceptions import ValidationError
 from unittest.mock import patch
-from backend.apps.core.workflow import get_workflow_for_tenant, has_permission_for_status
+from backend.common.service_order_status_workflow import get_workflow_for_tenant, has_permission_for_status
 class AllModelsTestCase(TestCase):
     def setUp(self):
         print("→ setUp: Criando dados de teste...")
