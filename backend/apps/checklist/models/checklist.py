@@ -24,28 +24,6 @@ class ChecklistTemplate(TenantOwnedModel, SoftDeletableModel):
     def __str__(self):
         return f"{self.name} v{self.version} ({self.service_type})"
 
-    def clean(self):
-        super().clean()
-
-        # Se for global, não pode ter grupos
-        if self.is_global:
-            # Se ainda não está salvo, não sabemos o M2M; o form/serializer deve validar.
-            if self.pk and self.aggroupments.exists():
-                raise ValidationError("Templates globais não podem estar ligados a aggroupments.")
-        else:
-            # Se não for global, precisa de pelo menos 1 grupo (quando possível checar)
-            if self.pk and not self.aggroupments.exists():
-                raise ValidationError("Templates não globais precisam de ao menos um aggroupment.")
-
-    def save(self, *args, **kwargs):
-        # Se marcar como global, limpe os vínculos depois de salvar
-        becoming_global = self.pk is not None and self.is_global
-        super().save(*args, **kwargs)
-        if becoming_global:
-            # Garante regra mesmo em escrituras diretas
-            self.aggroupments.clear()
-
-
 
 class ChecklistItemTemplate(BaseModel):
     template = models.ForeignKey(ChecklistTemplate, on_delete=models.CASCADE, related_name="itens")

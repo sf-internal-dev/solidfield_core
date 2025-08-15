@@ -1,4 +1,4 @@
-from typing import Optional, Any, List
+from typing import Optional, Tuple, List 
 from backend.apps.checklist.types import NUMERIC_TYPES
 
 # -> Parses raw options into a clean, unique, ordered list (comma or newline separated).
@@ -66,10 +66,14 @@ def unit_for_item(item) -> Optional[str]:
 # -> Returns True if the 'order' value is unique within the item's template.
 # Needed to keep a strict, non-conflicting step sequence inside one template.
 # Note: 'order' is the positional sequence (1, 2, 3, ...) of the question in the checklist.
-def has_unique_order_within_template(item) -> bool:
+def has_unique_order_within_template(item) -> Tuple[bool, List[str]]:
     if not item.pk:
-        return not item.template.itens.filter(order=item.order).exists()
-    return not item.template.itens.exclude(pk=item.pk).filter(order=item.order).exists()
+        exists = item.template.itens.filter(order=item.order).exists()
+    else:
+        exists = item.template.itens.exclude(pk=item.pk).filter(order=item.order).exists()
+    if exists:
+        return False, [f"Order {item.order} already exists in template '{item.template.id}'."]
+    return True, []
 
 # -> Returns the next available order number within a template (max(order)+1).
 # Needed when auto-assigning the sequence for a newly created item.
