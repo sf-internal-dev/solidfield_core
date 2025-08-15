@@ -1,9 +1,9 @@
 from backend.apps.checklist.utils.checklist_template_util import unit_for_item, has_unique_order_within_template, next_order_for_template
 from backend.apps.checklist.models.checklist import ChecklistItemTemplate, ChecklistTemplate
 from backend.apps.core.models.technician import TechniciansAggroupment, Technician
-from typing import List, Tuple, Optional
+from typing import Optional, List, Tuple, Iterable, Dict, Any
 from django.db.models import Max
-from django.db import transaction
+from django.db import transaction, IntegrityError
 
 
 def create_checklist_template(name: str, technician: Technician, service_type: str, is_global: bool):
@@ -32,18 +32,18 @@ def add_item_to_checklist_template(template: ChecklistTemplate, question: str, a
     if errors:
         return None, errors
 
-    item = ChecklistItemTemplate.objects.create(
-        template=template,
-        order=order,
-        question=question,
-        answer_type=answer_type,
-        required=is_required,
-        choice_options=choice_options
-    )
-
-    return item, errors
-
-
+    try:
+        item = ChecklistItemTemplate.objects.create(
+            template=template,
+            order=order,
+            question=question,
+            answer_type=answer_type,
+            required=is_required,
+            choice_options=choice_options or "",
+        )
+        return item, errors
+    except IntegrityError:
+        return None, [f"...:{order}"]
 
 @transaction.atomic
 def delegate_checklist_template_to_aggroupment(template: ChecklistTemplate, 
@@ -78,8 +78,9 @@ def remove_aggroupment_from_template(template: ChecklistTemplate,
 
 
 @transaction.atomic
-def update_checklist_template_version(template: ChecklistTemplate, deactivate_previous: bool = True, copy_items: bool = True,
-    copy_aggroupments: bool = True,) -> Tuple[Optional[ChecklistTemplate], List[str]]:
+def update_checklist_template_version(template: ChecklistTemplate,*,orders_to_remove: Optional[Iterable[int]] = None, 
+    items_to_add: Optional[Iterable[Dict[str, Any]]] = None,  copy_aggroupments: bool = True, deactivate_previous: bool = True,
+    ) -> Tuple[Optional[ChecklistTemplate], List[str]]:
 
     errors: List[str] = []
 
@@ -106,18 +107,37 @@ def update_checklist_template_version(template: ChecklistTemplate, deactivate_pr
         if ags:
             new_tpl.aggroupments.set(ags)
 
-    if copy_items:
-        ChecklistItemTemplate.objects.bulk_create([
-            ChecklistItemTemplate(
+    ChecklistItemTemplate.objects.bulk_create([
+        ChecklistItemTemplate(
+            template=new_tpl,
+            order=it.order,
+            question=it.question,
+            answer_type=it.answer_type,
+            required=it.required,
+            choice_options=it.choice_options or "",
+        )
+        for it in template.itens.all().order_by("order")
+    ])
+
+    if orders_to_remove:
+        for ord_ in orders_to_remove:
+            obj = new_tpl.itens.filter(order=ord_).first()
+            if not obj:
+                errors.append(f"item_not_found_by_order:{ord_}")
+                continue
+            obj.delete()
+
+    if items_to_add:
+        for payload in items_to_add:
+            item, errs = add_item_to_checklist_template(
                 template=new_tpl,
-                order=it.order,
-                question=it.question,
-                answer_type=it.answer_type,
-                required=it.required,
-                choice_options=it.choice_options or "",
+                question=(payload.get("question") or "").strip(),
+                answer_type=payload.get("answer_type"),
+                is_required=bool(payload.get("is_required", True)),
+                choice_options=payload.get("choice_options", "") or "",
+                order=payload.get("order"),
             )
-            for it in template.itens.all().order_by("order")
-        ])
+            errors.extend(errs)
 
     if deactivate_previous and template.is_active:
         template.is_active = False
