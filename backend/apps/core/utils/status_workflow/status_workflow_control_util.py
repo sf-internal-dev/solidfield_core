@@ -1,5 +1,5 @@
 from .status_workflow_label_util import generate_labels_for_workflow
-from backend.apps.core.workflow import DEFAULT_STATUS_WORKFLOW
+from backend.common.service_order_status_workflow import DEFAULT_STATUS_WORKFLOW
 from typing import Set
 
 def has_required_keys(workflow, required_keys):

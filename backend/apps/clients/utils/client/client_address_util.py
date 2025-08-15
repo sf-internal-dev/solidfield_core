@@ -2,7 +2,7 @@
 import re
 from typing import Optional
 from django.core.exceptions import ValidationError
-from backend.apps.address_values import US_STATES, CA_PROVINCES
+from backend.common.address_values import US_STATES, CA_PROVINCES
 
 # --- POSTAL/ZIP validators (boolean) ---
 def validate_postal_code(code: Optional[str], country: str) -> bool:

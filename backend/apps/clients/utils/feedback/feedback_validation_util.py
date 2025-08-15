@@ -1,6 +1,6 @@
 import re
 from collections import Counter
-from backend.i18n.keywords import STOPWORDS_EN, GENERIC_KEYWORDS_EN, GENERIC_KEYWORDS_DE
+from backend.common.feedback_keywords import STOPWORDS_EN, GENERIC_KEYWORDS_EN, GENERIC_KEYWORDS_DE
 
 def stars_given(stars: int, max_stars: int = 5):
     labels = {

@@ -1,4 +1,4 @@
-from backend.apps.core.workflow import DEFAULT_STATUS_WORKFLOW
+from backend.common.service_order_status_workflow import DEFAULT_STATUS_WORKFLOW
 
 # -> Returns the status workflow JSON for a given tenant
 # Falls back to DEFAULT_STATUS_WORKFLOW if the tenant has no custom workflow
