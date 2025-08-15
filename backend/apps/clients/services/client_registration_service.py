@@ -3,6 +3,11 @@ from backend.apps.clients.utils.client.client_registration_util import validate_
 from backend.apps.clients.models.client import Client, ClientAddress
 from typing import Tuple, List, Optional
 
+# -> Registers a client's document ID and phone number with validation
+# Validates the document ID and phone number based on the provided country
+# Updates each field individually only if validation passes
+# Appends error codes for any invalid fields without interrupting the process
+# Always returns the updated client object along with the list of errors
 def register_client_document_and_phone(client: Client, document_id:str, phone_number: str, country:str) -> Tuple[Client, List[str]]:
     errors = []
     
@@ -20,6 +25,11 @@ def register_client_document_and_phone(client: Client, document_id:str, phone_nu
 
     return client, errors
 
+# -> Registers a new address for a given client after validating all components
+# Validates postal code, region code, and geographic coordinates based on the country
+# If any validation fails, returns None along with the corresponding error codes
+# Creates and returns the address object if all validations pass
+# Returns the created address and an empty error list upon success
 def register_client_address(client: Client, code: str, state: str, country: str, lat: float,
         lng: float, label: str = None, street: str = None, number: str = None, 
         complement: str = None, neighborhood: str = None, city: str = None) -> Tuple[Optional[ClientAddress], List[str]]:
