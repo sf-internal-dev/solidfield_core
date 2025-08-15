@@ -129,33 +129,5 @@ class ChecklistItemAnswer(BaseModel):
     class Meta:
         unique_together = ("checklist", "item_template")
 
-    def clean(self):
-        type = self.item_template.answer_type
-
-        if type != "bool":
-            self.answer_bool = None
-        if type != "text":
-            self.answer_texto = None
-        if type != "number":
-            self.answer_number = None
-        if type != "choice":
-            self.answer_choice = None
-
-        if type == "bool" and self.answer_bool is None:
-            raise ValidationError("Answer needs to be Yes or No.")
-        if type == "text" and not self.answer_texto:
-            raise ValidationError("Text is Required.")
-        if type == "choice" and not self.answer_choice:
-            raise ValidationError("Choice is Required.")
-        
-        NUMERIC_TYPES = ["number", "degree", "length_cm", "width_cm", "height_cm", 
-                         "area_m2", "voltage", "temperature", "pressure"]
-
-        if type in NUMERIC_TYPES:
-            if self.answer_number is None and self.item_template.required:
-                raise ValidationError(f"Numeric answer required for field type '{type}'.")
-        else:
-            self.answer_number = None
-
     def __str__(self):
         return f"{self.checklist.filled_by} Answer for '{self.item_template.question[:30]}...'"

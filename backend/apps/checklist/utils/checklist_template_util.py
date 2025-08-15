@@ -1,5 +1,5 @@
 from typing import Optional, Any, List
-
+from backend.apps.checklist.types import NUMERIC_TYPES
 # -> Returns True if the template is global.
 # Needed when you must branch logic based on global vs scoped templates.
 """Very Important"""
@@ -69,18 +69,7 @@ def is_text_item(item) -> bool:
 # Needed to drive numeric validation and numeric UI widgets.
 """Very Important"""
 def is_number_item(item) -> bool:
-    return item.answer_type in {
-        "number", "degree",
-        # Metric
-        "length_cm", "width_cm", "height_cm", "area_m2", "volume_l", "weight_kg",
-        # Imperial
-        "length_in", "width_in", "height_in", "area_ft2", "volume_gal", "weight_lb",
-        # Electrical
-        "voltage", "current_amp", "frequency_hz", "power_w", "power_kw",
-        # Environmental
-        "temperature", "temperature_f", "pressure", "humidity_pct",
-        "speed_kmh", "speed_mph"
-    }
+    return item.answer_type in NUMERIC_TYPES
 
 # -> Returns True if the item is a single-choice field.
 # Needed to render/select from predefined options and validate membership.
