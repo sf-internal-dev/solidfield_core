@@ -3,15 +3,21 @@ from backend.apps.checklist.models.checklist import Checklist, ChecklistItemAnsw
 from backend.apps.core.models.technician import Technician
 from __future__ import annotations
 from typing import Optional, List, Tuple, Dict, Any, Iterable
-from django.db import transaction, IntegrityError
+from django.db import transaction
 
-
+#-> Creates a new checklist instance for a given template and technician
+# Associates the checklist with the provided template and filled_by technician
+# Returns the created checklist object along with any validation errors
 def create_checklist(*, template: ChecklistTemplate, filled_by: Technician) -> Tuple[Optional[Checklist], List[str]]:
    
     errors: List[str] = []
     checklist = Checklist.objects.create(template=template, filled_by=filled_by)
     return checklist, errors
 
+#-> Saves or updates a single checklist item answer for a given checklist
+# Determines the correct answer_* field based on the item's answer_type
+# Validates required field rules and choice option membership before saving
+# Updates existing answers, preserving only the expected field and note if provided
 @transaction.atomic
 def save_answer(*, checklist: Checklist, item_template: ChecklistItemTemplate, value: Any, note: str = "",
     ) -> Tuple[Optional[ChecklistItemAnswer], List[str]]:
@@ -50,6 +56,9 @@ def save_answer(*, checklist: Checklist, item_template: ChecklistItemTemplate, v
 
     return ans, errors
 
+# -> Deletes a checklist item answer from a given checklist
+# Locates the answer by checklist and item_template, returning an error if not found
+# Returns a success flag and any error messages
 @transaction.atomic
 def remove_answer(*, checklist: Checklist, item_template: ChecklistItemTemplate) -> Tuple[bool, List[str]]:
 
@@ -63,7 +72,9 @@ def remove_answer(*, checklist: Checklist, item_template: ChecklistItemTemplate)
     obj.delete()
     return True, errors
 
-
+# -> Identifies required checklist items that have not been answered
+# Compares checklist template items against existing answers
+# Returns a list of item_template IDs that are missing valid required values
 def list_missing_required_answers(*, checklist: Checklist) -> Tuple[List[int], List[str]]:
 
     errors: List[str] = []
@@ -90,7 +101,10 @@ def list_missing_required_answers(*, checklist: Checklist) -> Tuple[List[int], L
 
     return missing, errors
 
-
+# -> Saves multiple checklist item answers in a single transaction
+# Accepts a list of payloads containing item_template references, values, and notes
+# Resolves item_template IDs to objects and validates each before saving via save_answer
+# Returns a list of successfully saved answers and any accumulated validation errors
 @transaction.atomic
 def bulk_save_answers(*,checklist: Checklist, payloads: Iterable[Dict[str, Any]],) -> Tuple[List[ChecklistItemAnswer], List[str]]:
 
