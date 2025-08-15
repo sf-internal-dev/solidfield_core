@@ -8,25 +8,27 @@ from core.models.log import AuditLog
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.db import transaction
+from typing import Tuple, List
 
 # -> Delegates a permission level from a level 3 technician (L3) to another technician
 # Only L3 can assign levels; persists the change and logs the action
-def delegate_permission_level(delegator: Technician, delegate: Technician, level: str) -> bool:
+def delegate_permission_level(delegator: Technician, delegate: Technician, level: str)-> Tuple[bool, List[str]]:
     if delegator.technician_permission != "L3":
-        return False
+        return False, ["delegator_not_manager"]
     delegate.technician_permission = level
-    delegate.save()
+    delegate.save(update_fields=["technician_permission"])
     log_permission_level_delegation(delegator, delegate, level)
-    
-    return True
+    return True, []
 
 # -> Creates a temporary delegation of specific actions from one technician to another
 # Validates each action, persists the delegation and logs the event
 # Fails if technician attempts to delegate to themselves or invalid actions
 @transaction.atomic
 def create_temporary_delegation(from_user, to_user, actions: list[str], valid_from, valid_until):
+    errors: List[str] = []
+
     if from_user == to_user:
-        raise ValueError("Cannot delegate to oneself.")
+        return None, errors.append("tried_to_delegate_to_itself")
     
     delegation = TemporaryDelegation.objects.create(
         from_user=from_user,
@@ -43,13 +45,19 @@ def create_temporary_delegation(from_user, to_user, actions: list[str], valid_fr
                 DelegatedAction(delegation=delegation, action=action)
             )
         else:
-            raise ValueError(f"Action '{action}' cannot be delegated from {from_user} to {to_user}.")
+            return None, errors.append(f"invalid_action: {action}")
 
+    if not valid_actions:
+        errors.insert(0, "no_valid_actions")
+        return None, errors
+
+    for da in valid_actions:
+        da.delegation = delegation
     DelegatedAction.objects.bulk_create(valid_actions)
 
     log_temporary_delegation(delegation,actions)
 
-    return delegation
+    return delegation, errors
 
 # -> Checks if a technician has permission for a specific action
 # Returns True if permission is granted by level or via active delegation
