@@ -5,7 +5,9 @@ from typing import Optional, List, Tuple, Iterable, Dict, Any
 from django.db.models import Max
 from django.db import transaction, IntegrityError
 
-
+# -> Creates a new checklist template record with the given parameters
+# Associates the template with the creating technician and service type
+# Sets the global visibility flag as specified and returns the created object
 def create_checklist_template(name: str, technician: Technician, service_type: str, is_global: bool):
     checklist_template = ChecklistTemplate.objects.create(
         name = name,
@@ -16,6 +18,10 @@ def create_checklist_template(name: str, technician: Technician, service_type: s
 
     return checklist_template
 
+# -> Adds a new item to a given checklist template
+# Ensures order uniqueness within the template and assigns the next available order if not provided
+# Creates the item with provided question, type, requirement flag, and choice options
+# Returns the created item or validation errors if the order conflicts or constraints fail
 def add_item_to_checklist_template(template: ChecklistTemplate, question: str, answer_type: str, 
     is_required: bool, choice_options: str, order: int = None) -> Tuple[ChecklistItemTemplate, List[str]]:
     
@@ -45,6 +51,9 @@ def add_item_to_checklist_template(template: ChecklistTemplate, question: str, a
     except IntegrityError:
         return None, [f"...:{order}"]
 
+# -> Assigns a checklist template to a specific technician aggroupment
+# Converts a global template into a group-specific one if necessary
+# Adds the given aggroupment to the template and returns the updated object
 @transaction.atomic
 def delegate_checklist_template_to_aggroupment(template: ChecklistTemplate, 
     aggroupment: TechniciansAggroupment,) -> Tuple[Optional[ChecklistTemplate], List[str]]:
@@ -60,6 +69,9 @@ def delegate_checklist_template_to_aggroupment(template: ChecklistTemplate,
     template.aggroupments.add(aggroupment)
     return template, errors
 
+# -> Removes a technician aggroupment from a checklist template
+# Prevents removal if the template is global or if it would leave the template with no groups
+# Returns the updated template or an error if the removal would violate constraints
 @transaction.atomic
 def remove_aggroupment_from_template(template: ChecklistTemplate,
     aggroupment: TechniciansAggroupment,) -> Tuple[Optional[ChecklistTemplate], List[str]]:
@@ -76,7 +88,10 @@ def remove_aggroupment_from_template(template: ChecklistTemplate,
     template.aggroupments.remove(aggroupment)
     return template, errors
 
-
+# -> Creates a new version of a checklist template, optionally modifying its items
+# Copies all items from the previous version, then removes and/or adds items as specified
+# Optionally copies aggroupments and deactivates the previous template version
+# Returns the new template version and any accumulated validation errors
 @transaction.atomic
 def update_checklist_template_version(template: ChecklistTemplate,*,orders_to_remove: Optional[Iterable[int]] = None, 
     items_to_add: Optional[Iterable[Dict[str, Any]]] = None,  copy_aggroupments: bool = True, deactivate_previous: bool = True,
