@@ -152,246 +152,145 @@ function openDoc(type, id, title) {
   activate(tabId)
 }
 </script>
-
 <style scoped>
-/* ================= TOKENS ================= */
+/* =============== TOKENS & GRID =============== */
 .app-shell{
-  --topbar-h:56px;
-  --sidebar-w:80px;
+  /* tokens */
+  --topbar-h:56px; --sidebar-w:80px;
+  --surface:#fff; --ground:#f5f5f5;
+  --text:#0f172a; --muted:#6b7280; --side-bg:#0f172a;
 
-  --surface:#ffffff;        /* fundo da topbar e do conteúdo (para fundir a aba ativa) */
-  --ground:#f5f5f5;         /* fundo geral */
-  --text:#0f172a;
-  --muted:#6b7280;
+  /* tabs (browser) */
+  --tab-h:36px; --tab-pad-x:14px; --tab-radius:12px; --tab-gap:10px;
+  --tab-inactive-bg:#f5f5f5; --tab-inactive-fg:#111827; --tab-border:#d8dbe2;
+  --tab-active-bg:#FCC800;   --tab-active-fg:#111827;  --tab-active-border:#cfd3da;
 
-  --side-bg:#0f172a;
-
-  /* Tabs tipo navegador */
-  --tab-h:36px;
-  --tab-pad-x:14px;
-  --tab-radius:12px;        /* só no topo */
-  --tab-gap:10px;
-
-  --tab-inactive-bg:#f1f3f5;
-  --tab-inactive-fg:#111827;
-  --tab-border:#d8dbe2;
-
-  --tab-active-bg:var(--surface);
-  --tab-active-fg:#111827;
-  --tab-active-border:#cfd3da;
-}
-
-/* ================= GRID BASE ================= */
-.app-shell{
-  min-height:100vh;
+  /* layout */
+  min-height:100vh; width:100vw; height:100vh;
   display:grid;
-  grid-template-columns:var(--sidebar-w) 1fr;
+  grid-template-columns:var(--sidebar-w) minmax(0,1fr);
   grid-template-rows:var(--topbar-h) 1fr;
   grid-template-areas:
     "topbar topbar"
     "sidebar content";
   background:var(--ground);
-overflow: hidden;
-
+  overflow:hidden;
 }
 
-/* ================= TOPBAR ================= */
+/* =============== TOPBAR =============== */
 .topbar{
   grid-area:topbar;
   display:grid;
-  grid-template-columns:auto 1fr auto;  /* logo | tabs | ações */
-  align-items:center;
+  grid-template-columns:auto minmax(0,1fr) auto; /* logo | abas | ações */
+  align-items:center; gap:8px;
   background:var(--surface);
-  gap:8px;
-  padding:0 8px;
-  position:relative;
-  overflow: hidden;
+  padding:0 8px; position:relative; overflow:hidden;
 }
-
-.topbar .tab-btn,
-.topbar .tab-x {
-  outline: none;
-  -webkit-tap-highlight-color: transparent; /* mobile */
-}
-
 .top-left{display:flex;align-items:center;gap:8px;}
-.brand{
-  height:28px; width:auto; max-height:calc(100% - 8px);
-  object-fit:contain; display:block;
-}
-.top-actions{padding-right:4px;color:var(--muted);}
+.brand{ height:28px; width:auto; max-height:calc(100% - 8px); object-fit:contain; display:block; }
+.top-actions{ padding-right:4px; color:var(--muted); }
 
-/* ================= TABS — ESTILO NAVEGADOR ================= */
-/* faixa de abas colada à borda inferior da topbar */
+/* =============== TABS (NAVEGADOR) =============== */
+/* =============== TABS (NAVEGADOR) =============== */
 .topbar .tab-list{
   list-style:none; margin:0; padding:0 12px;
   height:var(--topbar-h);
   display:flex; align-items:flex-end; gap:var(--tab-gap);
-  overflow:auto;
+  min-width:0; white-space:nowrap; overflow-x:auto; overflow-y:hidden;
 }
 
-/* cada item envolve o botão + fechar */
 .topbar .tab-item{
   position:relative; display:inline-flex; align-items:center;
 }
 
-/* botão da aba: topo arredondado, base reta, sem borda inferior */
+/* topo arredondado + base reta, sem “pular” altura */
 .topbar .tab-btn{
   display:inline-flex; align-items:center; gap:10px;
-  height:var(--tab-h); padding:0 var(--tab-pad-x);
+  height:var(--tab-h);
+  padding:0 var(--tab-pad-x);
   background:var(--tab-inactive-bg);
   color:var(--tab-inactive-fg);
   border:1px solid var(--tab-border);
-  border-bottom:none;                         /* FUNDIR com a “meiota” */
+  border-bottom:0; /* base reta (funde com o conteúdo) */
   border-top-left-radius:var(--tab-radius);
   border-top-right-radius:var(--tab-radius);
   border-bottom-left-radius:0;
   border-bottom-right-radius:0;
-  cursor:pointer;
-
+  cursor:pointer; user-select:none;
   font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:.02em;
-  transition:background .15s,color .15s,box-shadow .15s,filter .15s;
-}
-.topbar .tab-btn:hover{ filter:brightness(.97); }
-
-/* ativa = mesma cor do conteúdo e esconde a borda da topbar por baixo */
-.topbar .tab-item.active .tab-btn{
-  background:var(--tab-active-bg);
-  color:var(--tab-active-fg);
-  border-color:var(--tab-active-border);
-  z-index:2;
-}
-
-/* “ponte” para cobrir a borda inferior da topbar sob a aba ativa (efeito fundido) */
-.topbar .tab-item.active::after{
-  content:"";
-  position:absolute; left:1px; right:1px; bottom:-1px;
-  height:1px; background:var(--surface);     /* mesmo fundo do conteúdo */
-  z-index:1;
-}
-
-.topbar .tab-title{white-space:nowrap;}
-
-/* botão de fechar ao lado da aba */
-.topbar .tab-close{
-  margin-left:-6px; margin-right:4px;        /* entra um pouco sobre a aba */
-  width:20px; height:20px;
-  display:grid; place-items:center;
-  border:0; background:transparent; color:inherit;
-  cursor:pointer; border-radius:10px;
-  transition:background .15s;
-}
-.topbar .tab-close:hover{ background:rgba(0,0,0,.08); }
-.topbar .tab-close i, .topbar .tab-close .fa{ font-size:.8rem; line-height:1; }
-
-/* --- Tabs tipo navegador (aba ativa “fundida” com o conteúdo) --- */
-.topbar {
-  --tab-h: 36px;
-  --tab-pad-x: 14px;
-  --tab-radius: 12px; /* só no topo */
-  --tab-gap: 10px;
-
-  --tab-inactive-bg: #f5f5f5;
-  --tab-inactive-fg: #111827;
-  --tab-border: #d8dbe2;
-
-  --tab-active-bg:  #FCC800;
-  --tab-active-fg: #111827;
-  --tab-active-border: #cfd3da;
-}
-
-.topbar .tab-list{
-  list-style:none; margin:0; padding:0 12px;
-  height: var(--topbar-h, 56px);
-  display:flex; align-items:flex-end; gap:var(--tab-gap);
-  overflow:auto;
-}
-
-.topbar .tab-item{ position:relative; display:inline-flex; align-items:center; }
-
-.topbar .tab-btn{
-  display:inline-flex; align-items:center; gap:10px;
-  height:var(--tab-h); padding:0 var(--tab-pad-x);
-  background:var(--tab-inactive-bg);
-  color:var(--tab-inactive-fg);
-  border:1px solid var(--tab-border);
-  border-bottom:none; /* “funde” com o conteúdo */
-  border-top-left-radius:var(--tab-radius);
-  border-top-right-radius:var(--tab-radius);
-  cursor:pointer;
-
-  font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:.02em;
-  transition:background .15s, color .15s, box-shadow .15s, filter .15s;
+  transition:background .15s,color .15s,box-shadow .15s,filter .15s,border-color .15s;
+  outline:none; -webkit-tap-highlight-color:transparent;
 }
 
 .topbar .tab-btn:hover{ filter:brightness(.97); }
 
+/* ativa = mesma altura, sem “cápsula”, fundida na base */
 .topbar .tab-item.active .tab-btn{
   background:var(--tab-active-bg);
   color:var(--tab-active-fg);
   border-color:var(--tab-active-border);
-  z-index:2;
+  box-shadow:none;
 }
 
-/* “ponte” pra cobrir a borda da topbar sob a aba ativa (efeito fundido) */
+/* “ponte” 1px para cobrir a borda inferior da topbar sob a aba ativa */
 .topbar .tab-item.active::after{
   content:"";
-  position:absolute; left:1px; right:1px; bottom:-1px;
-  height:1px; background:var(--surface, #fff);
+  position:absolute; left:1px; right:1px; bottom:-1px; height:1px;
+  background:var(--surface);
   z-index:1;
 }
 
 .topbar .tab-title{ white-space:nowrap; }
 
-/* --- X DENTRO DA ABA --- */
+/* X DENTRO da aba (não altera altura) */
 .topbar .tab-x{
-  margin-left: 8px;
-  width: 18px; height: 18px;
-  display: grid; place-items: center;
-  border-radius: 9px;
-  color: inherit;                  /* branco/escuro conforme a aba */
-  background: transparent;
-  cursor: pointer;
-  transition: background .15s;
+  margin-left:8px; width:18px; height:18px;
+  display:grid; place-items:center;
+  border-radius:9px; background:transparent; color:inherit;
+  cursor:pointer; transition:background .15s; outline:none;
 }
-.topbar .tab-x i, .topbar .tab-x .fa{ font-size: .8rem; line-height: 1; }
+.topbar .tab-x:hover{ background:rgba(0,0,0,.08); }
+.topbar .tab-x svg{ width:12px; height:12px; }
 
-/* ================= SIDEBAR ================= */
+/* sem linha/halo no click/focus */
+.topbar .tab-btn:focus, .topbar .tab-btn:active,
+.topbar .tab-x:focus,  .topbar .tab-x:active{
+  outline:none; box-shadow:none;
+}
+
+/* =============== SIDEBAR =============== */
 .sidebar{
-  grid-area:sidebar;
-  background:var(--side-bg); color:#fff;
+  grid-area:sidebar; background:var(--side-bg); color:#fff;
   display:flex; flex-direction:column; align-items:center;
   padding:12px 8px; gap:12px; border-right:1px solid rgba(0,0,0,.06);
 }
-.side-icons{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
-
+.side-icons{ display:flex; flex-direction:column; gap:8px; margin-top:4px; }
 .icon-btn{
-  width:52px;height:52px;border-radius:14px;
-  display:grid;place-items:center;
-  color:#cfd9e3;background:transparent;border:0;cursor:pointer;
+  width:52px; height:52px; border-radius:14px;
+  display:grid; place-items:center; color:#cfd9e3;
+  background:transparent; border:0; cursor:pointer;
   transition:background .15s,color .15s,transform .12s;
 }
-.icon-btn .fa{font-size:1.25rem;}
-.icon-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
-.icon-btn.active{background:rgba(255,255,255,.16);color:#fff;}
-.icon-btn.active .fa{font-size:1.3rem;}
+.icon-btn .fa{ font-size:1.25rem; }
+.icon-btn:hover{ background:rgba(255,255,255,.08); color:#fff; }
+.icon-btn.active{ background:rgba(255,255,255,.16); color:#fff; }
+.icon-btn.active .fa{ font-size:1.3rem; }
 
-/* ================= CONTEÚDO ================= */
-.content{ grid-area:content; padding:16px; background:var(--ground); }
+/* =============== CONTEÚDO =============== */
+.content{ grid-area:content; padding:16px; background:var(--ground); min-width:0; min-height:0; }
 .canvas{ width:100%; height:100%; }
 
-/* seu conteúdo pode ser livre; se quiser um “card” central:
-.square-frame{ background:#fff; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06); padding:24px; }
+/* se quiser um container central, descomente e ajuste:
+.square-frame{ width:100%; height:100%; background:#fff; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.06); padding:24px; }
 */
 
-/* ================= RESPONSIVO ================= */
+/* =============== RESPONSIVO =============== */
 @media (max-width:768px){
-  .app-shell{ grid-template-columns:64px 1fr; }
+  .app-shell{ grid-template-columns:64px minmax(0,1fr); }
   .brand{ height:44px; }
   .icon-btn{ width:44px; height:44px; }
 }
 </style>
-
 
 
 <!--
