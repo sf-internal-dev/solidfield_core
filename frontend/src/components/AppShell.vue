@@ -8,33 +8,37 @@
 
       <!-- Abas estilo navegador no centro -->
       <ul class="tab-list" role="tablist" aria-label="Open views">
-        <li
-          v-for="t in tabs"
-          :key="t.id"
-          class="tab-item"
-          :class="{ active: t.id === activeId }"
-          role="presentation"
-        >
-          <button
-            class="tab-btn"
-            role="tab"
-            :aria-selected="t.id === activeId"
-            :tabindex="t.id === activeId ? 0 : -1"
-            @click="activate(t.id)"
-          >
-            <i :class="t.icon" aria-hidden="true" />
-            <span class="tab-title">{{ t.title }}</span>
-          </button>
-          <button
-            v-if="t.closable"
-            class="tab-close"
-            @click="closeTab(t.id)"
-            aria-label="Close tab"
-          >
-            <i class="pi pi-times" />
-          </button>
-        </li>
-      </ul>
+  <li
+    v-for="t in tabs"
+    :key="t.id"
+    class="tab-item"
+    :class="{ active: t.id === activeId }"
+    role="presentation"
+  >
+    <button
+      class="tab-btn"
+      role="tab"
+      :aria-selected="t.id === activeId"
+      :tabindex="t.id === activeId ? 0 : -1"
+      @click="activate(t.id)"
+    >
+      <Fa :icon="t.icon || ['fas','house']" class="fa" />
+      <span class="tab-title">{{ t.title }}</span>
+
+      <!-- X DENTRO da aba -->
+      <span
+        v-if="t.closable"
+        class="tab-x"
+        role="button"
+        aria-label="Close tab"
+        @click.stop="closeTab(t.id)"
+      >
+        <Fa :icon="['fas','xmark']" />
+      </span>
+    </button>
+  </li>
+</ul>
+
 
       <div class="top-actions">
         <!-- ações (perfil, notificações, etc.) -->
@@ -45,14 +49,14 @@
     <aside class="sidebar">
       <nav class="side-icons" aria-label="Primary navigation">
         <button
-          v-for="item in sideItems"
-          :key="item.key"
-          class="icon-btn"
-          :class="{ active: activeKey === item.key }"
-          @click="openFromSidebar(item.key)"
-          :title="item.label"
-        >
-          <i :class="item.icon" />
+            v-for="item in sideItems"
+            :key="item.key"
+            class="icon-btn"
+            :class="{ active: activeKey === item.key }"
+            @click="openFromSidebar(item.key)"
+            :title="item.label"
+            >
+            <Fa :icon="item.icon" :fixed-width="true" class="fa" />
         </button>
       </nav>
     </aside>
@@ -74,10 +78,10 @@ import { ref, computed } from 'vue'
 
 /** Ícones da sidebar (apenas um por “seção” de alto nível) */
 const sideItems = [
-  { key: 'home',      label: 'Home',        icon: 'pi pi-home' },
-  { key: 'orders',    label: 'Work Orders', icon: 'pi pi-clipboard' },
-  { key: 'customers', label: 'Customers',   icon: 'pi pi-users' },
-  { key: 'settings',  label: 'Settings',    icon: 'pi pi-cog' }
+  { key: 'home',      label: 'Home',        icon: ['fas', 'house'] },
+  { key: 'orders',    label: 'Work Orders', icon: ['fas', 'clipboard-list'] },
+  { key: 'customers', label: 'Customers',   icon: ['fas', 'users'] },
+  { key: 'settings',  label: 'Settings',    icon: ['fas', 'gear'] },
 ]
 
 /** Pedaços de UI (demos). Em prod, troque por imports de componentes reais. */
@@ -149,107 +153,246 @@ function openDoc(type, id, title) {
 }
 </script>
 
-
 <style scoped>
-/* ====== Grid base com áreas nomeadas ====== */
-.app-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 80px 1fr;         /* sidebar | conteúdo */
-  grid-template-rows: 56px 1fr;            /* topbar | resto     */
+/* ================= TOKENS ================= */
+.app-shell{
+  --topbar-h:56px;
+  --sidebar-w:80px;
+
+  --surface:#ffffff;        /* fundo da topbar e do conteúdo (para fundir a aba ativa) */
+  --ground:#f5f5f5;         /* fundo geral */
+  --text:#0f172a;
+  --muted:#6b7280;
+
+  --side-bg:#0f172a;
+
+  /* Tabs tipo navegador */
+  --tab-h:36px;
+  --tab-pad-x:14px;
+  --tab-radius:12px;        /* só no topo */
+  --tab-gap:10px;
+
+  --tab-inactive-bg:#f1f3f5;
+  --tab-inactive-fg:#111827;
+  --tab-border:#d8dbe2;
+
+  --tab-active-bg:var(--surface);
+  --tab-active-fg:#111827;
+  --tab-active-border:#cfd3da;
+}
+
+/* ================= GRID BASE ================= */
+.app-shell{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:var(--sidebar-w) 1fr;
+  grid-template-rows:var(--topbar-h) 1fr;
   grid-template-areas:
-    "topbar  topbar"
+    "topbar topbar"
     "sidebar content";
-  background: #f5f5f5;
+  background:var(--ground);
+overflow: hidden;
+
 }
 
-/* ====== Topbar ====== */
+/* ================= TOPBAR ================= */
+.topbar{
+  grid-area:topbar;
+  display:grid;
+  grid-template-columns:auto 1fr auto;  /* logo | tabs | ações */
+  align-items:center;
+  background:var(--surface);
+  gap:8px;
+  padding:0 8px;
+  position:relative;
+  overflow: hidden;
+}
+
+.topbar .tab-btn,
+.topbar .tab-x {
+  outline: none;
+  -webkit-tap-highlight-color: transparent; /* mobile */
+}
+
+.top-left{display:flex;align-items:center;gap:8px;}
+.brand{
+  height:28px; width:auto; max-height:calc(100% - 8px);
+  object-fit:contain; display:block;
+}
+.top-actions{padding-right:4px;color:var(--muted);}
+
+/* ================= TABS — ESTILO NAVEGADOR ================= */
+/* faixa de abas colada à borda inferior da topbar */
+.topbar .tab-list{
+  list-style:none; margin:0; padding:0 12px;
+  height:var(--topbar-h);
+  display:flex; align-items:flex-end; gap:var(--tab-gap);
+  overflow:auto;
+}
+
+/* cada item envolve o botão + fechar */
+.topbar .tab-item{
+  position:relative; display:inline-flex; align-items:center;
+}
+
+/* botão da aba: topo arredondado, base reta, sem borda inferior */
+.topbar .tab-btn{
+  display:inline-flex; align-items:center; gap:10px;
+  height:var(--tab-h); padding:0 var(--tab-pad-x);
+  background:var(--tab-inactive-bg);
+  color:var(--tab-inactive-fg);
+  border:1px solid var(--tab-border);
+  border-bottom:none;                         /* FUNDIR com a “meiota” */
+  border-top-left-radius:var(--tab-radius);
+  border-top-right-radius:var(--tab-radius);
+  border-bottom-left-radius:0;
+  border-bottom-right-radius:0;
+  cursor:pointer;
+
+  font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:.02em;
+  transition:background .15s,color .15s,box-shadow .15s,filter .15s;
+}
+.topbar .tab-btn:hover{ filter:brightness(.97); }
+
+/* ativa = mesma cor do conteúdo e esconde a borda da topbar por baixo */
+.topbar .tab-item.active .tab-btn{
+  background:var(--tab-active-bg);
+  color:var(--tab-active-fg);
+  border-color:var(--tab-active-border);
+  z-index:2;
+}
+
+/* “ponte” para cobrir a borda inferior da topbar sob a aba ativa (efeito fundido) */
+.topbar .tab-item.active::after{
+  content:"";
+  position:absolute; left:1px; right:1px; bottom:-1px;
+  height:1px; background:var(--surface);     /* mesmo fundo do conteúdo */
+  z-index:1;
+}
+
+.topbar .tab-title{white-space:nowrap;}
+
+/* botão de fechar ao lado da aba */
+.topbar .tab-close{
+  margin-left:-6px; margin-right:4px;        /* entra um pouco sobre a aba */
+  width:20px; height:20px;
+  display:grid; place-items:center;
+  border:0; background:transparent; color:inherit;
+  cursor:pointer; border-radius:10px;
+  transition:background .15s;
+}
+.topbar .tab-close:hover{ background:rgba(0,0,0,.08); }
+.topbar .tab-close i, .topbar .tab-close .fa{ font-size:.8rem; line-height:1; }
+
+/* --- Tabs tipo navegador (aba ativa “fundida” com o conteúdo) --- */
 .topbar {
-  grid-area: topbar;
-  display: grid;
-  grid-template-columns: auto 1fr auto;    /* logo | abas | ações */
-  align-items: center;
-  gap: 8px;
-  background: #ffffff;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  padding: 0 8px;
+  --tab-h: 36px;
+  --tab-pad-x: 14px;
+  --tab-radius: 12px; /* só no topo */
+  --tab-gap: 10px;
+
+  --tab-inactive-bg: #f5f5f5;
+  --tab-inactive-fg: #111827;
+  --tab-border: #d8dbe2;
+
+  --tab-active-bg:  #FCC800;
+  --tab-active-fg: #111827;
+  --tab-active-border: #cfd3da;
 }
 
-.top-left {
-  display: flex; align-items: center; gap: 8px;
-}
-.brand {
-  height: 28px;           /* experimente 48–52px; cabe numa topbar de 56px */
-  width: auto;            /* mantém proporção 1088x227 */
-  max-height: calc(100% - 8px); /* evita encostar nas bordas da topbar */
-  max-width: min(260px, 40vw);  /* não deixa a logo esmagar as abas */
-  object-fit: contain;
-  display: block;
+.topbar .tab-list{
+  list-style:none; margin:0; padding:0 12px;
+  height: var(--topbar-h, 56px);
+  display:flex; align-items:flex-end; gap:var(--tab-gap);
+  overflow:auto;
 }
 
-/* Abas estilo navegador */
-.tab-list {
-  list-style: none; margin: 0; padding: 0 8px;
-  display: flex; gap: 6px; overflow: auto;
-}
-.tab-item {
-  display: flex; align-items: stretch; gap: 2px;
-  border-radius: 10px; background: transparent;
-}
-.tab-item.active { background: rgba(0,0,0,0.04); }
-.tab-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 12px; border: 0; background: transparent; border-radius: 10px;
-  color: var(--text-color, #111827); cursor: pointer;
-}
-.tab-btn:hover { background: rgba(0,0,0,0.05); }
-.tab-title { white-space: nowrap; }
-.tab-close {
-  border: 0; background: transparent; cursor: pointer;
-  color: #6b7280; padding: 0 8px; border-radius: 8px;
-}
-.tab-close:hover { background: rgba(0,0,0,0.08); color: #111827; }
-.top-actions { padding-right: 4px; }
+.topbar .tab-item{ position:relative; display:inline-flex; align-items:center; }
 
-/* ====== Sidebar ====== */
-.sidebar {
-  grid-area: sidebar;
-  background: #ffffff;
-  color: #fff;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 12px 8px; gap: 12px;
-  border-right: 1px solid rgba(0,0,0,0.06);
-}
-.side-icons { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-.icon-btn {
-  width: 48px; height: 48px;
-  border: 0; border-radius: 12px;
-  background: transparent; color: #cfd9e3;
-  display: grid; place-items: center; cursor: pointer;
-}
-.icon-btn:hover { background: rgba(255,255,255,0.08); color: #071039; }
-.icon-btn.active { background: rgba(255,255,255,0.16); color: #0e0c27; }
+.topbar .tab-btn{
+  display:inline-flex; align-items:center; gap:10px;
+  height:var(--tab-h); padding:0 var(--tab-pad-x);
+  background:var(--tab-inactive-bg);
+  color:var(--tab-inactive-fg);
+  border:1px solid var(--tab-border);
+  border-bottom:none; /* “funde” com o conteúdo */
+  border-top-left-radius:var(--tab-radius);
+  border-top-right-radius:var(--tab-radius);
+  cursor:pointer;
 
-/* ====== Conteúdo ====== */
-.content { grid-area: content; padding: 16px; }
-.canvas  { width: 100%; height: 100%; display: grid; place-items: center; }
-.square-frame {
-  aspect-ratio: 1 / 1;
-  width: min(90vmin, 900px);
-  background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-  display: grid; place-items: center; padding: 24px;
-}
-.pane { text-align: center; }
-.pane h2 { margin: 0 0 8px; font-size: 1.25rem; }
-
-/* ====== Responsivo ====== */
-@media (max-width: 768px) {
-  .app-shell { grid-template-columns: 64px 1fr; }
-  .brand { width: 104px;  }
-  .icon-btn { width: 44px; height: 44px; }
+  font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:.02em;
+  transition:background .15s, color .15s, box-shadow .15s, filter .15s;
 }
 
+.topbar .tab-btn:hover{ filter:brightness(.97); }
+
+.topbar .tab-item.active .tab-btn{
+  background:var(--tab-active-bg);
+  color:var(--tab-active-fg);
+  border-color:var(--tab-active-border);
+  z-index:2;
+}
+
+/* “ponte” pra cobrir a borda da topbar sob a aba ativa (efeito fundido) */
+.topbar .tab-item.active::after{
+  content:"";
+  position:absolute; left:1px; right:1px; bottom:-1px;
+  height:1px; background:var(--surface, #fff);
+  z-index:1;
+}
+
+.topbar .tab-title{ white-space:nowrap; }
+
+/* --- X DENTRO DA ABA --- */
+.topbar .tab-x{
+  margin-left: 8px;
+  width: 18px; height: 18px;
+  display: grid; place-items: center;
+  border-radius: 9px;
+  color: inherit;                  /* branco/escuro conforme a aba */
+  background: transparent;
+  cursor: pointer;
+  transition: background .15s;
+}
+.topbar .tab-x i, .topbar .tab-x .fa{ font-size: .8rem; line-height: 1; }
+
+/* ================= SIDEBAR ================= */
+.sidebar{
+  grid-area:sidebar;
+  background:var(--side-bg); color:#fff;
+  display:flex; flex-direction:column; align-items:center;
+  padding:12px 8px; gap:12px; border-right:1px solid rgba(0,0,0,.06);
+}
+.side-icons{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+
+.icon-btn{
+  width:52px;height:52px;border-radius:14px;
+  display:grid;place-items:center;
+  color:#cfd9e3;background:transparent;border:0;cursor:pointer;
+  transition:background .15s,color .15s,transform .12s;
+}
+.icon-btn .fa{font-size:1.25rem;}
+.icon-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+.icon-btn.active{background:rgba(255,255,255,.16);color:#fff;}
+.icon-btn.active .fa{font-size:1.3rem;}
+
+/* ================= CONTEÚDO ================= */
+.content{ grid-area:content; padding:16px; background:var(--ground); }
+.canvas{ width:100%; height:100%; }
+
+/* seu conteúdo pode ser livre; se quiser um “card” central:
+.square-frame{ background:#fff; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06); padding:24px; }
+*/
+
+/* ================= RESPONSIVO ================= */
+@media (max-width:768px){
+  .app-shell{ grid-template-columns:64px 1fr; }
+  .brand{ height:44px; }
+  .icon-btn{ width:44px; height:44px; }
+}
 </style>
+
+
 
 <!--
 USO:
