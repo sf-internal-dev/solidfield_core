@@ -183,14 +183,13 @@ function openDoc(type, id, title) {
   display:grid;
   grid-template-columns:auto minmax(0,1fr) auto; /* logo | abas | ações */
   align-items:center; gap:8px;
-  background:var(--surface);
+  background:#0f172a;
   padding:0 8px; position:relative; overflow:hidden;
 }
 .top-left{display:flex;align-items:center;gap:8px;}
 .brand{ height:28px; width:auto; max-height:calc(100% - 8px); object-fit:contain; display:block; }
 .top-actions{ padding-right:4px; color:var(--muted); }
 
-/* =============== TABS (NAVEGADOR) =============== */
 /* =============== TABS (NAVEGADOR) =============== */
 .topbar .tab-list{
   list-style:none; margin:0; padding:0 12px;
@@ -210,7 +209,8 @@ function openDoc(type, id, title) {
   padding:0 var(--tab-pad-x);
   background:var(--tab-inactive-bg);
   color:var(--tab-inactive-fg);
-  border:1px solid var(--tab-border);
+  border: 1px solid transparent !important;
+
   border-bottom:0; /* base reta (funde com o conteúdo) */
   border-top-left-radius:var(--tab-radius);
   border-top-right-radius:var(--tab-radius);
@@ -259,22 +259,41 @@ function openDoc(type, id, title) {
 }
 
 /* =============== SIDEBAR =============== */
+/* =============== SIDEBAR (alinhamento dos ícones) =============== */
 .sidebar{
   grid-area:sidebar; background:var(--side-bg); color:#fff;
   display:flex; flex-direction:column; align-items:center;
   padding:12px 8px; gap:12px; border-right:1px solid rgba(0,0,0,.06);
 }
-.side-icons{ display:flex; flex-direction:column; gap:8px; margin-top:4px; }
-.icon-btn{
-  width:52px; height:52px; border-radius:14px;
-  display:grid; place-items:center; color:#cfd9e3;
-  background:transparent; border:0; cursor:pointer;
-  transition:background .15s,color .15s,transform .12s;
+.side-icons{
+  display:flex; flex-direction:column; gap:8px; margin-top:4px;
+  align-items:center;                 /* garante coluna reta */
 }
-.icon-btn .fa{ font-size:1.25rem; }
+
+.icon-btn{
+  width:52px; height:52px; padding:0; /* caixa fixa */
+  border-radius:14px;
+  display:grid; place-items:center;   /* centro perfeito */
+  color:#cfd9e3;
+  background:transparent; border:0; cursor:pointer;
+  transition:background .15s,color .15s;
+}
+
+/* O <Fa> rende um <svg>; normalize o box do SVG pra não “dançar” */
+.icon-btn .fa,
+.icon-btn :deep(svg){
+  display:block;                      /* tira baseline */
+  width:22px; height:22px;            /* tamanho fixo */
+  transform:translate(0,0);           /* sem deslocamentos */
+  transform-box:fill-box; transform-origin:center;
+}
+
+/* estado hover/active sem mudar tamanho do ícone */
 .icon-btn:hover{ background:rgba(255,255,255,.08); color:#fff; }
 .icon-btn.active{ background:rgba(255,255,255,.16); color:#fff; }
-.icon-btn.active .fa{ font-size:1.3rem; }
+
+/* se quiser leve destaque no ativo sem mexer no alinhamento, use um halo: */
+.icon-btn.active :deep(svg){ filter: drop-shadow(0 0 0 rgba(0,0,0,0)); } /* opcional, neutro */
 
 /* =============== CONTEÚDO =============== */
 .content{ grid-area:content; padding:16px; background:var(--ground); min-width:0; min-height:0; }
