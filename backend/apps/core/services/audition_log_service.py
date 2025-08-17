@@ -1,9 +1,9 @@
 from backend.apps.core.models import Technician, TemporaryDelegation
-from backend.apps.orders.models import ServiceOrder, ServiceOrderDownloadLink
+from backend.apps.orders.models import WorkOrder, WorkOrderDownloadLink
 from backend.apps.checklist.models import Checklist, ChecklistTemplate, ChecklistItemTemplate, ChecklistItemAnswer
-from backend.apps.filehub.models import ServiceOrderPhoto, ServiceOrderSignature
+from backend.apps.filehub.models import WorkOrderPhoto, WorkOrderSignature
 from backend.apps.clients.models import Client, ClientAddress, ClientFeedback, FeedbackLink
-from backend.apps.core.schemas import AUDIT_LOG_ACTION_SCHEMA
+from backend.common.schemas.audition_log_schemas import AUDIT_LOG_ACTION_SCHEMA
 from backend.apps.core.utils.audition_log.audition_log_util import log_audit_action
 from django.utils import timezone
 
@@ -52,126 +52,126 @@ def log_revoke_temporary_delegation(delegation: TemporaryDelegation):
         }
     )
 
-""" Service Order """
-# -> Logs the creation of a service order
+""" Work Order """
+# -> Logs the creation of a Work order
 # Includes order identifier and creation date
-def log_service_order_creation(service_order: ServiceOrder):
+def log_work_order_creation(work_order: WorkOrder):
     log_audit_action(
-        technician=service_order.created_by,
-        action="service_order_creation",
-        object_instance=service_order,
+        technician=work_order.created_by,
+        action="work_order_creation",
+        object_instance=work_order,
         data={
-            "order_id": service_order.identifier,
+            "order_id": work_order.identifier,
             "timestamp": timezone.now().isoformat(),
         }
     )
 
-# -> Logs the first assignment of a service order to a technician
+# -> Logs the first assignment of a Work order to a technician
 # Includes order identifier assigned technician
-def log_service_order_assignment(service_order: ServiceOrder, technician: Technician):
+def log_work_order_assignment(work_order: WorkOrder, technician: Technician):
     log_audit_action(
-        technician=service_order.created_by,
-        action="service_order_assignment",
-        object_instance=service_order,
+        technician=work_order.created_by,
+        action="work_order_assignment",
+        object_instance=work_order,
         data={
-            "order_id": service_order.identifier,
+            "order_id": work_order.identifier,
             "assigned_technician":technician,
         }
     )
 
-# -> Logs the reassignment of a service order to a new technician
+# -> Logs the reassignment of a Work order to a new technician
 # Includes order identifier, old and new technician assigned
-def log_service_order_reassignment(service_order: ServiceOrder, current_technician: Technician, new_technician):
+def log_work_order_reassignment(work_order: WorkOrder, current_technician: Technician, new_technician):
     log_audit_action(
-        technician=service_order.created_by,
-        action="service_order_reassignment",
-        object_instance=service_order,
+        technician=work_order.created_by,
+        action="work_order_reassignment",
+        object_instance=work_order,
         data={
-            "order_id": service_order.identifier,
+            "order_id": work_order.identifier,
             "old_technician":current_technician,
             "new_technician":new_technician,
         }
     )
 
-# -> Logs the management-level validation of a finalizes service order
+# -> Logs the management-level validation of a finalizes Work order
 # Includes order identified and validation date
-def log_service_order_validation(service_order: ServiceOrder):
+def log_work_order_validation(work_order: WorkOrder):
     log_audit_action(
-        technician=service_order.created_by,
-        action="service_order_validation",
-        object_instance=service_order,
+        technician=work_order.created_by,
+        action="work_order_validation",
+        object_instance=work_order,
         data={
-            "order_id": service_order.identifier,
+            "order_id": work_order.identifier,
             "timestamp": timezone.now().isoformat(),
         }
     )
 
 
-# -> Logs a service order status transition
+# -> Logs a Work order status transition
 # Includes previous and new status in the audit context
-def log_service_order_status_transition(service_order: ServiceOrder, new_status: str):
+def log_work_order_status_transition(work_order: WorkOrder, new_status: str):
     return log_audit_action(
-        technician=service_order.technician,
+        technician=work_order.technician,
         action="status_transition",
-        object_instance=service_order,
+        object_instance=work_order,
         data={
-            "order_id": service_order.identifier,
-            "from": service_order.status, 
+            "order_id": work_order.identifier,
+            "from": work_order.status, 
             "to": new_status
         }
     )
 
-""" Service Order Download Link """
-# -> Logs the creation of a service order
+""" Work Order Download Link """
+# -> Logs the creation of a Work order
 # Includes order id, download link key and generation purpose
-def log_service_order_download_link_creation(service_order_download_link: ServiceOrderDownloadLink):
+def log_work_order_download_link_creation(work_order_download_link: WorkOrderDownloadLink):
     log_audit_action(
-        technician=service_order_download_link.service_order.from_user,
-        action="service_order_download_link_creation",
-        object_instance=service_order_download_link,
+        technician=work_order_download_link.work_order.from_user,
+        action="work_order_download_link_creation",
+        object_instance=work_order_download_link,
         data={
-            "order_id": service_order_download_link.service_order.identifier,
-            "key":service_order_download_link.key,
-            "purpose":service_order_download_link.purpose
+            "order_id": work_order_download_link.work_order.identifier,
+            "key":work_order_download_link.key,
+            "purpose":work_order_download_link.purpose
         }
     )
 
-# -> Logs the creation of a service order
+# -> Logs the creation of a Work order
 # Includes download link key for pdf generation
-def log_service_order_pdf_generation(service_order_download_link: ServiceOrderDownloadLink):
+def log_work_order_pdf_generation(work_order_download_link: WorkOrderDownloadLink):
     log_audit_action(
-        technician=service_order_download_link.service_order.from_user,
-        action="service_order_pdf_generation",
-        object_instance=service_order_download_link,
+        technician=work_order_download_link.work_order.from_user,
+        action="work_order_pdf_generation",
+        object_instance=work_order_download_link,
         data={
-            "key":service_order_download_link.key,
+            "key":work_order_download_link.key,
         }
     )
 
-""" Service Order Files """
+""" Work Order Files """
 
-# -> Logs the upload of a audit photo to a service order
+# -> Logs the upload of a audit photo to a Work order
 # Includes order identifier and act timestamp
-def log_service_order_photo_upload(service_order_photo: ServiceOrderPhoto):
+def log_work_order_photo_upload(work_order_photo: WorkOrderPhoto):
     log_audit_action(
-        technician=service_order_photo.service_order.from_user,
-        action="service_order_pdf_generation",
-        object_instance=service_order_photo,
+        technician=work_order_photo.work_order.from_user,
+        action="work_order_pdf_generation",
+        object_instance=work_order_photo,
         data={
-            "order_id": service_order_photo.service_order.identifier,
+            "order_id": work_order_photo.work_order.identifier,
             "timestamp": timezone.now().isoformat(),
         }
     )
 
-# -> Logs the upload of a client signature to a service order
+# -> Logs the upload of a client signature to a Work order
 # Includes order identifier, client name and act timestamp
-def log_service_order_client_signature_upload(service_order_signature: ServiceOrderSignature, client_name: str):
+def log_work_order_client_signature_upload(work_order_signature: WorkOrderSignature, client_name: str):
     log_audit_action(
-        technician=service_order_signature.service_order.from_user,
-        action="service_order_pdf_generation",
-        object_instance=service_order_signature,
+        technician=work_order_signature.work_order.from_user,
+        action="work_order_pdf_generation",
+        object_instance=work_order_signature,
         data={
-            "order_id": service_order_signature.service_order.identifier,
+            "order_id": work_order_signature.work_order.identifier,
             "timestamp": timezone.now().isoformat(),
             "client_name":client_name,
         }   
@@ -182,23 +182,23 @@ def log_service_order_client_signature_upload(service_order_signature: ServiceOr
 # Includes order identifier
 def log_feedback_request_generation(client_feedback_link: FeedbackLink):
     log_audit_action(
-        technician=client_feedback_link.service_order.technician,
+        technician=client_feedback_link.work_order.technician,
         action="feedback_request_generation",
         object_instance=client_feedback_link,
         data = {
-            "order_id": client_feedback_link.service_order.identifier,
+            "order_id": client_feedback_link.work_order.identifier,
         }
     )
 
-# -> Logs the feedback received for a service execution
+# -> Logs the feedback received for a Work execution
 # Includes order identifier
-def log_service_order_feedback_received(client_feedback: ClientFeedback, feedback_label: str):
+def log_work_order_feedback_received(client_feedback: ClientFeedback, feedback_label: str):
      log_audit_action(
-        technician=client_feedback.service_order.technician,
-        action="service_order_feedback_received",
+        technician=client_feedback.work_order.technician,
+        action="work_order_feedback_received",
         object_instance=client_feedback,
         data = {
-            "order_id": client_feedback.service_order.identifier,
+            "order_id": client_feedback.work_order.identifier,
             "feedback_label": feedback_label,
         }
     )
@@ -222,11 +222,11 @@ def log_offline_sync_event(sync_event: str, items_synced: list):
 
 
 """ Checklist & Template """
-# -> Logs the checklist submission to a service order
+# -> Logs the checklist submission to a Work order
 # Includes timestamp
 def log_checklist_submission(checklist: Checklist):
     log_audit_action(
-        technician=checklist.template.service_order.technician,
+        technician=checklist.template.work_order.technician,
         action="checklist_submission",
         object_instance=checklist,
         data = {
@@ -238,7 +238,7 @@ def log_checklist_submission(checklist: Checklist):
 # Includes template name and version
 def log_template_version_update(checklist_template: ChecklistTemplate):
     log_audit_action(
-        technician=checklist_template.service_order.technician,
+        technician=checklist_template.work_order.technician,
         action="template_version_update",
         object_instance=checklist_template,
         data = {
