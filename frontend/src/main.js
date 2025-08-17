@@ -11,12 +11,11 @@ import 'primeflex/primeflex.css'
 // import 'primevue/resources/themes/lara-light-blue/theme.css'
 import './assets/base.css'
 import '@fontsource-variable/inter';
-import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faGripVertical, faXmark, faHouse, faClipboardList, faUsers, faGear } from '@fortawesome/free-solid-svg-icons'
 
 // importe só o que for usar (solid = “mais gordo”)
-import {   faHouse, faClipboardList, faUsers, faGear, faXmark } from '@fortawesome/free-solid-svg-icons'
-
 // adiciona à lib
 
 const pinia = createPinia()
@@ -27,7 +26,7 @@ app.use(PrimeVue, {
     preset: Aura
   }
 })
-library.add(faHouse, faClipboardList, faUsers, faGear, faXmark)
+library.add(faGripVertical, faXmark, faHouse, faClipboardList, faUsers, faGear)
 
 app.component('Fa', FontAwesomeIcon) // você usará <Fa />
 
