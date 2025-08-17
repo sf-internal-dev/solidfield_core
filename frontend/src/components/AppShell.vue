@@ -108,9 +108,9 @@ function openFromSidebar(key) {
 
   const cfg = {
     home:      { title: 'Home',        icon: 'pi pi-home',      component: panes.HomePane,      closable: false },
-    orders:    { title: 'Service Orders', icon: 'pi pi-clipboard', component: panes.OrdersPane,    closable: true  },
+    orders:    { title: 'Work Orders', icon: 'pi pi-clipboard', component: panes.OrdersPane,    closable: true  },
     customers: { title: 'Technicians',   icon: 'pi pi-users',     component: panes.CustomersPane, closable: true  },
-    settings:  { title: 'Service Order #SO01534',    icon: 'pi pi-cog',       component: panes.SettingsPane,  closable: true  },
+    settings:  { title: 'Work Order #WO01534',    icon: 'pi pi-cog',       component: panes.SettingsPane,  closable: true  },
   }[key]
   if (!cfg) return
 
