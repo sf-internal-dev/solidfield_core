@@ -14,6 +14,8 @@ import '@fontsource-variable/inter';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faGripVertical, faXmark, faHouse, faClipboardList, faUsers, faGear } from '@fortawesome/free-solid-svg-icons'
+import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
+import 'flag-icons/css/flag-icons.min.css'
 
 // importe só o que for usar (solid = “mais gordo”)
 // adiciona à lib
@@ -27,6 +29,7 @@ app.use(PrimeVue, {
   }
 })
 library.add(faGripVertical, faXmark, faHouse, faClipboardList, faUsers, faGear)
+library.add(faAngleDown)
 
 app.component('Fa', FontAwesomeIcon) // você usará <Fa />
 
