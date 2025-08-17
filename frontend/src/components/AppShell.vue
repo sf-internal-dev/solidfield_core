@@ -63,8 +63,22 @@
 
 
       <div class="top-actions">
-        <!-- ações (perfil, notificações, etc.) -->
+        <div class="lang-switch" @keydown.esc="langMenuOpen=false">
+          <button class="lang-btn" type="button" @click="toggleLangMenu">
+            <span class="fi" :class="'fi-' + currentLang.cc"></span>
+            <span class="lang-code">{{ currentLang.code.toUpperCase() }}</span>
+            <Fa :icon="['fas','angle-down']" class="caret" />
+          </button>
+
+          <ul v-if="langMenuOpen" class="lang-menu">
+            <li v-for="l in langs" :key="l.code" :class="{ active: l.code === currentLang.code }" @click="setLang(l)">
+              <span class="fi" :class="'fi-' + l.cc"></span>
+              <span class="label">{{ l.label }}</span>
+            </li>
+          </ul>
+        </div>
       </div>
+
     </header>
 
     <!-- SIDEBAR fica abaixo da topbar, à esquerda -->
@@ -99,6 +113,17 @@
 import { ref, computed } from 'vue'
 import HomeView from '@/views/HomeView.vue'
 import Draggable from 'vuedraggable'
+
+const langMenuOpen = ref(false)
+const currentLang = ref({ code: 'en', cc: 'us', label: 'English' })
+const langs = [
+  { code: 'en', cc: 'us', label: 'English' },
+  { code: 'es', cc: 'es', label: 'Español' },
+  { code: 'de', cc: 'de', label: 'Deutsch' }
+]
+
+function toggleLangMenu() { langMenuOpen.value = !langMenuOpen.value }
+function setLang(l) { currentLang.value = l; langMenuOpen.value = false }
 
 /** Ícones da sidebar (apenas um por “seção” de alto nível) */
 const sideItems = [
@@ -201,14 +226,76 @@ function openDoc(type, id, title) {
   overflow:hidden;
 }
 
+/* === Language switch (topbar) === */
+.topbar{ overflow: visible;   z-index: 1000;   overflow: visible;}  /* permite o dropdown sair da barra */
+
+.lang-switch{
+  position: relative;
+  z-index: 6;
+}
+
+.lang-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.lang-btn .flag{ font-size: 18px; line-height: 1; }
+.lang-btn .lang-code{ font-weight: 600; font-size: .85rem; }
+.lang-btn .caret{ width: 12px; height: 12px; opacity: .7; }
+
+.lang-menu{
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 180px;
+  padding: 6px;
+  margin: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  z-index: 2000;
+}
+
+.square-frame{ position: relative; z-index: 0; }
+
+
+.lang-menu li{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lang-menu li:hover{ background: rgba(0,0,0,.04); }
+.lang-menu li.active{
+  background: rgba(0,0,0,.06);
+  font-weight: 600;
+}
+.lang-menu .flag{ font-size: 18px; line-height: 1; }
+.lang-menu .label{ font-size: .95rem; }
+
 /* =============== TOPBAR =============== */
 .topbar{
   grid-area:topbar;
   display:grid;
-  grid-template-columns:auto minmax(0,1fr) auto; /* logo | abas | ações */
+  grid-template-columns:auto minmax(0,1fr) auto; /* logo | tabs | ações */
   align-items:center; gap:8px;
   background:#0f172a;
-  padding:0 8px; position:relative; overflow:hidden;
+  padding:0 8px;
+  position:relative;
+  overflow:visible;   /* <<< was hidden */
+  z-index:1000;       /* acima do conteúdo */
 }
 .top-left{display:flex;align-items:center;gap:8px;}
 .brand{ height:28px; width:auto; max-height:calc(100% - 8px); object-fit:contain; display:block; }
@@ -285,7 +372,7 @@ function openDoc(type, id, title) {
 /* =============== SIDEBAR =============== */
 /* =============== SIDEBAR (alinhamento dos ícones) =============== */
 .sidebar{
-  grid-area:sidebar; background:var(--side-bg); color:#fff;
+  grid-area:sidebar; background:#0f172a; color:#fff;
   display:flex; flex-direction:column; align-items:center;
   padding:12px 8px; gap:12px; border-right:1px solid rgba(0,0,0,.06);
 }
