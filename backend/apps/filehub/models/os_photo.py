@@ -1,8 +1,8 @@
 from django.db import models
 from backend.apps.core.models.abstractions import BaseModel
 
-class ServiceOrderPhoto(BaseModel):
-    service_order = models.ForeignKey("orders.ServiceOrder", on_delete=models.CASCADE, related_name="photos")
+class WorkOrderPhoto(BaseModel):
+    work_order = models.ForeignKey("orders.WorkOrder", on_delete=models.CASCADE, related_name="photos")
     uploaded_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
@@ -33,4 +33,4 @@ class ServiceOrderPhoto(BaseModel):
         ordering = ["uploaded_at"]
 
     def __str__(self):
-        return f"{self.service_order.identifier} - {self.photo_type} by {self.uploaded_by}"
+        return f"{self.work_order.identifier} - {self.photo_type} by {self.uploaded_by}"

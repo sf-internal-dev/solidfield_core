@@ -63,6 +63,10 @@
 
 
       <div class="top-actions">
+         <button class="help-btn" type="button" @click="openDocs" title="Open documentation">
+          <Fa :icon="['fas','circle-question']" class="icn" />
+          <span class="label">Help</span>
+        </button>
         <div class="lang-switch" @keydown.esc="langMenuOpen=false">
           <button class="lang-btn" type="button" @click="toggleLangMenu">
             <span class="fi" :class="'fi-' + currentLang.cc"></span>
@@ -113,6 +117,38 @@
 import { ref, computed } from 'vue'
 import HomeView from '@/views/HomeView.vue'
 import Draggable from 'vuedraggable'
+// ícone FA usado no botão/aba: 'circle-question' ou 'book'
+// (no main.js, lembre de add à lib: faCircleQuestion ou faBook)
+
+function openDocs() {
+  const tabId = 'docs:main'
+  const exists = tabs.value.find(t => t.id === tabId)
+  if (exists) return activate(tabId)
+
+  const component = {
+    template: `
+      <div class="pane">
+        <h2>Documentation</h2>
+        <p>Central de ajuda e guias do sistema.</p>
+        <ul style="margin: 0; padding-left: 1rem; line-height: 1.6;">
+          <li><a href="#" target="_blank" rel="noopener">Getting Started</a></li>
+          <li><a href="#" target="_blank" rel="noopener">Work Orders Guide</a></li>
+          <li><a href="#" target="_blank" rel="noopener">API Reference</a></li>
+        </ul>
+      </div>
+    `
+  }
+
+  tabs.value.push({
+    id: tabId,
+    key: 'docs',
+    title: 'Documentation',
+    icon: ['fas','book'],   // ou ['fas','circle-question']
+    closable: true,
+    component
+  })
+  activate(tabId)
+}
 
 const langMenuOpen = ref(false)
 const currentLang = ref({ code: 'en', cc: 'us', label: 'English' })
@@ -299,8 +335,19 @@ function openDoc(type, id, title) {
 }
 .top-left{display:flex;align-items:center;gap:8px;}
 .brand{ height:28px; width:auto; max-height:calc(100% - 8px); object-fit:contain; display:block; }
-.top-actions{ padding-right:4px; color:var(--muted); }
+.top-actions { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px; }
 
+.help-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  height:32px; padding:0 10px;
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:8px;
+  background:#fff; color:#0f172a;   /* contrasta com topbar escura */
+  cursor:pointer;
+}
+.help-btn .icn{ width:14px; height:14px; }
+.help-btn .label{ font-weight:600; font-size:.85rem; }
+.help-btn:hover{ background:#f7f7f7; }
 /* =============== TABS (NAVEGADOR) =============== */
 .topbar .tab-list{
   list-style:none; margin:0; padding:0 12px;
