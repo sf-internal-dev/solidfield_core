@@ -1,4 +1,4 @@
-from core.schemas import ACTIONS_BY_PERMISSION_SCHEMA
+from backend.common.schemas.permission_schemas import ACTIONS_BY_PERMISSION_SCHEMA
 
 # -> Checks if the technician has managerial level (L3)
 def is_manager(technician) -> bool:

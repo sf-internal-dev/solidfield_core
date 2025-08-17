@@ -1,4 +1,4 @@
-from core.schemas import ACTIONS_BY_PERMISSION_SCHEMA
+from backend.common.schemas.permission_schemas import ACTIONS_BY_PERMISSION_SCHEMA
 
 # -> Recursively returns all actions marked as delegable for a given permission level
 # Includes inherited actions defined in the selective inheritance schema
