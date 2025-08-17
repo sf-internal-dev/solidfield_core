@@ -7,37 +7,59 @@
       </div>
 
       <!-- Abas estilo navegador no centro -->
-      <ul class="tab-list" role="tablist" aria-label="Open views">
-  <li
-    v-for="t in tabs"
-    :key="t.id"
-    class="tab-item"
-    :class="{ active: t.id === activeId }"
-    role="presentation"
-  >
-    <button
-      class="tab-btn"
-      role="tab"
-      :aria-selected="t.id === activeId"
-      :tabindex="t.id === activeId ? 0 : -1"
-      @click="activate(t.id)"
+      <Draggable
+  v-model="tabs"
+  item-key="id"
+  tag="ul"
+  class="tab-list"
+  handle=".tab-handle"
+  :animation="150"
+  :force-fallback="true"
+  :scroll="true"
+  ghost-class="tab-ghost"
+  chosen-class="tab-chosen"
+  drag-class="tab-drag"
+  @end="onReorder"
+>
+  <template #item="{ element: t }">
+    <li
+      class="tab-item"
+      :class="{ active: t.id === activeId }"
+      role="presentation"
     >
-      <Fa :icon="t.icon || ['fas','house']" class="fa" />
-      <span class="tab-title">{{ t.title }}</span>
-
-      <!-- X DENTRO da aba -->
-      <span
-        v-if="t.closable"
-        class="tab-x"
-        role="button"
-        aria-label="Close tab"
-        @click.stop="closeTab(t.id)"
+      <button
+        class="tab-btn"
+        role="tab"
+        :aria-selected="t.id === activeId"
+        :tabindex="t.id === activeId ? 0 : -1"
+        @click="activate(t.id)"
       >
-        <Fa :icon="['fas','xmark']" />
-      </span>
-    </button>
-  </li>
-</ul>
+        <!-- HANDLE de arraste (não ativa a aba) -->
+        <span class="tab-handle" title="Drag tab" @mousedown.stop @touchstart.stop>
+          <Fa :icon="['fas','grip-vertical']" />
+        </span>
+
+        <!-- Ícone da aba -->
+        <Fa :icon="t.icon || ['fas','house']" class="fa" />
+
+        <!-- Título -->
+        <span class="tab-title">{{ t.title }}</span>
+
+        <!-- X dentro da aba -->
+        <span
+          v-if="t.closable"
+          class="tab-x"
+          role="button"
+          aria-label="Close tab"
+          @click.stop="closeTab(t.id)"
+        >
+          <Fa :icon="['fas','xmark']" />
+        </span>
+      </button>
+    </li>
+  </template>
+</Draggable>
+
 
 
       <div class="top-actions">
@@ -76,6 +98,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import HomeView from '@/views/HomeView.vue'
+import Draggable from 'vuedraggable'
 
 /** Ícones da sidebar (apenas um por “seção” de alto nível) */
 const sideItems = [
