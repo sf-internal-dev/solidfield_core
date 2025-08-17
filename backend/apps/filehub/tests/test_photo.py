@@ -3,10 +3,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from backend.apps.core.models import CompanyTenant, Technician
 from backend.apps.clients.models import Client
-from backend.apps.orders.models import ServiceOrder
-from backend.apps.filehub.models import ServiceOrderPhoto
+from backend.apps.orders.models import WorkOrder
+from backend.apps.filehub.models import WorkOrderPhoto
 
-class ServiceOrderPhotoTest(TestCase):
+class WorkOrderPhotoTest(TestCase):
     def setUp(self):
         print("→ setUp: Criando tenant, técnico, cliente e OS para teste de foto...")
         self.tenant = CompanyTenant.objects.create(name="TenantPhoto", slug="tenant-photo")
@@ -25,7 +25,7 @@ class ServiceOrderPhotoTest(TestCase):
             document_id="11987654321"
         )
 
-        self.order = ServiceOrder.objects.create(
+        self.order = WorkOrder.objects.create(
             tenant=self.tenant,
             identifier="OS-FOTO-001",
             created_by=self.tech,
@@ -41,7 +41,7 @@ class ServiceOrderPhotoTest(TestCase):
 
     def test_photo_creation_with_minimum_fields(self):
         print("✓ test_photo_creation_with_minimum_fields: Criando foto com campos obrigatórios")
-        photo = ServiceOrderPhoto.objects.create(
+        photo = WorkOrderPhoto.objects.create(
             service_order=self.order,
             uploaded_by=self.tech,
             image=self.fake_image,
@@ -53,7 +53,7 @@ class ServiceOrderPhotoTest(TestCase):
 
     def test_str_representation(self):
         print("✓ test_str_representation: __str__ deve incluir ordem, tipo de foto e técnico")
-        photo = ServiceOrderPhoto.objects.create(
+        photo = WorkOrderPhoto.objects.create(
             service_order=self.order,
             uploaded_by=self.tech,
             image=self.fake_image,
@@ -64,7 +64,7 @@ class ServiceOrderPhotoTest(TestCase):
 
     def test_optional_fields(self):
         print("✓ test_optional_fields: Deve permitir salvar descrição, gps e device_info")
-        photo = ServiceOrderPhoto.objects.create(
+        photo = WorkOrderPhoto.objects.create(
             service_order=self.order,
             uploaded_by=self.tech,
             image=self.fake_image,
@@ -80,7 +80,7 @@ class ServiceOrderPhotoTest(TestCase):
 
     def test_uploaded_at_auto_set(self):
         print("✓ test_uploaded_at_auto_set: Campo uploaded_at deve ser preenchido automaticamente")
-        photo = ServiceOrderPhoto.objects.create(
+        photo = WorkOrderPhoto.objects.create(
             service_order=self.order,
             uploaded_by=self.tech,
             image=self.fake_image,
