@@ -3,7 +3,7 @@ from backend.apps.core.models.abstractions import TenantOwnedModel, BaseModel
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-class ServiceOrder(TenantOwnedModel):
+class WorkOrder(TenantOwnedModel):
     identifier = models.CharField(max_length=50, unique=True)
     created_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT, related_name="created_orders")
     assigned_to = models.ForeignKey("core.Technician", on_delete=models.PROTECT, related_name="assigned_orders")
@@ -22,12 +22,12 @@ class ServiceOrder(TenantOwnedModel):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Service Order #{self.identifier} - {self.status.replace('_', ' ').title()}"
+        return f"Work Order #{self.identifier} - {self.status.replace('_', ' ').title()}"
 
 
 
-class ServiceOrderDownloadLink(models.Model):
-    service_order = models.ForeignKey("ServiceOrder", on_delete=models.CASCADE)
+class WorkOrderDownloadLink(models.Model):
+    work_order = models.ForeignKey("WorkOrder", on_delete=models.CASCADE)
     key = models.CharField(max_length=64, unique=True)
     created_by = models.ForeignKey("core.Technician", null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -36,4 +36,4 @@ class ServiceOrderDownloadLink(models.Model):
 
     def __str__(self):
         short_key = self.key[:8] + "..." if self.key else "no-key"
-        return f"PDF Link [{short_key}] - Order #{self.service_order.identifier} - Purpose: {self.purpose or 'unspecified'}"
+        return f"PDF Link [{short_key}] - Order #{self.work_order.identifier} - Purpose: {self.purpose or 'unspecified'}"
