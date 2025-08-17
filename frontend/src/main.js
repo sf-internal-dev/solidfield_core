@@ -10,7 +10,7 @@ import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
 // import 'primevue/resources/themes/lara-light-blue/theme.css'
 import './assets/base.css'
-
+import '@fontsource-variable/inter';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 

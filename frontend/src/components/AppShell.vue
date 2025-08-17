@@ -75,6 +75,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import HomeView from '@/views/HomeView.vue'
 
 /** Ícones da sidebar (apenas um por “seção” de alto nível) */
 const sideItems = [
@@ -86,7 +87,7 @@ const sideItems = [
 
 /** Pedaços de UI (demos). Em prod, troque por imports de componentes reais. */
 const panes = {
-  HomePane:      { template: `<div class="pane"><h2>Home</h2><p>Bem-vindo! Selecione um item na barra lateral.</p></div>` },
+  HomePane:       HomeView,
   OrdersPane:    { template: `<div class="pane"><h2>Work Orders</h2><p>Conteúdo de ordens de serviço.</p></div>` },
   CustomersPane: { template: `<div class="pane"><h2>Customers</h2><p>Lista/gestão de clientes.</p></div>` },
   SettingsPane:  { template: `<div class="pane"><h2>Settings</h2><p>Preferências do sistema.</p></div>` },
@@ -107,9 +108,9 @@ function openFromSidebar(key) {
 
   const cfg = {
     home:      { title: 'Home',        icon: 'pi pi-home',      component: panes.HomePane,      closable: false },
-    orders:    { title: 'Work Orders', icon: 'pi pi-clipboard', component: panes.OrdersPane,    closable: true  },
-    customers: { title: 'Customers',   icon: 'pi pi-users',     component: panes.CustomersPane, closable: true  },
-    settings:  { title: 'Settings',    icon: 'pi pi-cog',       component: panes.SettingsPane,  closable: true  },
+    orders:    { title: 'Service Orders', icon: 'pi pi-clipboard', component: panes.OrdersPane,    closable: true  },
+    customers: { title: 'Technicians',   icon: 'pi pi-users',     component: panes.CustomersPane, closable: true  },
+    settings:  { title: 'Service Order #SO01534',    icon: 'pi pi-cog',       component: panes.SettingsPane,  closable: true  },
   }[key]
   if (!cfg) return
 
