@@ -1,5 +1,5 @@
 from .status_workflow_label_util import generate_labels_for_workflow
-from backend.common.service_order_status_workflow import DEFAULT_STATUS_WORKFLOW
+from backend.common.work_order_status_workflow import DEFAULT_STATUS_WORKFLOW
 from typing import Set
 
 def has_required_keys(workflow, required_keys):
@@ -61,7 +61,7 @@ def validate_transition(workflow: dict, from_status: str, to_status: str) -> boo
     )
 
 # -> Returns the last state of a workflow, be it the default or customized for the tenant
-# Useful for terminal actions like validating and finalizing a service order
+# Useful for terminal actions like validating and finalizing a work order
 def get_terminal_state(workflow: dict) -> str:
     transitions = workflow.get("transitions", [])
     declared_states: Set[str] = set(workflow.get("states") or [])

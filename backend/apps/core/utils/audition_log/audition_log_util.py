@@ -1,5 +1,5 @@
 from backend.apps.core.models import AuditLog
-from backend.apps.core.schemas import AUDIT_LOG_ACTION_SCHEMA
+from backend.common.schemas.audition_log_schemas import AUDIT_LOG_ACTION_SCHEMA
 from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import now
 from django.apps import apps
