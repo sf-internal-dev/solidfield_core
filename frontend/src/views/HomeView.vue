@@ -159,15 +159,7 @@ function openAllOrders() {
           </template>
         </Card>
 
-        <Card class="mt-3">
-          <template #title>Announcements</template>
-          <template #content>
-            <ul class="m-0 pl-3">
-              <li>Scheduled maintenance on Friday 22:00.</li>
-              <li>New mobile app version 1.2.0 available.</li>
-            </ul>
-          </template>
-        </Card>
+       
       </div>
     </div>
   </section>
