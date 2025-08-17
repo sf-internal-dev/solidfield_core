@@ -6,7 +6,7 @@ from core.models.technician import Technician
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-from backend.apps.core.services.audition_log_service import log_service_order_status_transition
+from backend.apps.core.services.audition_log_service import log_work_order_status_transition
 from typing import Tuple, List, Optional
 
 # -> Receives a custom workflow definition and validates its structure
@@ -66,15 +66,15 @@ def check_if_custom_status_workflow(tenant_id) -> tuple[dict | None, list[str]]:
 
     return labeled, errors
 
-# -> Attempts to transition a service order from one status to another
+# -> Attempts to transition a work order from one status to another
 # Validates if the transition is allowed by the workflow definition
 # Also verifies if the technician has permission to reach the target status
 # Appends the change to status_history and logs the transition
-def transition_service_order_status(service_order, new_status: str, technician: Technician)-> Tuple[Optional[object], List[str]]:
+def transition_work_order_status(work_order, new_status: str, technician: Technician)-> Tuple[Optional[object], List[str]]:
     errors: List[str] = []
     
-    tenant = service_order.tenant
-    current_status = service_order.status
+    tenant = work_order.tenant
+    current_status = work_order.status
     technician_permission = technician.technician_permission
 
     workflow = get_workflow_for_tenant(tenant)
@@ -91,14 +91,14 @@ def transition_service_order_status(service_order, new_status: str, technician: 
         "changed_by": str(technician),
         "timestamp": timezone.now().isoformat(),
     }
-    history = list(service_order.status_history or [])
+    history = list(work_order.status_history or [])
     history.append(entry)
 
-    service_order.status_history = history
-    service_order.status = new_status
-    service_order.save(update_fields=["status", "status_history"])
+    work_order.status_history = history
+    work_order.status = new_status
+    work_order.save(update_fields=["status", "status_history"])
 
-    log_service_order_status_transition(service_order, new_status)
+    log_work_order_status_transition(work_order, new_status)
 
-    return service_order, errors
+    return work_order, errors
 
