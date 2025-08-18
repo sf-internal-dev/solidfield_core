@@ -27,35 +27,19 @@
       :class="{ active: t.id === activeId }"
       role="presentation"
     >
-      <button
-        class="tab-btn"
-        role="tab"
+    <button class="tab-btn" role="tab"
         :aria-selected="t.id === activeId"
-        :tabindex="t.id === activeId ? 0 : -1"
-        @click="activate(t.id)"
-      >
-        <!-- HANDLE de arraste (não ativa a aba) -->
-        <span class="tab-handle" title="Drag tab" @mousedown.stop @touchstart.stop>
-          <Fa :icon="['fas','grip-vertical']" />
-        </span>
-
-        <!-- Ícone da aba -->
-        <Fa :icon="t.icon || ['fas','house']" class="fa" />
-
-        <!-- Título -->
-        <span class="tab-title">{{ t.title }}</span>
-
-        <!-- X dentro da aba -->
-        <span
-          v-if="t.closable"
-          class="tab-x"
-          role="button"
-          aria-label="Close tab"
-          @click.stop="closeTab(t.id)"
-        >
-          <Fa :icon="['fas','xmark']" />
-        </span>
-      </button>
+        :tabindex="t.id === activeId ? 0 : -1" @click="activate(t.id)">
+      <span class="tab-handle" title="Drag tab" @mousedown.stop @touchstart.stop>
+        <Fa :icon="['fas','grip-vertical']" />
+      </span>
+      <Fa v-if="t.icon" :icon="t.icon" class="fa" />
+      <span class="tab-title">{{ t.title }}</span>
+      <span v-if="t.closable" class="tab-x" @click.stop="closeTab(t.id)">
+        <Fa :icon="['fas','xmark']" />
+      </span>
+    </button>
+      
     </li>
   </template>
 </Draggable>
@@ -143,7 +127,7 @@ function openDocs() {
     id: tabId,
     key: 'docs',
     title: 'Documentation',
-    icon: ['fas','book'],   // ou ['fas','circle-question']
+    icon: null,   // ou ['fas','circle-question']
     closable: true,
     component
   })
