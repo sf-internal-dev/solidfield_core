@@ -72,17 +72,23 @@
     <!-- SIDEBAR fica abaixo da topbar, à esquerda -->
     <aside class="sidebar">
       <nav class="side-icons" aria-label="Primary navigation">
-        <button
-            v-for="item in sideItems"
-            :key="item.key"
+        <template v-for="it in sideItems" :key="it.header || it.key">
+          <div v-if="it.header" class="side-header">{{ it.header }}</div>
+
+          <button
+            v-else
             class="icon-btn"
-            :class="{ active: activeKey === item.key }"
-            @click="openFromSidebar(item.key)"
-            :title="item.label"
-            >
-            <Fa :icon="item.icon" :fixed-width="true" class="fa" />
-        </button>
+            :class="{ active: activeKey === it.key, danger: it.danger }"
+            @click="openFromSidebar(it.key)"
+            :title="it.label"
+          >
+            <Fa :icon="it.icon || ['fas','circle']" :fixed-width="true" class="fa" />
+            <span class="icon-label">{{ it.label }}</span>
+            <span v-if="it.badge" class="badge">{{ it.badge }}</span>
+          </button>
+        </template>
       </nav>
+
     </aside>
 
     <!-- CONTEÚDO à direita da sidebar -->
@@ -100,7 +106,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import HomeView from '@/views/HomeView.vue'
+
 import Draggable from 'vuedraggable'
+import OperationsView from '../views/OperationsView.vue'
 // ícone FA usado no botão/aba: 'circle-question' ou 'book'
 // (no main.js, lembre de add à lib: faCircleQuestion ou faBook)
 
@@ -147,17 +155,31 @@ function setLang(l) { currentLang.value = l; langMenuOpen.value = false }
 
 /** Ícones da sidebar (apenas um por “seção” de alto nível) */
 const sideItems = [
-  { key: 'home',      label: 'Home',        icon: ['fas', 'house'] },
-  { key: 'orders',    label: 'Work Orders', icon: ['fas', 'clipboard-list'] },
-  { key: 'customers', label: 'Customers',   icon: ['fas', 'users'] },
-  { key: 'settings',  label: 'Settings',    icon: ['fas', 'gear'] },
+  { header: 'Main' },
+  { key:'home',      label:'Home',        icon:['fas','house'] },
+  { key:'operations',       label:'Operations',  icon:['fas','map'] },
+  { key:'orders',    label:'Work Orders', icon:['fas','clipboard-list'], badge:12 },
+  { key:'technicians',     label:'Technicians', icon:['fas','users'] },
+  { key:'clients', label:'Clients',   icon:['fas','user-group'] },
+
+  { header: 'Analytics' },
+  { key:'kpi',       label:'KPI Detail',  icon:['fas','chart-line'] },
+
+  { header: 'Admin' },
+  { key:'audit',     label:'Audit Logs',  icon:['fas','clock-rotate-left'] },
+  { key:'settings',  label:'Settings',    icon:['fas','gear'] },
+
+  { header: 'Account' },
+  { key:'logout',    label:'Logout',      icon:['fas','arrow-right-from-bracket'], danger:true },
 ]
+
 
 /** Pedaços de UI (demos). Em prod, troque por imports de componentes reais. */
 const panes = {
   HomePane:       HomeView,
+  OperationsPane: OperationsView,
   OrdersPane:    { template: `<div class="pane"><h2>Work Orders</h2><p>Conteúdo de ordens de serviço.</p></div>` },
-  CustomersPane: { template: `<div class="pane"><h2>Customers</h2><p>Lista/gestão de clientes.</p></div>` },
+  ClientsPane: { template: `<div class="pane"><h2>Clients</h2><p>Lista/gestão de clientes.</p></div>` },
   SettingsPane:  { template: `<div class="pane"><h2>Settings</h2><p>Preferências do sistema.</p></div>` },
 }
 
@@ -176,9 +198,13 @@ function openFromSidebar(key) {
 
   const cfg = {
     home:      { title: 'Home',        icon: 'pi pi-home',      component: panes.HomePane,      closable: false },
+    operations: { title: 'Operations',        icon: 'pi pi-home',      component: panes.OperationsPane,      closable: true },
     orders:    { title: 'Work Orders', icon: 'pi pi-clipboard', component: panes.OrdersPane,    closable: true  },
-    customers: { title: 'Technicians',   icon: 'pi pi-users',     component: panes.CustomersPane, closable: true  },
-    settings:  { title: 'Work Order #SOLIWO01534',    icon: 'pi pi-cog',       component: panes.SettingsPane,  closable: true  },
+    technicians: { title: 'Technicians',   icon: 'pi pi-users',     component: panes.TechniciansPane, closable: true  },
+    kpi: { title: 'KPI Details',   icon: 'pi pi-users',     component: panes.TechniciansPane, closable: true  },
+    clients: { title: 'Clients',   icon: 'pi pi-users',     component: panes.CustomersPane, closable: true  },
+    audit: { title: 'Audit Logs',   icon: 'pi pi-users',     component: panes.CustomersPane, closable: true  },
+    settings:  { title: 'Settings',    icon: 'pi pi-cog',       component: panes.SettingsPane,  closable: true  },
   }[key]
   if (!cfg) return
 
@@ -402,40 +428,65 @@ function openDoc(type, id, title) {
 
 /* =============== SIDEBAR =============== */
 /* =============== SIDEBAR (alinhamento dos ícones) =============== */
+/* =============== SIDEBAR (arrumado) =============== */
+/* ======== SIDEBAR arrumada (ícone + label empilhados) ======== */
 .sidebar{
-  grid-area:sidebar; background:#0f172a; color:#fff;
+  grid-area:sidebar;
+  background:#0f172a; color:#fff;
   display:flex; flex-direction:column; align-items:center;
-  padding:12px 8px; gap:12px; border-right:1px solid rgba(0,0,0,.06);
+  padding:12px 8px; gap:12px;
+  border-right:1px solid rgba(0,0,0,.06);
+  position:relative; isolation:isolate; z-index:900;
 }
+.app-shell { --sidebar-w: 104px; } /* 96–112px funciona bem */
+
+.side-header{
+  width:100%; text-align:center;
+  color:#9ca3af; font-size:.7rem; letter-spacing:.08em;
+  text-transform:uppercase; padding:6px 4px 2px;
+}
+
 .side-icons{
-  display:flex; flex-direction:column; gap:8px; margin-top:4px;
-  align-items:center;                 /* garante coluna reta */
+  display:flex; flex-direction:column; align-items:center;
+  gap:10px; margin-top:4px; width:100%;
 }
 
+/* botão com conteúdo VERTICAL (icon em cima, texto embaixo) */
 .icon-btn{
-  width:52px; height:52px; padding:0; /* caixa fixa */
+  position:relative;
+  width:72px;                 /* mais largo p/ caber o texto */
+  padding:10px 6px;           /* sem altura fixa */
   border-radius:14px;
-  display:grid; place-items:center;   /* centro perfeito */
-  color:#cfd9e3;
-  background:transparent; border:0; cursor:pointer;
-  transition:background .15s,color .15s;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  color:#cfd9e3; background:transparent; border:0; cursor:pointer;
+  transition:background .15s, color .15s;
 }
 
-/* O <Fa> rende um <svg>; normalize o box do SVG pra não “dançar” */
-.icon-btn .fa,
-.icon-btn :deep(svg){
-  display:block;                      /* tira baseline */
-  width:22px; height:22px;            /* tamanho fixo */
-  transform:translate(0,0);           /* sem deslocamentos */
-  transform-box:fill-box; transform-origin:center;
-}
-
-/* estado hover/active sem mudar tamanho do ícone */
 .icon-btn:hover{ background:rgba(255,255,255,.08); color:#fff; }
 .icon-btn.active{ background:rgba(255,255,255,.16); color:#fff; }
+.icon-btn.danger:hover{ background:rgba(189, 50, 50, 0.524); }
 
-/* se quiser leve destaque no ativo sem mexer no alinhamento, use um halo: */
-.icon-btn.active :deep(svg){ filter: drop-shadow(0 0 0 rgba(0,0,0,0)); } /* opcional, neutro */
+/* ícone FA (SVG) com caixa fixa e centralizado */
+.icon-btn .fa,
+.icon-btn :deep(svg){
+  display:block; width:22px; height:22px; fill:currentColor;
+}
+
+/* rótulo sob o ícone, quebra controlada */
+.icon-label{
+  font-size:.62rem; line-height:1.1; text-align:center;
+  max-width:60px; word-break:break-word; white-space:normal;
+}
+
+/* badge dentro do botão, sem sair do rail */
+.badge{
+  position:absolute; top:6px; right:6px;
+  min-width:18px; height:18px; padding:0 5px;
+  display:grid; place-items:center;
+  background:#ef4444; color:#fff; border-radius:999px;
+  font-size:.7rem; font-weight:700;
+}
+
 
 /* =============== CONTEÚDO =============== */
 .content{ grid-area:content; padding:16px; background:var(--ground); min-width:0; min-height:0; }

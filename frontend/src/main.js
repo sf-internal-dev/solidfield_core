@@ -13,7 +13,10 @@ import './assets/base.css'
 import '@fontsource-variable/inter';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faGripVertical, faXmark, faHouse, faClipboardList, faUsers, faGear } from '@fortawesome/free-solid-svg-icons'
+import {
+  faGripVertical, faXmark, faHouse, faClipboardList, faUsers, faGear,
+  faMap, faUserGroup, faChartLine, faClockRotateLeft, faArrowRightFromBracket
+} from '@fortawesome/free-solid-svg-icons'
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 import 'flag-icons/css/flag-icons.min.css'
 import { faBook, faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
@@ -29,7 +32,11 @@ app.use(PrimeVue, {
     preset: Aura
   }
 })
-library.add(faGripVertical, faXmark, faHouse, faClipboardList, faUsers, faGear)
+
+library.add(
+  faGripVertical, faXmark, faHouse, faClipboardList, faUsers, faGear,
+  faMap, faUserGroup, faChartLine, faClockRotateLeft, faArrowRightFromBracket
+)
 library.add(faAngleDown)
 library.add(faBook, faCircleQuestion)
 
