@@ -106,9 +106,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import HomeView from '@/views/HomeView.vue'
+import OperationsView from '@/views/OperationsView.vue'
 
 import Draggable from 'vuedraggable'
-import OperationsView from '../views/OperationsView.vue'
 // ícone FA usado no botão/aba: 'circle-question' ou 'book'
 // (no main.js, lembre de add à lib: faCircleQuestion ou faBook)
 
@@ -177,10 +177,11 @@ const sideItems = [
 /** Pedaços de UI (demos). Em prod, troque por imports de componentes reais. */
 const panes = {
   HomePane:       HomeView,
-  OperationsPane: OperationsView,
   OrdersPane:    { template: `<div class="pane"><h2>Work Orders</h2><p>Conteúdo de ordens de serviço.</p></div>` },
   ClientsPane: { template: `<div class="pane"><h2>Clients</h2><p>Lista/gestão de clientes.</p></div>` },
   SettingsPane:  { template: `<div class="pane"><h2>Settings</h2><p>Preferências do sistema.</p></div>` },
+  OperationsPane: OperationsView,
+
 }
 
 /** Abas internas (sem router): cada aba guarda o OBJETO do componente */

@@ -17,6 +17,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'home', component: () => import('@/views/HomeView.vue') },
         { path: 'orders', name: 'orders', component: () => import('@/views/OrdersView.vue') },
+        { path: 'operations', name: 'operations', component: () => import('@/views/OperationsView.vue') },
         { path: 'customers', name: 'customers', component: () => import('@/views/CustomersView.vue') },
         { path: 'settings', name: 'settings', component: () => import('@/views/SettingsView.vue') },
       ],
