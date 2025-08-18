@@ -1,12 +1,34 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watchEffect } from 'vue'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Dropdown from 'primevue/dropdown'
 import Checkbox from 'primevue/checkbox'
-import Divider from 'primevue/divider'
 import InputText from 'primevue/inputtext'
+
+/* Leaflet */
+// Leaflet
+import 'leaflet/dist/leaflet.css'
+import L from 'leaflet'
+
+// Força o bundler a tratar como URL
+import iconUrl from 'leaflet/dist/images/marker-icon.png?url'
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png?url'
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png?url'
+
+// Define um ícone padrão explícito (com tamanhos/anchors)
+const defaultIcon = L.icon({
+  iconUrl,
+  iconRetinaUrl,
+  shadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41]
+})
+L.Marker.prototype.options.icon = defaultIcon
 
 const emit = defineEmits(['open-doc'])
 
@@ -16,11 +38,11 @@ const statusOptions = ['Open', 'In Progress', 'Paused', 'Done']
 const status = ref(null)
 const showRoutes = ref(true)
 
-/* --- Locais no “mapa” (posições em %) --- */
+/* --- Locais (coordenadas reais) --- */
 const sites = [
-  { id: 'plant-1', name: 'Plant 1', city: 'Curitiba',  x: 32, y: 48 },
-  { id: 'plant-2', name: 'Plant 2', city: 'Campinas',  x: 58, y: 36 },
-  { id: 'warehouse', name: 'Warehouse', city: 'São Paulo', x: 74, y: 62 },
+  { id: 'plant-1', name: 'Plant 1', city: 'Curitiba',   lat: -25.4284, lng: -49.2733 },
+  { id: 'plant-2', name: 'Plant 2', city: 'Campinas',   lat: -22.9056, lng: -47.0608 },
+  { id: 'warehouse', name: 'Warehouse', city: 'São Paulo', lat: -23.5505, lng: -46.6333 },
 ]
 
 /* --- Work Orders ativas --- */
@@ -61,12 +83,66 @@ function openWO(o) {
 function focusSite(name) {
   q.value = name
 }
+
+/* === Leaflet map === */
+const mapEl = ref(null)
+let map, routeLayer
+const markerRefs = []
+
+onMounted(async () => {
+  await nextTick()
+
+  map = L.map(mapEl.value, {
+    center: [-23.5, -47.5], // centro inicial (SP interior)
+    zoom: 6,
+    zoomControl: true
+  })
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map)
+
+  // Marcadores
+  const group = L.featureGroup()
+  sites.forEach(s => {
+    const m = L.marker([s.lat, s.lng], { title: `${s.name} — ${s.city}` })
+      .addTo(map)
+      .bindPopup(`<b>${s.name}</b><br>${s.city}`)
+      .on('click', () => focusSite(s.name))
+    markerRefs.push(m)
+    group.addLayer(m)
+  })
+
+  // Enquadra todos
+  if (sites.length) map.fitBounds(group.getBounds().pad(0.2))
+
+  // Rota fictícia entre Plant 1 -> Plant 2 -> Warehouse
+  drawRoute()
+})
+
+onBeforeUnmount(() => {
+  if (map) {
+    map.remove()
+    map = null
+  }
+})
+
+function drawRoute() {
+  if (!map) return;                // <— evita rodar antes do map existir
+  if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+  if (!showRoutes.value || sites.length < 2) return;
+  const coords = sites.map(s => [s.lat, s.lng]);
+  routeLayer = L.polyline(coords, { color: '#0ea5e9', weight: 3, dashArray: '6,4', opacity: .8 });
+  routeLayer.addTo(map);
+}
+watchEffect(() => { showRoutes.value; drawRoute(); });
+watchEffect(drawRoute)
 </script>
 
 <template>
   <section class="ops p-3">
     <div class="grid">
-      <!-- Coluna esquerda: Mapa + Lista -->
+      <!-- Esquerda -->
       <div class="col-12 lg:col-8 flex flex-column gap-3">
         <Card>
           <template #title>
@@ -81,25 +157,7 @@ function focusSite(name) {
             </div>
           </template>
           <template #content>
-            <div class="ops-map">
-              <!-- rotas fictícias -->
-              <svg v-if="showRoutes" class="route-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path d="M32,48 C40,30 58,36 74,62" class="route" />
-              </svg>
-
-              <!-- marcadores -->
-              <button
-                v-for="s in sites"
-                :key="s.id"
-                class="marker"
-                :style="{ left: s.x + '%', top: s.y + '%'}"
-                :title="s.name + ' — ' + s.city"
-                @click="focusSite(s.name)"
-              >
-                <span class="dot"></span>
-                <span class="label">{{ s.name }}</span>
-              </button>
-            </div>
+            <div ref="mapEl" class="leaflet-host"></div>
           </template>
         </Card>
 
@@ -118,7 +176,7 @@ function focusSite(name) {
               <li
                 v-for="o in filtered"
                 :key="o.id"
-                class="row-item flex align-items-center justify-content-between py-2 border-bottom-1 surface-border"
+                class="flex align-items-center justify-content-between py-2 border-bottom-1 surface-border"
               >
                 <div class="flex align-items-center gap-3">
                   <Tag :value="o.status" :severity="severity(o.status)" />
@@ -137,7 +195,7 @@ function focusSite(name) {
         </Card>
       </div>
 
-      <!-- Coluna direita: Ações & Updates -->
+      <!-- Direita -->
       <div class="col-12 lg:col-4 flex flex-column gap-3">
         <Card>
           <template #title>Quick Actions</template>
@@ -169,60 +227,15 @@ function focusSite(name) {
 <style scoped>
 .text-600 { color: var(--muted); }
 
-/* Mapa fictício */
-.ops-map{
-  position: relative;
+/* Leaflet container */
+.leaflet-host{
   height: 360px;
   border-radius: 12px;
-  background:
-    linear-gradient(0deg, rgba(0,0,0,.03) 1px, transparent 1px) 0 0/100% 24px,
-    linear-gradient(90deg, rgba(0,0,0,.03) 1px, transparent 1px) 0 0/24px 100%,
-    #e9eef3;
   overflow: hidden;
 }
+.leaflet-container { font: inherit; } /* usa sua fonte Inter */
 
-/* rotas */
-.route-svg{
-  position:absolute; inset:0;
-}
-.route{
-  fill:none;
-  stroke:#0ea5e9;
-  stroke-width:1.5;
-  stroke-dasharray:3 2;
-  opacity:.7;
-}
-
-/* marcadores */
-.marker{
-  position:absolute;
-  transform: translate(-50%, -100%); /* ancora na base do pin */
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.marker .dot{
-  width: 12px; height: 12px;
-  border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239,68,68,.25);
-}
-.marker .label{
-  background: #fff;
-  color: #111827;
-  font-size: .8rem;
-  padding: 2px 6px;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
-}
-
-/* lista */
-.row-item:last-child{ border-bottom: 0 !important; }
-
-/* feed */
+/* Feed cores */
 .update.success{ color:#16a34a; }
 .update.warn{ color:#eab308; }
 .update.info{ color:#0ea5e9; }
