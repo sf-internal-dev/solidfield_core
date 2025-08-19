@@ -23,30 +23,30 @@
   @end="onReorder"
 >
   <template #item="{ element: t }">
-    <li
-      class="tab-item"
-      :class="{ active: t.id === activeId }"
-      role="presentation"
-    >
+    <li class="tab-item" :class="{ active: t.id === activeId }" role="presentation">
       <button
         class="tab-btn"
         role="tab"
         :aria-selected="t.id === activeId"
         :tabindex="t.id === activeId ? 0 : -1"
         @click="activate(t.id)"
+        :title="t.title"
       >
         <span class="tab-handle" title="Drag tab" @mousedown.stop @touchstart.stop>
           <Fa :icon="['fas','grip-vertical']" />
         </span>
-        <Fa v-if="t.icon" :icon="t.icon" class="fa" />
+
         <span class="tab-title">{{ t.title }}</span>
-        <span v-if="t.closable" class="tab-x" @click.stop="closeTab(t.id)">
+
+        <!-- X sempre visível (sem layout shift) -->
+        <span class="tab-x" @click.stop="closeTab(t.id)" aria-label="Close tab">
           <Fa :icon="['fas','xmark']" />
         </span>
       </button>
     </li>
   </template>
 </Draggable>
+
 
 
 
@@ -110,15 +110,43 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
-import { useToast } from 'primevue/usetoast'
-import Draggable from 'vuedraggable'
-
 import HomeView from '@/views/HomeView.vue'
 import OperationsView from '@/views/OperationsView.vue'
 
-const toast = useToast()
+import Draggable from 'vuedraggable'
+// ícone FA usado no botão/aba: 'circle-question' ou 'book'
+// (no main.js, lembre de add à lib: faCircleQuestion ou faBook)
 
-/* ========= Idiomas ========= */
+function openDocs() {
+  const tabId = 'docs:main'
+  const exists = tabs.value.find(t => t.id === tabId)
+  if (exists) return activate(tabId)
+
+  const component = {
+    template: `
+      <div class="pane">
+        <h2>Documentation</h2>
+        <p>Central de ajuda e guias do sistema.</p>
+        <ul style="margin: 0; padding-left: 1rem; line-height: 1.6;">
+          <li><a href="#" target="_blank" rel="noopener">Getting Started</a></li>
+          <li><a href="#" target="_blank" rel="noopener">Work Orders Guide</a></li>
+          <li><a href="#" target="_blank" rel="noopener">API Reference</a></li>
+        </ul>
+      </div>
+    `
+  }
+
+  tabs.value.push({
+    id: tabId,
+    key: 'docs',
+    title: 'Documentation',
+    icon: null,   // ou ['fas','circle-question']
+    closable: true,
+    component
+  })
+  activate(tabId)
+}
+
 const langMenuOpen = ref(false)
 const currentLang = ref({ code: 'en', cc: 'us', label: 'English' })
 const langs = [
@@ -126,75 +154,63 @@ const langs = [
   { code: 'es', cc: 'es', label: 'Español' },
   { code: 'de', cc: 'de', label: 'Deutsch' }
 ]
+
 function toggleLangMenu() { langMenuOpen.value = !langMenuOpen.value }
 function setLang(l) { currentLang.value = l; langMenuOpen.value = false }
 
-/* ========= Sidebar itens ========= */
+/** Ícones da sidebar (apenas um por “seção” de alto nível) */
 const sideItems = [
   { header: 'Main' },
-  { key:'home',        label:'Home',         icon:['fas','house'] },
-  { key:'operations',  label:'Operations',   icon:['fas','map'] },
-  { key:'orders',      label:'Work Orders',  icon:['fas','clipboard-list'], badge:12 },
-  { key:'technicians', label:'Technicians',  icon:['fas','users'] },
-  { key:'clients',     label:'Clients',      icon:['fas','user-group'] },
+  { key:'home',      label:'Home',        icon:['fas','house'] },
+  { key:'operations',       label:'Operations',  icon:['fas','map'] },
+  { key:'orders',    label:'Work Orders', icon:['fas','clipboard-list'], badge:12 },
+  { key:'technicians',     label:'Technicians', icon:['fas','users'] },
+  { key:'clients', label:'Clients',   icon:['fas','user-group'] },
 
   { header: 'Analytics' },
-  { key:'kpi',         label:'KPI Detail',   icon:['fas','chart-line'] },
+  { key:'kpi',       label:'KPI Detail',  icon:['fas','chart-line'] },
 
   { header: 'Admin' },
-  { key:'audit',       label:'Audit Logs',   icon:['fas','clock-rotate-left'] },
-  { key:'settings',    label:'Settings',     icon:['fas','gear'] },
+  { key:'audit',     label:'Audit Logs',  icon:['fas','clock-rotate-left'] },
+  { key:'settings',  label:'Settings',    icon:['fas','gear'] },
 
   { header: 'Account' },
-  { key:'logout',      label:'Logout',       icon:['fas','arrow-right-from-bracket'], danger:true },
+  { key:'logout',    label:'Logout',      icon:['fas','arrow-right-from-bracket'], danger:true },
 ]
 
-/* ========= Panes (conteúdos) ========= */
+
+/** Pedaços de UI (demos). Em prod, troque por imports de componentes reais. */
 const panes = {
-  HomePane:        HomeView,
-  OperationsPane:  OperationsView,
-  OrdersPane:      { template: `<div class="pane"><h2>Work Orders</h2><p>Conteúdo de ordens de serviço.</p></div>` },
-  TechniciansPane: { template: `<div class="pane"><h2>Technicians</h2><p>Lista e grupos operacionais.</p></div>` },
-  ClientsPane:     { template: `<div class="pane"><h2>Clients</h2><p>Clientes e WOs relacionadas.</p></div>` },
-  KpiPane:         { template: `<div class="pane"><h2>KPI Detail</h2><p>Painéis analíticos.</p></div>` },
-  AuditPane:       { template: `<div class="pane"><h2>Audit Logs</h2><p>Trilha de auditoria.</p></div>` },
-  SettingsPane:    { template: `<div class="pane"><h2>Settings</h2><p>Preferências do sistema.</p></div>` },
+  HomePane:       HomeView,
+  OrdersPane:    { template: `<div class="pane"><h2>Work Orders</h2><p>Conteúdo de ordens de serviço.</p></div>` },
+  ClientsPane: { template: `<div class="pane"><h2>Clients</h2><p>Lista/gestão de clientes.</p></div>` },
+  SettingsPane:  { template: `<div class="pane"><h2>Settings</h2><p>Preferências do sistema.</p></div>` },
+  OperationsPane: OperationsView,
+
 }
 
-/* ========= Abas ========= */
+/** Abas internas (sem router): cada aba guarda o OBJETO do componente */
 const tabs = ref([
-  { id:'home', key:'home', title:'Home', icon:['fas','house'], closable:false, component: panes.HomePane }
+  { id: 'home', key: 'home', title: 'Home', icon: 'pi pi-home', closable: false, component: panes.HomePane }
 ])
 const activeId = ref('home')
 const activeKey = computed(() => tabs.value.find(t => t.id === activeId.value)?.key)
 const activeComponent = computed(() => tabs.value.find(t => t.id === activeId.value)?.component)
 
-/* abrir/ativar via sidebar (deduplica por key) + limite */
-const TAB_LIMIT = 10
+/** Abre/ativa aba a partir da sidebar (deduplica por key) */
 function openFromSidebar(key) {
-  // ação direta
-  if (key === 'logout') {
-    toast.add({ severity:'info', summary:'Logout', detail:'Implementar ação de logout aqui.', life:1800 })
-    return
-  }
-
   const exists = tabs.value.find(t => t.key === key)
   if (exists) return activate(exists.id)
 
-  if (tabs.value.length >= TAB_LIMIT) {
-    toast.add({ severity:'warn', summary:'Tab limit reached', detail:`Close a tab to open a new one (limit: ${TAB_LIMIT}).`, life:2500 })
-    return
-  }
-
   const cfg = {
-    home:        { title:'Home',         icon:['fas','house'],          component: panes.HomePane,        closable:false },
-    operations:  { title:'Operations',   icon:['fas','map'],            component: panes.OperationsPane,  closable:true  },
-    orders:      { title:'Work Orders',  icon:['fas','clipboard-list'], component: panes.OrdersPane,      closable:true  },
-    technicians: { title:'Technicians',  icon:['fas','users'],          component: panes.TechniciansPane, closable:true  },
-    clients:     { title:'Clients',      icon:['fas','user-group'],     component: panes.ClientsPane,     closable:true  },
-    kpi:         { title:'KPI Detail',   icon:['fas','chart-line'],     component: panes.KpiPane,         closable:true  },
-    audit:       { title:'Audit Logs',   icon:['fas','clock-rotate-left'], component: panes.AuditPane,    closable:true  },
-    settings:    { title:'Settings',     icon:['fas','gear'],           component: panes.SettingsPane,    closable:true  },
+    home:      { title: 'Home',        icon: 'pi pi-home',      component: panes.HomePane,      closable: false },
+    operations: { title: 'Operations',        icon: 'pi pi-home',      component: panes.OperationsPane,      closable: true },
+    orders:    { title: 'Work Orders', icon: 'pi pi-clipboard', component: panes.OrdersPane,    closable: true  },
+    technicians: { title: 'Technicians',   icon: 'pi pi-users',     component: panes.TechniciansPane, closable: true  },
+    kpi: { title: 'KPI Details',   icon: 'pi pi-users',     component: panes.TechniciansPane, closable: true  },
+    clients: { title: 'Clients',   icon: 'pi pi-users',     component: panes.CustomersPane, closable: true  },
+    audit: { title: 'Audit Logs',   icon: 'pi pi-users',     component: panes.CustomersPane, closable: true  },
+    settings:  { title: 'Settings',    icon: 'pi pi-cog',       component: panes.SettingsPane,  closable: true  },
   }[key]
   if (!cfg) return
 
@@ -203,8 +219,12 @@ function openFromSidebar(key) {
   activate(id)
 }
 
-function activate(id) { activeId.value = id }
+/** Ativa aba pelo id */
+function activate(id) {
+  activeId.value = id
+}
 
+/** Fecha aba e escolhe a próxima ativa de forma inteligente */
 function closeTab(id) {
   const idx = tabs.value.findIndex(t => t.id === id)
   if (idx === -1) return
@@ -212,81 +232,59 @@ function closeTab(id) {
   tabs.value.splice(idx, 1)
 
   if (!tabs.value.length) {
-    tabs.value.push({ id:'home', key:'home', title:'Home', icon:['fas','house'], closable:false, component: panes.HomePane })
+    // garante pelo menos uma aba (Home)
+    tabs.value.push({ id: 'home', key: 'home', title: 'Home', icon: 'pi pi-home', closable: false, component: panes.HomePane })
     activeId.value = 'home'
     return
   }
   if (wasActive) {
-    const next = tabs.value[idx] || tabs.value[idx-1] || tabs.value[0]
+    const next = tabs.value[idx] || tabs.value[idx - 1] || tabs.value[0]
     activeId.value = next.id
   }
 }
 
-/* abrir “documentos” (multi-instância) via emit de filhos */
+/** (Opcional) exemplo para abrir “documentos” em abas (multi-instâncias) */
 function openDoc(type, id, title) {
   const tabId = `${type}:${id}`
   const exists = tabs.value.find(t => t.id === tabId)
   if (exists) return activate(tabId)
   const component = { template: `<div class="pane"><h2>${title}</h2><p>${type} #${id}</p></div>` }
-  tabs.value.push({ id: tabId, key: type, title, icon:['fas','file'], closable: true, component })
+  tabs.value.push({ id: tabId, key: type, title, icon: 'pi pi-file', closable: true, component })
   activate(tabId)
 }
+// refs usados pelo Draggable e compressão
+const tabListRef = ref(null)
+const density = ref(0)
 
-/* ========= Aba de documentação (sem ícone) ========= */
-function openDocs() {
-  const tabId = 'docs:main'
-  const exists = tabs.value.find(t => t.id === tabId)
-  if (exists) return activate(tabId)
-  const component = {
-    template: `
-      <div class="pane">
-        <h2>Documentation</h2>
-        <p>Central de ajuda e guias do sistema.</p>
-        <ul style="margin:0; padding-left:1rem; line-height:1.6;">
-          <li><a href="#" target="_blank" rel="noopener">Getting Started</a></li>
-          <li><a href="#" target="_blank" rel="noopener">Work Orders Guide</a></li>
-          <li><a href="#" target="_blank" rel="noopener">API Reference</a></li>
-        </ul>
-      </div>
-    `
-  }
-  tabs.value.push({ id: tabId, key:'docs', title:'Documentation', icon: null, closable:true, component })
-  activate(tabId)
-}
+function getStripEl(){ return tabListRef.value?.$el || null }
+function computeOverflow(el){ return el.scrollWidth > el.clientWidth + 1 }
 
-/* ========= Compressão das tabs (Draggable) ========= */
-const tabListRef = ref(null)   // ref para <Draggable>
-const density = ref(0)         // 0..3
-
-function getStripEl() {
-  return tabListRef.value?.$el || null  // DOM (a <ul>)
-}
-function computeOverflow(el) {
-  return el.scrollWidth > el.clientWidth + 1
-}
-async function recomputeDensity() {
+async function recomputeDensity(){
   const el = getStripEl()
   if (!el) return
-  for (let lvl = 0; lvl <= 3; lvl++) {
+  for (let lvl = 0; lvl <= 3; lvl++){
     density.value = lvl
     await nextTick()
     if (!computeOverflow(el)) return
   }
-  // se ainda sobrar overflow, CSS oculta a barra
 }
 
 let ro = null
 onMounted(() => {
   const el = getStripEl()
-  if (el && 'ResizeObserver' in window) {
+  if (el && 'ResizeObserver' in window){
     ro = new ResizeObserver(() => recomputeDensity())
     ro.observe(el)
   }
   recomputeDensity()
 })
-onBeforeUnmount(() => { ro && ro.disconnect() })
+onBeforeUnmount(() => ro?.disconnect())
+
+// ⬇️ este watch DEVE vir depois de declarar tabs/activeId
 watch([tabs, activeId], () => recomputeDensity(), { deep: true })
-function onReorder() { recomputeDensity() }
+
+function onReorder(){ recomputeDensity() }
+
 </script>
 <style scoped>
 /* =============== TOKENS & GRID =============== */
@@ -467,26 +465,6 @@ function onReorder() { recomputeDensity() }
   outline:none; box-shadow:none;
 }
 
-/* Esconde a barra de rolagem visualmente */
-.topbar .tab-list{ scrollbar-width: none; }
-.topbar .tab-list::-webkit-scrollbar{ display: none; }
-
-/* Densidades progressivas */
-.topbar .tab-list { --tab-gap: 10px; }
-.topbar .tab-btn  { font-size: var(--tab-fs, .82rem); padding: 0 var(--tab-pad-x, 14px); }
-
-.topbar .tab-list.density-0 { --tab-pad-x: 14px; --tab-fs: .82rem; --tab-gap: 10px; }
-.topbar .tab-list.density-1 { --tab-pad-x: 10px; --tab-fs: .78rem; --tab-gap: 8px; }
-.topbar .tab-list.density-2 { --tab-pad-x: 8px;  --tab-fs: .74rem; --tab-gap: 6px; }
-.topbar .tab-list.density-3 { --tab-pad-x: 6px;  --tab-fs: .72rem; --tab-gap: 4px; }
-.topbar .tab-list.density-3 .tab-title { display: none; }
-.topbar .tab-list.density-3 .tab-item.active .tab-title { display: inline; }
-
-/* X só na ativa/hover pra economizar largura */
-.topbar .tab-x { display: none; }
-.topbar .tab-item:hover .tab-x,
-.topbar .tab-item.active .tab-x { display: grid; }
-
 /* =============== SIDEBAR =============== */
 /* =============== SIDEBAR (alinhamento dos ícones) =============== */
 /* =============== SIDEBAR (arrumado) =============== */
@@ -563,6 +541,72 @@ function onReorder() { recomputeDensity() }
   .brand{ height:44px; }
   .icon-btn{ width:44px; height:44px; }
 }
+
+/* ===== Tabs strip (não altera sidebar) ===== */
+.topbar .tab-list{
+  list-style:none; margin:0; padding:0 12px;
+  height:var(--topbar-h,56px);
+  display:flex; align-items:flex-end; gap:var(--tab-gap,10px);
+  min-width:0; white-space:nowrap; overflow-x:auto; overflow-y:hidden;
+  scrollbar-width:none;
+}
+.topbar .tab-list::-webkit-scrollbar{ display:none; }
+
+.topbar .tab-item{ position:relative; display:inline-flex; align-items:center; }
+
+.topbar .tab-btn{
+  display:flex; align-items:center; gap:10px;
+  height:var(--tab-h,36px);
+  padding:0 var(--tab-pad-x,14px);
+  background:var(--tab-inactive-bg,#f5f5f5);
+  color:var(--tab-inactive-fg,#111827);
+  border:1px solid var(--tab-border,#d8dbe2);
+  border-bottom:0;
+  border-top-left-radius:var(--tab-radius,12px);
+  border-top-right-radius:var(--tab-radius,12px);
+  cursor:pointer; user-select:none; outline:none;
+  font-size:var(--tab-fs,.82rem); font-weight:700; text-transform:uppercase; letter-spacing:.02em;
+  transition:background .15s, color .15s, border-color .15s, filter .15s;
+}
+
+/* título com truncamento progressivo */
+.topbar .tab-title{
+  min-width:0;
+  max-width:var(--tab-title-max,14ch);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+/* X sempre com espaço reservado (sem shift) */
+.topbar .tab-x{
+  display:grid; place-items:center;
+  width:18px; height:18px; margin-left:6px;
+  border-radius:9px; flex:0 0 auto;
+}
+.topbar .tab-x:hover{ background:rgba(0,0,0,.08); }
+.topbar .tab-x svg{ width:12px; height:12px; }
+
+/* ativa “fundida” com o conteúdo */
+.topbar .tab-item.active .tab-btn{
+  background:var(--tab-active-bg,#FCC800);
+  color:var(--tab-active-fg,#111827);
+  border-color:var(--tab-active-border,#cfd3da);
+}
+.topbar .tab-item.active::after{
+  content:""; position:absolute; left:1px; right:1px; bottom:-1px; height:1px;
+  background:var(--surface,#fff); z-index:1;
+}
+
+/* densidades (0→3) */
+.topbar .tab-list.density-0 { --tab-pad-x:14px; --tab-fs:.82rem; --tab-gap:10px; --tab-title-max:14ch; }
+.topbar .tab-list.density-1 { --tab-pad-x:10px; --tab-fs:.78rem; --tab-gap:8px;  --tab-title-max:10ch; }
+.topbar .tab-list.density-2 { --tab-pad-x:8px;  --tab-fs:.74rem; --tab-gap:6px;  --tab-title-max:6ch;  }
+.topbar .tab-list.density-3 { --tab-pad-x:6px;  --tab-fs:.72rem; --tab-gap:4px;  --tab-title-max:0ch;  }
+
+/* estados do draggable */
+.tab-ghost{ opacity:.6; }
+.tab-chosen .tab-btn{ filter:brightness(.97); }
+.tab-drag   .tab-btn{ box-shadow:0 6px 20px rgba(0,0,0,.12); }
+
 </style>
 
 
