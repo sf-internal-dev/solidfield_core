@@ -11,7 +11,8 @@
   v-model="tabs"
   item-key="id"
   tag="ul"
-  class="tab-list"
+  ref="tabListRef"
+  :class="['tab-list', 'density-' + density]"
   handle=".tab-handle"
   :animation="150"
   :force-fallback="true"
@@ -27,22 +28,26 @@
       :class="{ active: t.id === activeId }"
       role="presentation"
     >
-    <button class="tab-btn" role="tab"
+      <button
+        class="tab-btn"
+        role="tab"
         :aria-selected="t.id === activeId"
-        :tabindex="t.id === activeId ? 0 : -1" @click="activate(t.id)">
-      <span class="tab-handle" title="Drag tab" @mousedown.stop @touchstart.stop>
-        <Fa :icon="['fas','grip-vertical']" />
-      </span>
-      <Fa v-if="t.icon" :icon="t.icon" class="fa" />
-      <span class="tab-title">{{ t.title }}</span>
-      <span v-if="t.closable" class="tab-x" @click.stop="closeTab(t.id)">
-        <Fa :icon="['fas','xmark']" />
-      </span>
-    </button>
-      
+        :tabindex="t.id === activeId ? 0 : -1"
+        @click="activate(t.id)"
+      >
+        <span class="tab-handle" title="Drag tab" @mousedown.stop @touchstart.stop>
+          <Fa :icon="['fas','grip-vertical']" />
+        </span>
+        <Fa v-if="t.icon" :icon="t.icon" class="fa" />
+        <span class="tab-title">{{ t.title }}</span>
+        <span v-if="t.closable" class="tab-x" @click.stop="closeTab(t.id)">
+          <Fa :icon="['fas','xmark']" />
+        </span>
+      </button>
     </li>
   </template>
 </Draggable>
+
 
 
 
@@ -104,44 +109,16 @@
 
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { useToast } from 'primevue/usetoast'
+import Draggable from 'vuedraggable'
+
 import HomeView from '@/views/HomeView.vue'
 import OperationsView from '@/views/OperationsView.vue'
 
-import Draggable from 'vuedraggable'
-// ícone FA usado no botão/aba: 'circle-question' ou 'book'
-// (no main.js, lembre de add à lib: faCircleQuestion ou faBook)
+const toast = useToast()
 
-function openDocs() {
-  const tabId = 'docs:main'
-  const exists = tabs.value.find(t => t.id === tabId)
-  if (exists) return activate(tabId)
-
-  const component = {
-    template: `
-      <div class="pane">
-        <h2>Documentation</h2>
-        <p>Central de ajuda e guias do sistema.</p>
-        <ul style="margin: 0; padding-left: 1rem; line-height: 1.6;">
-          <li><a href="#" target="_blank" rel="noopener">Getting Started</a></li>
-          <li><a href="#" target="_blank" rel="noopener">Work Orders Guide</a></li>
-          <li><a href="#" target="_blank" rel="noopener">API Reference</a></li>
-        </ul>
-      </div>
-    `
-  }
-
-  tabs.value.push({
-    id: tabId,
-    key: 'docs',
-    title: 'Documentation',
-    icon: null,   // ou ['fas','circle-question']
-    closable: true,
-    component
-  })
-  activate(tabId)
-}
-
+/* ========= Idiomas ========= */
 const langMenuOpen = ref(false)
 const currentLang = ref({ code: 'en', cc: 'us', label: 'English' })
 const langs = [
@@ -149,63 +126,75 @@ const langs = [
   { code: 'es', cc: 'es', label: 'Español' },
   { code: 'de', cc: 'de', label: 'Deutsch' }
 ]
-
 function toggleLangMenu() { langMenuOpen.value = !langMenuOpen.value }
 function setLang(l) { currentLang.value = l; langMenuOpen.value = false }
 
-/** Ícones da sidebar (apenas um por “seção” de alto nível) */
+/* ========= Sidebar itens ========= */
 const sideItems = [
   { header: 'Main' },
-  { key:'home',      label:'Home',        icon:['fas','house'] },
-  { key:'operations',       label:'Operations',  icon:['fas','map'] },
-  { key:'orders',    label:'Work Orders', icon:['fas','clipboard-list'], badge:12 },
-  { key:'technicians',     label:'Technicians', icon:['fas','users'] },
-  { key:'clients', label:'Clients',   icon:['fas','user-group'] },
+  { key:'home',        label:'Home',         icon:['fas','house'] },
+  { key:'operations',  label:'Operations',   icon:['fas','map'] },
+  { key:'orders',      label:'Work Orders',  icon:['fas','clipboard-list'], badge:12 },
+  { key:'technicians', label:'Technicians',  icon:['fas','users'] },
+  { key:'clients',     label:'Clients',      icon:['fas','user-group'] },
 
   { header: 'Analytics' },
-  { key:'kpi',       label:'KPI Detail',  icon:['fas','chart-line'] },
+  { key:'kpi',         label:'KPI Detail',   icon:['fas','chart-line'] },
 
   { header: 'Admin' },
-  { key:'audit',     label:'Audit Logs',  icon:['fas','clock-rotate-left'] },
-  { key:'settings',  label:'Settings',    icon:['fas','gear'] },
+  { key:'audit',       label:'Audit Logs',   icon:['fas','clock-rotate-left'] },
+  { key:'settings',    label:'Settings',     icon:['fas','gear'] },
 
   { header: 'Account' },
-  { key:'logout',    label:'Logout',      icon:['fas','arrow-right-from-bracket'], danger:true },
+  { key:'logout',      label:'Logout',       icon:['fas','arrow-right-from-bracket'], danger:true },
 ]
 
-
-/** Pedaços de UI (demos). Em prod, troque por imports de componentes reais. */
+/* ========= Panes (conteúdos) ========= */
 const panes = {
-  HomePane:       HomeView,
-  OrdersPane:    { template: `<div class="pane"><h2>Work Orders</h2><p>Conteúdo de ordens de serviço.</p></div>` },
-  ClientsPane: { template: `<div class="pane"><h2>Clients</h2><p>Lista/gestão de clientes.</p></div>` },
-  SettingsPane:  { template: `<div class="pane"><h2>Settings</h2><p>Preferências do sistema.</p></div>` },
-  OperationsPane: OperationsView,
-
+  HomePane:        HomeView,
+  OperationsPane:  OperationsView,
+  OrdersPane:      { template: `<div class="pane"><h2>Work Orders</h2><p>Conteúdo de ordens de serviço.</p></div>` },
+  TechniciansPane: { template: `<div class="pane"><h2>Technicians</h2><p>Lista e grupos operacionais.</p></div>` },
+  ClientsPane:     { template: `<div class="pane"><h2>Clients</h2><p>Clientes e WOs relacionadas.</p></div>` },
+  KpiPane:         { template: `<div class="pane"><h2>KPI Detail</h2><p>Painéis analíticos.</p></div>` },
+  AuditPane:       { template: `<div class="pane"><h2>Audit Logs</h2><p>Trilha de auditoria.</p></div>` },
+  SettingsPane:    { template: `<div class="pane"><h2>Settings</h2><p>Preferências do sistema.</p></div>` },
 }
 
-/** Abas internas (sem router): cada aba guarda o OBJETO do componente */
+/* ========= Abas ========= */
 const tabs = ref([
-  { id: 'home', key: 'home', title: 'Home', icon: 'pi pi-home', closable: false, component: panes.HomePane }
+  { id:'home', key:'home', title:'Home', icon:['fas','house'], closable:false, component: panes.HomePane }
 ])
 const activeId = ref('home')
 const activeKey = computed(() => tabs.value.find(t => t.id === activeId.value)?.key)
 const activeComponent = computed(() => tabs.value.find(t => t.id === activeId.value)?.component)
 
-/** Abre/ativa aba a partir da sidebar (deduplica por key) */
+/* abrir/ativar via sidebar (deduplica por key) + limite */
+const TAB_LIMIT = 10
 function openFromSidebar(key) {
+  // ação direta
+  if (key === 'logout') {
+    toast.add({ severity:'info', summary:'Logout', detail:'Implementar ação de logout aqui.', life:1800 })
+    return
+  }
+
   const exists = tabs.value.find(t => t.key === key)
   if (exists) return activate(exists.id)
 
+  if (tabs.value.length >= TAB_LIMIT) {
+    toast.add({ severity:'warn', summary:'Tab limit reached', detail:`Close a tab to open a new one (limit: ${TAB_LIMIT}).`, life:2500 })
+    return
+  }
+
   const cfg = {
-    home:      { title: 'Home',        icon: 'pi pi-home',      component: panes.HomePane,      closable: false },
-    operations: { title: 'Operations',        icon: 'pi pi-home',      component: panes.OperationsPane,      closable: true },
-    orders:    { title: 'Work Orders', icon: 'pi pi-clipboard', component: panes.OrdersPane,    closable: true  },
-    technicians: { title: 'Technicians',   icon: 'pi pi-users',     component: panes.TechniciansPane, closable: true  },
-    kpi: { title: 'KPI Details',   icon: 'pi pi-users',     component: panes.TechniciansPane, closable: true  },
-    clients: { title: 'Clients',   icon: 'pi pi-users',     component: panes.CustomersPane, closable: true  },
-    audit: { title: 'Audit Logs',   icon: 'pi pi-users',     component: panes.CustomersPane, closable: true  },
-    settings:  { title: 'Settings',    icon: 'pi pi-cog',       component: panes.SettingsPane,  closable: true  },
+    home:        { title:'Home',         icon:['fas','house'],          component: panes.HomePane,        closable:false },
+    operations:  { title:'Operations',   icon:['fas','map'],            component: panes.OperationsPane,  closable:true  },
+    orders:      { title:'Work Orders',  icon:['fas','clipboard-list'], component: panes.OrdersPane,      closable:true  },
+    technicians: { title:'Technicians',  icon:['fas','users'],          component: panes.TechniciansPane, closable:true  },
+    clients:     { title:'Clients',      icon:['fas','user-group'],     component: panes.ClientsPane,     closable:true  },
+    kpi:         { title:'KPI Detail',   icon:['fas','chart-line'],     component: panes.KpiPane,         closable:true  },
+    audit:       { title:'Audit Logs',   icon:['fas','clock-rotate-left'], component: panes.AuditPane,    closable:true  },
+    settings:    { title:'Settings',     icon:['fas','gear'],           component: panes.SettingsPane,    closable:true  },
   }[key]
   if (!cfg) return
 
@@ -214,12 +203,8 @@ function openFromSidebar(key) {
   activate(id)
 }
 
-/** Ativa aba pelo id */
-function activate(id) {
-  activeId.value = id
-}
+function activate(id) { activeId.value = id }
 
-/** Fecha aba e escolhe a próxima ativa de forma inteligente */
 function closeTab(id) {
   const idx = tabs.value.findIndex(t => t.id === id)
   if (idx === -1) return
@@ -227,26 +212,81 @@ function closeTab(id) {
   tabs.value.splice(idx, 1)
 
   if (!tabs.value.length) {
-    // garante pelo menos uma aba (Home)
-    tabs.value.push({ id: 'home', key: 'home', title: 'Home', icon: 'pi pi-home', closable: false, component: panes.HomePane })
+    tabs.value.push({ id:'home', key:'home', title:'Home', icon:['fas','house'], closable:false, component: panes.HomePane })
     activeId.value = 'home'
     return
   }
   if (wasActive) {
-    const next = tabs.value[idx] || tabs.value[idx - 1] || tabs.value[0]
+    const next = tabs.value[idx] || tabs.value[idx-1] || tabs.value[0]
     activeId.value = next.id
   }
 }
 
-/** (Opcional) exemplo para abrir “documentos” em abas (multi-instâncias) */
+/* abrir “documentos” (multi-instância) via emit de filhos */
 function openDoc(type, id, title) {
   const tabId = `${type}:${id}`
   const exists = tabs.value.find(t => t.id === tabId)
   if (exists) return activate(tabId)
   const component = { template: `<div class="pane"><h2>${title}</h2><p>${type} #${id}</p></div>` }
-  tabs.value.push({ id: tabId, key: type, title, icon: 'pi pi-file', closable: true, component })
+  tabs.value.push({ id: tabId, key: type, title, icon:['fas','file'], closable: true, component })
   activate(tabId)
 }
+
+/* ========= Aba de documentação (sem ícone) ========= */
+function openDocs() {
+  const tabId = 'docs:main'
+  const exists = tabs.value.find(t => t.id === tabId)
+  if (exists) return activate(tabId)
+  const component = {
+    template: `
+      <div class="pane">
+        <h2>Documentation</h2>
+        <p>Central de ajuda e guias do sistema.</p>
+        <ul style="margin:0; padding-left:1rem; line-height:1.6;">
+          <li><a href="#" target="_blank" rel="noopener">Getting Started</a></li>
+          <li><a href="#" target="_blank" rel="noopener">Work Orders Guide</a></li>
+          <li><a href="#" target="_blank" rel="noopener">API Reference</a></li>
+        </ul>
+      </div>
+    `
+  }
+  tabs.value.push({ id: tabId, key:'docs', title:'Documentation', icon: null, closable:true, component })
+  activate(tabId)
+}
+
+/* ========= Compressão das tabs (Draggable) ========= */
+const tabListRef = ref(null)   // ref para <Draggable>
+const density = ref(0)         // 0..3
+
+function getStripEl() {
+  return tabListRef.value?.$el || null  // DOM (a <ul>)
+}
+function computeOverflow(el) {
+  return el.scrollWidth > el.clientWidth + 1
+}
+async function recomputeDensity() {
+  const el = getStripEl()
+  if (!el) return
+  for (let lvl = 0; lvl <= 3; lvl++) {
+    density.value = lvl
+    await nextTick()
+    if (!computeOverflow(el)) return
+  }
+  // se ainda sobrar overflow, CSS oculta a barra
+}
+
+let ro = null
+onMounted(() => {
+  const el = getStripEl()
+  if (el && 'ResizeObserver' in window) {
+    ro = new ResizeObserver(() => recomputeDensity())
+    ro.observe(el)
+  }
+  recomputeDensity()
+})
+onBeforeUnmount(() => { ro && ro.disconnect() })
+watch([tabs, activeId], () => recomputeDensity(), { deep: true })
+function onReorder() { recomputeDensity() }
 </script>
 <style scoped>
 /* =============== TOKENS & GRID =============== */
@@ -426,6 +466,26 @@ function openDoc(type, id, title) {
 .topbar .tab-x:focus,  .topbar .tab-x:active{
   outline:none; box-shadow:none;
 }
+
+/* Esconde a barra de rolagem visualmente */
+.topbar .tab-list{ scrollbar-width: none; }
+.topbar .tab-list::-webkit-scrollbar{ display: none; }
+
+/* Densidades progressivas */
+.topbar .tab-list { --tab-gap: 10px; }
+.topbar .tab-btn  { font-size: var(--tab-fs, .82rem); padding: 0 var(--tab-pad-x, 14px); }
+
+.topbar .tab-list.density-0 { --tab-pad-x: 14px; --tab-fs: .82rem; --tab-gap: 10px; }
+.topbar .tab-list.density-1 { --tab-pad-x: 10px; --tab-fs: .78rem; --tab-gap: 8px; }
+.topbar .tab-list.density-2 { --tab-pad-x: 8px;  --tab-fs: .74rem; --tab-gap: 6px; }
+.topbar .tab-list.density-3 { --tab-pad-x: 6px;  --tab-fs: .72rem; --tab-gap: 4px; }
+.topbar .tab-list.density-3 .tab-title { display: none; }
+.topbar .tab-list.density-3 .tab-item.active .tab-title { display: inline; }
+
+/* X só na ativa/hover pra economizar largura */
+.topbar .tab-x { display: none; }
+.topbar .tab-item:hover .tab-x,
+.topbar .tab-item.active .tab-x { display: grid; }
 
 /* =============== SIDEBAR =============== */
 /* =============== SIDEBAR (alinhamento dos ícones) =============== */

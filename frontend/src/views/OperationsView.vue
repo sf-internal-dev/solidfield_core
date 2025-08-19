@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watchEffect } from 'vue'
+
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
@@ -172,25 +173,35 @@ watchEffect(drawRoute)
             </div>
           </template>
           <template #content>
-            <ul class="list-none m-0 p-0">
-              <li
-                v-for="o in filtered"
-                :key="o.id"
-                class="flex align-items-center justify-content-between py-2 border-bottom-1 surface-border"
+            <ul
+            class="tab-list"
+            ref="tabList"
+            :class="['density-' + density]"
+            role="tablist"
+            aria-label="Open views"
+          >
+            <li
+              v-for="t in tabs"
+              :key="t.id"
+              class="tab-item"
+              :class="{ active: t.id === activeId }"
+              role="presentation"
+            >
+              <button
+                class="tab-btn"
+                role="tab"
+                :aria-selected="t.id === activeId"
+                :tabindex="t.id === activeId ? 0 : -1"
+                @click="activate(t.id)"
               >
-                <div class="flex align-items-center gap-3">
-                  <Tag :value="o.status" :severity="severity(o.status)" />
-                  <div>
-                    <div class="font-medium">{{ o.title }}</div>
-                    <small class="text-600">#{{ o.id }} • {{ o.site }} • {{ o.tech }} • ETA {{ o.eta }}</small>
-                  </div>
-                </div>
-                <div class="flex align-items-center gap-2">
-                  <Button label="Open" size="small" @click="openWO(o)" />
-                  <Button label="Complete" size="small" class="p-button-outlined" />
-                </div>
-              </li>
-            </ul>
+                <Fa v-if="t.icon" :icon="t.icon" class="fa" />
+                <span class="tab-title">{{ t.title }}</span>
+                <span v-if="t.closable" class="tab-x" @click.stop="closeTab(t.id)">
+                  <Fa :icon="['fas','xmark']" />
+                </span>
+              </button>
+            </li>
+          </ul>
           </template>
         </Card>
       </div>
