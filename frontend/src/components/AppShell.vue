@@ -39,8 +39,12 @@
         <span class="tab-title">{{ t.title }}</span>
 
         <!-- X sempre visível (sem layout shift) -->
-        <span class="tab-x" @click.stop="closeTab(t.id)" aria-label="Close tab">
-          <Fa :icon="['fas','xmark']" />
+        <span
+  class="tab-x"
+  :class="{ disabled: !t.closable }"
+  @click.stop="t.closable && closeTab(t.id)"
+  aria-label="Close tab">
+            <Fa :icon="['fas','xmark']" />
         </span>
       </button>
     </li>
@@ -191,7 +195,7 @@ const panes = {
 
 /** Abas internas (sem router): cada aba guarda o OBJETO do componente */
 const tabs = ref([
-  { id: 'home', key: 'home', title: 'Home', icon: 'pi pi-home', closable: false, component: panes.HomePane }
+  { id: 'home', key: 'home', title: 'Home', icon: 'pi pi-home', closable:false, component: panes.HomePane }
 ])
 const activeId = ref('home')
 const activeKey = computed(() => tabs.value.find(t => t.id === activeId.value)?.key)
@@ -606,6 +610,11 @@ function onReorder(){ recomputeDensity() }
 .tab-ghost{ opacity:.6; }
 .tab-chosen .tab-btn{ filter:brightness(.97); }
 .tab-drag   .tab-btn{ box-shadow:0 6px 20px rgba(0,0,0,.12); }
+
+/* X desativado (ex.: Home) */
+.topbar .tab-x.disabled{
+  display: none;
+}
 
 </style>
 
