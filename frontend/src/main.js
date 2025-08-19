@@ -20,6 +20,7 @@ import {
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 import 'flag-icons/css/flag-icons.min.css'
 import { faBook, faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
+import Tooltip from 'primevue/tooltip'
 
 // importe só o que for usar (solid = “mais gordo”)
 // adiciona à lib
@@ -42,6 +43,7 @@ library.add(faBook, faCircleQuestion)
 
 
 app.component('Fa', FontAwesomeIcon) // você usará <Fa />
+app.directive('tooltip', Tooltip)
 
 app.use(router)
 app.use(pinia)

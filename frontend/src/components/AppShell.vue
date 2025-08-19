@@ -25,13 +25,13 @@
   <template #item="{ element: t }">
     <li class="tab-item" :class="{ active: t.id === activeId }" role="presentation">
       <button
-        class="tab-btn"
-        role="tab"
-        :aria-selected="t.id === activeId"
-        :tabindex="t.id === activeId ? 0 : -1"
-        @click="activate(t.id)"
-        :title="t.title"
-      >
+          class="tab-btn"
+          role="tab"
+          :aria-selected="t.id === activeId"
+          :tabindex="t.id === activeId ? 0 : -1"
+          @click="activate(t.id)"
+          v-tooltip.top="{ value: t.title, showDelay: 150, hideDelay: 0 }"
+        >
         <span class="tab-handle" title="Drag tab" @mousedown.stop @touchstart.stop>
           <Fa :icon="['fas','grip-vertical']" />
         </span>
