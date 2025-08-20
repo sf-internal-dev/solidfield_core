@@ -289,6 +289,98 @@ watch([tabs, activeId], () => recomputeDensity(), { deep: true })
 
 function onReorder(){ recomputeDensity() }
 
+// ===== Persistência das abas =====
+const TAB_LIMIT = 10; // opcional
+// Ideal: derive isso do “workspace handle” + usuário autenticado
+const TENANT = localStorage.getItem('workspace_handle') || 'default';
+const STORAGE_KEY = `app:tabs:v1:${TENANT}`;
+
+// Mapa: de key -> componente real (não serializamos o componente)
+const keyToComp = {
+  home:        panes.HomePane,
+  operations:  panes.OperationsPane,
+  orders:      panes.OrdersPane,
+  technicians: panes.TechniciansPane,
+  clients:     panes.ClientsPane,
+  kpi:         panes.KpiPane,
+  audit:       panes.AuditPane,
+  settings:    panes.SettingsPane,
+  docs:        null, // se tiver docs, preencha aqui
+};
+
+function saveTabs() {
+  const payload = {
+    v: 1,
+    ts: Date.now(),
+    tabs: tabs.value.slice(0, TAB_LIMIT).map(({ id, key, title, closable }) => ({
+      id, key, title, closable
+    })),
+    activeId: activeId.value
+  };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); // use sessionStorage se preferir
+  } catch (e) {
+    console.warn('Tab save failed', e);
+  }
+}
+
+function loadTabs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data?.tabs?.length) return false;
+
+    const restored = [];
+    for (const t of data.tabs.slice(0, TAB_LIMIT)) {
+      const comp = keyToComp[t.key];
+      if (!comp) continue; // ignora chaves desconhecidas
+      restored.push({ ...t, component: comp });
+    }
+    if (!restored.length) return false;
+
+    // garante Home presente e não-fechável
+    if (!restored.some(tt => tt.key === 'home')) {
+      restored.unshift({
+        id: 'home',
+        key: 'home',
+        title: 'Home',
+        closable: false,
+        component: keyToComp.home
+      });
+    } else {
+      // força a home a ser não-fechável
+      const h = restored.find(tt => tt.key === 'home');
+      h.closable = false;
+    }
+
+    tabs.value = restored;
+
+    // ativa id salvo, ou a primeira
+    activeId.value =
+      restored.find(tt => tt.id === data.activeId)?.id || restored[0].id;
+
+    return true;
+  } catch (e) {
+    console.warn('Tab restore failed', e);
+    return false;
+  }
+}
+
+// chama o load no mounted (depois do seu código já existente no onMounted)
+onMounted(() => {
+  // ... (seu código já existente no onMounted)
+  loadTabs();
+});
+
+// salva a cada mudança
+watch([tabs, activeId], () => saveTabs(), { deep: true });
+
+// se precisar limpar no logout:
+function clearTabsStorage() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
 </script>
 <style scoped>
 /* =============== TOKENS & GRID =============== */
