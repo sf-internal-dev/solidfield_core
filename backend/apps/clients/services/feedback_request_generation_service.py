@@ -4,8 +4,8 @@ from backend.apps.clients.utils.feedback.feedback_validation_util import (
 )
 from backend.apps.clients.models.feedback import FeedbackLink, ClientFeedback
 from backend.apps.clients.models.client import Client
-from backend.apps.orders.models.service_order import ServiceOrder
-from backend.apps.core.services.audition_log_service import log_service_order_feedback_received
+from backend.apps.orders.models.work_order import WorkOrder
+from backend.apps.core.services.audition_log_service import log_work_order_feedback_received
 from typing import Tuple, Optional, List
 from django.db import IntegrityError
 
@@ -34,7 +34,7 @@ def return_feedback_preview(feedback: ClientFeedback):
 # Validates star rating and comment length before saving
 # Logs the feedback reception in the service order history
 # Returns the created ClientFeedback or None with an error list if validation or save fails
-def create_client_feedback(service_order: ServiceOrder, client: Client, client_name: str,
+def create_client_feedback(service_order: WorkOrder, client: Client, client_name: str,
     client_email: str, stars: int, comment: str, strengths)-> Tuple[Optional[ClientFeedback], List[str]]:
     
     errors = []
@@ -48,7 +48,7 @@ def create_client_feedback(service_order: ServiceOrder, client: Client, client_n
         errors.append("comment_too_long")
         return None, errors
     
-    log_service_order_feedback_received(service_order, feedback_label)
+    log_work_order_feedback_received(service_order, feedback_label)
 
     if not reached_comment_max_characters(comment):
         if client:
