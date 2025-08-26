@@ -634,8 +634,9 @@ function clearTabsStorage() {
 /* =============== RESPONSIVO =============== */
 @media (max-width:768px){
   .app-shell{ grid-template-columns:64px minmax(0,1fr); }
-  .brand{ height:44px; }
+  .brand{ height:20px; }
   .icon-btn{ width:44px; height:44px; }
+  .icon-label{display: none;}
 }
 
 /* ===== Tabs strip (não altera sidebar) ===== */
