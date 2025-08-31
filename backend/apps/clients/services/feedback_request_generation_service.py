@@ -6,39 +6,38 @@ from backend.apps.clients.models.feedback import FeedbackLink, ClientFeedback
 from backend.apps.clients.models.client import Client
 from backend.apps.orders.models.work_order import WorkOrder
 from backend.apps.core.models.technician import Technician
+from backend.apps.orders.models.work_order import WorkOrder
+
 from backend.apps.core.services.audition_log_service import log_work_order_feedback_received
 from typing import Tuple, Optional, List
 from django.db import IntegrityError
 from backend.apps.core.services.technician_permission_service import has_permission
 
-# -> Generates and assigns a unique feedback request key to a given FeedbackLink
-# Tries to save the key and returns an error if a conflict occurs in the database
-# Returns the updated FeedbackLink instance or None with an error list if failed
-def add_key_for_feedback_request(
+def create_feedback_link(
     technician_operating: Technician, 
-    feedback_link: FeedbackLink
+    work_order: WorkOrder,
 ) -> Tuple[Optional[FeedbackLink], List[str]]:
     errors: List[str] = []
 
-    # verificar permissão
     ok, perm_errors = has_permission(technician_operating, "generate_feedback_link")
     if not ok:
         errors.extend(perm_errors)
         return None, errors
 
-    # gerar chave única
-    for _ in range(5):  # tentar até 5 vezes em caso de conflito
+    for _ in range(5):  # up to 5 tries
         try:
-            feedback_link.key = generate_feedback_request_key()
-            feedback_link.save(update_fields=["key"])
-            break
+            key = generate_feedback_request_key()
+            feedback_link = FeedbackLink.objects.create(
+                work_order=work_order,
+                key=key
+            )
+            return feedback_link, errors
         except IntegrityError:
             continue
-    else:
-        errors.append("key_generation_failed")
-        return None, errors
 
-    return feedback_link, errors
+    errors.append("key_generation_failed")
+    return None, errors
+
 
 # -> Builds and returns a preview structure for a given ClientFeedback
 # Uses the feedback_preview utility to assemble the preview
