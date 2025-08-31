@@ -156,7 +156,13 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
                 "label": "Create Technicians Aggroupment",
                 "delegable": True,
                 "description": "Can create technicians aggroupment."
-            }
+            },
+            {
+                "code": "register_client",
+                "label": "Create Technicians Aggroupment",
+                "delegable": True,
+                "description": "Can create technicians aggroupment."
+            },
         ]
     }
 }
