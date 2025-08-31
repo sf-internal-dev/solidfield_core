@@ -1,4 +1,4 @@
-from backend.apps.core.utils.technician_permission.technician_permission_delegation_util import get_effective_actions_for_level,technician_has_permission_for_action
+from backend.apps.core.utils.technician_permission.technician_permission_delegation_util import get_effective_actions_for_level,technician_has_permission_for_action, get_action_label
 from backend.apps.core.utils.technician_permission.technician_permission_temporary_delegation_util import technician_has_permission_for_action, can_delegate_action
 from backend.apps.core.utils.audition_log.audition_log_util import log_audit_action
 from backend.apps.core.models import Technician, TemporaryDelegation, DelegatedAction
@@ -62,8 +62,11 @@ def create_temporary_delegation(from_user, to_user, actions: list[str], valid_fr
 # -> Checks if a technician has permission for a specific action
 # Returns True if permission is granted by level or via active delegation
 def has_permission(technician: Technician, action_code: str) -> Tuple[bool, str]:
+    label = get_action_label(level_key=technician.technician_permission, action_code=action_code)
+
     if technician_has_permission_for_action(technician, action_code):
         return True, ""
+    
     elif not technician_has_permission_for_action(technician, action_code):
         now = timezone.now()
         return TemporaryDelegation.objects.filter(
@@ -72,7 +75,7 @@ def has_permission(technician: Technician, action_code: str) -> Tuple[bool, str]
             valid_until__gte=now,
             actions__action=action_code
         ).exists(), ""
-    return False, f"Technician doesn't have permission to {action_code}"
+    return False, f"Technician doesn't have permission to {label}"
 
 # -> Lists all effective actions currently available to a technician
 # Includes both native permission level and active delegated actions
