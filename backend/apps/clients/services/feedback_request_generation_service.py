@@ -5,24 +5,40 @@ from backend.apps.clients.utils.feedback.feedback_validation_util import (
 from backend.apps.clients.models.feedback import FeedbackLink, ClientFeedback
 from backend.apps.clients.models.client import Client
 from backend.apps.orders.models.work_order import WorkOrder
+from backend.apps.core.models.technician import Technician
 from backend.apps.core.services.audition_log_service import log_work_order_feedback_received
 from typing import Tuple, Optional, List
 from django.db import IntegrityError
+from backend.apps.core.services.technician_permission_service import has_permission
 
 # -> Generates and assigns a unique feedback request key to a given FeedbackLink
 # Tries to save the key and returns an error if a conflict occurs in the database
 # Returns the updated FeedbackLink instance or None with an error list if failed
-def add_key_for_feedback_request(feedback_link: FeedbackLink) -> Tuple[Optional[FeedbackLink], List[str]]:
-    errors = []
-    try:
-        key = generate_feedback_request_key()
-        feedback_link.key = key
-        feedback_link.save()
-        return feedback_link, errors
-    except IntegrityError:
+def add_key_for_feedback_request(
+    technician_operating: Technician, 
+    feedback_link: FeedbackLink
+) -> Tuple[Optional[FeedbackLink], List[str]]:
+    errors: List[str] = []
+
+    # verificar permissão
+    ok, perm_errors = has_permission(technician_operating, "generate_feedback_link")
+    if not ok:
+        errors.extend(perm_errors)
+        return None, errors
+
+    # gerar chave única
+    for _ in range(5):  # tentar até 5 vezes em caso de conflito
+        try:
+            feedback_link.key = generate_feedback_request_key()
+            feedback_link.save(update_fields=["key"])
+            break
+        except IntegrityError:
+            continue
+    else:
         errors.append("key_generation_failed")
         return None, errors
 
+    return feedback_link, errors
 
 # -> Builds and returns a preview structure for a given ClientFeedback
 # Uses the feedback_preview utility to assemble the preview
@@ -34,10 +50,15 @@ def return_feedback_preview(feedback: ClientFeedback):
 # Validates star rating and comment length before saving
 # Logs the feedback reception in the service order history
 # Returns the created ClientFeedback or None with an error list if validation or save fails
-def create_client_feedback(service_order: WorkOrder, client: Client, client_name: str,
+def create_client_feedback(technician_operating: Technician, service_order: WorkOrder, client: Client, client_name: str,
     client_email: str, stars: int, comment: str, strengths)-> Tuple[Optional[ClientFeedback], List[str]]:
     
     errors = []
+
+    ok, perm_errors = has_permission(technician_operating, "create_client_feedback")
+    if not ok:
+        errors.extend(perm_errors)
+        return None, errors
 
     client_stars, feedback_label = stars_given(stars)
     if client_stars is None:
