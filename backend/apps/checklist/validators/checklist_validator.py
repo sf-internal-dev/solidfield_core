@@ -1,15 +1,15 @@
 # validators/checklist_validators.py
 import re
 from typing import Tuple, List, Optional, Dict, Any, Iterable
-
+from backend.common.helpers.validators import _is_boolish, _only_printable_no_ctrl, _is_positive_int, _split_choice_options
 
 # -----------------------------
 # ChecklistTemplate (form)
 # -----------------------------
 
 # -> Validates payload for creating/updating a ChecklistTemplate (field-level only)
-# Checks: name (1..150, sem ctrl), service_type (1..100, sem ctrl),
-#         is_active/is_global bool-ish, aggroupments as list[int] opcional
+# Checks: name (1..150, no control chars), service_type (1..100, no control chars),
+#         is_active/is_global must be bool-ish, aggroupments as optional list[int]
 def validate_checklist_template_payload(payload: Dict[str, Any]) -> Tuple[bool, List[str]]:
     errors: List[str] = []
 
@@ -49,15 +49,14 @@ def validate_checklist_template_payload(payload: Dict[str, Any]) -> Tuple[bool, 
         errors.append("invalid_version_value")
 
     return (len(errors) == 0), errors
-
 # -----------------------------
 # ChecklistItemTemplate (form)
 # -----------------------------
 
 # -> Validates payload for ChecklistItemTemplate (field-level only)
-# Checks: order positive int (se fornecido), question (1..300, sem ctrl),
-#         answer_type dentro de choices permitidos, required bool-ish,
-#         choice_options: linhas/CSV, cada opção <=100 chars (por compatibilidade com answer_choice)
+# Checks: order positive int (if provided), question (1..300, no control chars),
+#         answer_type within allowed choices, required must be bool-ish,
+#         choice_options: lines/CSV, each option <=100 chars (compatible with answer_choice)
 def validate_checklist_item_template_payload(
     payload: Dict[str, Any],
     *,
@@ -107,11 +106,11 @@ def validate_checklist_item_template_payload(
 # -----------------------------
 
 # -> Validates raw answer payload shape for a ChecklistItemAnswer (no business rules)
-# You still decide required/choice-membership elsewhere; aqui checamos tipo/formato:
-# - answer_type: 'bool' → aceita bool ou "true/false/1/0"
-# - 'text' → string (sem ctrl)
-# - 'number' e demais numéricos → int/float (ou string numérica)
-# - 'choice' → string (<=100, sem ctrl) — NÃO valida se pertence às opções
+# Required rules / choice-membership must be validated elsewhere; here we only check type/format:
+# - answer_type: 'bool' → accepts bool or "true/false/1/0"
+# - 'text' → string (no control chars)
+# - 'number' and other numeric types → int/float (or numeric string)
+# - 'choice' → string (<=100, no control chars) — does NOT validate membership within options
 def validate_checklist_item_answer_payload(
     *,
     answer_type: str,
