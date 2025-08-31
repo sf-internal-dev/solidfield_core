@@ -4,11 +4,17 @@ from backend.apps.core.models.technician import TechniciansAggroupment, Technici
 from typing import Optional, List, Tuple, Iterable, Dict, Any
 from django.db.models import Max
 from django.db import transaction, IntegrityError
-
+from backend.apps.core.services.technician_permission_service import has_permission
 # -> Creates a new checklist template record with the given parameters
 # Associates the template with the creating technician and service type
 # Sets the global visibility flag as specified and returns the created object
-def create_checklist_template(name: str, technician: Technician, service_type: str, is_global: bool):
+def create_checklist_template(technician_operating: Technician, name: str, technician: Technician, service_type: str, is_global: bool):
+    errors = []
+    ok, perm_errors = has_permission(technician_operating, "create_checklist_template")
+    if not ok:
+        errors.extend(perm_errors)
+        return None, errors
+
     checklist_template = ChecklistTemplate.objects.create(
         name = name,
         created_by  = technician,
@@ -16,16 +22,21 @@ def create_checklist_template(name: str, technician: Technician, service_type: s
         is_global = is_global
     )
 
-    return checklist_template
+    return checklist_template, errors
 
 # -> Adds a new item to a given checklist template
 # Ensures order uniqueness within the template and assigns the next available order if not provided
 # Creates the item with provided question, type, requirement flag, and choice options
 # Returns the created item or validation errors if the order conflicts or constraints fail
-def add_item_to_checklist_template(template: ChecklistTemplate, question: str, answer_type: str, 
+def add_item_to_checklist_template(technician_operating: Technician, template: ChecklistTemplate, question: str, answer_type: str, 
     is_required: bool, choice_options: str, order: int = None) -> Tuple[ChecklistItemTemplate, List[str]]:
     
     errors: List[str] = []
+
+    ok, perm_errors = has_permission(technician_operating, "add_item_to_checklist_template")
+    if not ok:
+        errors.extend(perm_errors)
+        return None, errors
 
     if order is None:
         order = next_order_for_template(template)
