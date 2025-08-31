@@ -66,10 +66,16 @@ def add_item_to_checklist_template(technician_operating: Technician, template: C
 # Converts a global template into a group-specific one if necessary
 # Adds the given aggroupment to the template and returns the updated object
 @transaction.atomic
-def delegate_checklist_template_to_aggroupment(template: ChecklistTemplate, 
+def delegate_checklist_template_to_aggroupment(technician_operating: Technician, template: ChecklistTemplate, 
     aggroupment: TechniciansAggroupment,) -> Tuple[Optional[ChecklistTemplate], List[str]]:
 
+
     errors: List[str] = []
+
+    ok, perm_errors = has_permission(technician_operating, "delegate_checklist_template_to_aggroupment")
+    if not ok:
+        errors.extend(perm_errors)
+        return None, errors
 
     if template.is_global:
         template.is_global = False
