@@ -90,11 +90,16 @@ def delegate_checklist_template_to_aggroupment(technician_operating: Technician,
 # Prevents removal if the template is global or if it would leave the template with no groups
 # Returns the updated template or an error if the removal would violate constraints
 @transaction.atomic
-def remove_aggroupment_from_template(template: ChecklistTemplate,
+def remove_aggroupment_from_template(technician_operating: Technician, template: ChecklistTemplate,
     aggroupment: TechniciansAggroupment,) -> Tuple[Optional[ChecklistTemplate], List[str]]:
 
     errors: List[str] = []
 
+    ok, perm_errors = has_permission(technician_operating, "remove_aggroupment_from_template")
+    if not ok:
+        errors.extend(perm_errors)
+        return None, errors
+    
     if template.is_global:
         return template, errors
 
@@ -110,11 +115,16 @@ def remove_aggroupment_from_template(template: ChecklistTemplate,
 # Optionally copies aggroupments and deactivates the previous template version
 # Returns the new template version and any accumulated validation errors
 @transaction.atomic
-def update_checklist_template_version(template: ChecklistTemplate,*,orders_to_remove: Optional[Iterable[int]] = None, 
+def update_checklist_template_version(technician_operating: Technician, template: ChecklistTemplate,*,orders_to_remove: Optional[Iterable[int]] = None, 
     items_to_add: Optional[Iterable[Dict[str, Any]]] = None,  copy_aggroupments: bool = True, deactivate_previous: bool = True,
     ) -> Tuple[Optional[ChecklistTemplate], List[str]]:
 
     errors: List[str] = []
+
+    ok, perm_errors = has_permission(technician_operating, "update_checklist_template_version")
+    if not ok:
+        errors.extend(perm_errors)
+        return None, errors
 
     next_version = (
         ChecklistTemplate.objects
