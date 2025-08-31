@@ -4,12 +4,16 @@ from backend.apps.core.models.technician import Technician
 from __future__ import annotations
 from typing import Optional, List, Tuple, Dict, Any, Iterable
 from django.db import transaction
-
+from backend.apps.core.services.technician_permission_service import has_permission
 #-> Creates a new checklist instance for a given template and technician
 # Associates the checklist with the provided template and filled_by technician
 # Returns the created checklist object along with any validation errors
-def create_checklist(*, template: ChecklistTemplate, filled_by: Technician) -> Tuple[Optional[Checklist], List[str]]:
-   
+def create_checklist(*, technician_operating: Technician, template: ChecklistTemplate, filled_by: Technician) -> Tuple[Optional[Checklist], List[str]]:
+    ok, perm_errors = has_permission(technician_operating, "submit_checklist")
+    if not ok:
+        errors.extend(perm_errors)
+        return None, errors
+
     errors: List[str] = []
     checklist = Checklist.objects.create(template=template, filled_by=filled_by)
     return checklist, errors
@@ -19,10 +23,15 @@ def create_checklist(*, template: ChecklistTemplate, filled_by: Technician) -> T
 # Validates required field rules and choice option membership before saving
 # Updates existing answers, preserving only the expected field and note if provided
 @transaction.atomic
-def save_answer(*, checklist: Checklist, item_template: ChecklistItemTemplate, value: Any, note: str = "",
+def save_answer(*, technician_operating: Technician, checklist: Checklist, item_template: ChecklistItemTemplate, value: Any, note: str = "",
     ) -> Tuple[Optional[ChecklistItemAnswer], List[str]]:
 
     errors: List[str] = []
+
+    ok, perm_errors = has_permission(technician_operating, "save_answer")
+    if not ok:
+        errors.extend(perm_errors)
+        return None, errors
 
     atype = item_template.answer_type
     field = expected_field_for_type(atype)  # "answer_bool" | "answer_texto" | "answer_number" | "answer_choice" | None
@@ -60,9 +69,14 @@ def save_answer(*, checklist: Checklist, item_template: ChecklistItemTemplate, v
 # Locates the answer by checklist and item_template, returning an error if not found
 # Returns a success flag and any error messages
 @transaction.atomic
-def remove_answer(*, checklist: Checklist, item_template: ChecklistItemTemplate) -> Tuple[bool, List[str]]:
+def remove_answer(*, technician_operating: Technician, checklist: Checklist, item_template: ChecklistItemTemplate) -> Tuple[bool, List[str]]:
 
     errors: List[str] = []
+
+    ok, perm_errors = has_permission(technician_operating, "remove_answer")
+    if not ok:
+        errors.extend(perm_errors)
+        return None, errors
 
     obj = ChecklistItemAnswer.objects.filter(
         checklist=checklist, item_template=item_template
