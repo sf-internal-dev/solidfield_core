@@ -61,17 +61,18 @@ def create_temporary_delegation(from_user, to_user, actions: list[str], valid_fr
 
 # -> Checks if a technician has permission for a specific action
 # Returns True if permission is granted by level or via active delegation
-def has_permission(technician: Technician, action_code: str) -> bool:
+def has_permission(technician: Technician, action_code: str) -> Tuple[bool, str]:
     if technician_has_permission_for_action(technician, action_code):
-        return True
-
-    now = timezone.now()
-    return TemporaryDelegation.objects.filter(
-        to_user=technician,
-        valid_from__lte=now,
-        valid_until__gte=now,
-        actions__action=action_code
-    ).exists()
+        return True, ""
+    elif not technician_has_permission_for_action(technician, action_code):
+        now = timezone.now()
+        return TemporaryDelegation.objects.filter(
+            to_user=technician,
+            valid_from__lte=now,
+            valid_until__gte=now,
+            actions__action=action_code
+        ).exists(), ""
+    return False, f"Technician doesn't have permission to {action_code}"
 
 # -> Lists all effective actions currently available to a technician
 # Includes both native permission level and active delegated actions
