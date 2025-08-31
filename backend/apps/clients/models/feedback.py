@@ -2,7 +2,7 @@ from django.db import models
 from backend.apps.core.models.abstractions import BaseModel
 
 class ClientFeedback(BaseModel):
-    service_order = models.OneToOneField("orders.ServiceOrder", on_delete=models.CASCADE)
+    work_order = models.OneToOneField("orders.WorkOrder", on_delete=models.CASCADE)
 
     client = models.ForeignKey("Client", null=True, blank=True, on_delete=models.SET_NULL)
 
@@ -15,7 +15,7 @@ class ClientFeedback(BaseModel):
     submitted_at = models.DateTimeField(auto_now_add=True)
 
 class FeedbackLink(BaseModel):
-    service_order = models.OneToOneField("orders.ServiceOrder", on_delete=models.CASCADE)
+    work_order = models.OneToOneField("orders.WorkOrder", on_delete=models.CASCADE)
     key = models.CharField(max_length=20, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     used = models.BooleanField(default=False)
