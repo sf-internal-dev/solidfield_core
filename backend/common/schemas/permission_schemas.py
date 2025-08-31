@@ -150,6 +150,12 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
                 "label": "Delegate Permission Level",
                 "delegable": False,
                 "description": "Can delegate permission levels to other technicians."
+            },
+            {
+                "code": "create_technicians_aggroupment",
+                "label": "Create Technicians Aggroupment",
+                "delegable": True,
+                "description": "Can create technicians aggroupment."
             }
         ]
     }
