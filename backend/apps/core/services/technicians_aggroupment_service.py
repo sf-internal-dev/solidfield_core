@@ -11,8 +11,8 @@ def create_technicians_aggroupment(technician: Technician, tenant: CompanyTenant
     return error
 
 def add_technician_to_aggroupment(aggroupment: TechniciansAggroupment,technician: Technician):
-    can_add, error = can_add_technician_to_aggroupment(technician=technician, target_aggroupment=aggroupment)
-    if can_add:
+    ok, error = can_add_technician_to_aggroupment(technician=technician, target_aggroupment=aggroupment)
+    if ok:
         log_group_assignment(technician=technician,technicians=aggroupment.members.username,aggroupment_tag=aggroupment.tag)
         return technician.aggroupment == aggroupment
     return error
