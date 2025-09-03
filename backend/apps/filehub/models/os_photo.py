@@ -5,7 +5,7 @@ class WorkOrderPhoto(BaseModel):
     work_order = models.ForeignKey("orders.WorkOrder", on_delete=models.CASCADE, related_name="photos")
     uploaded_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT)
     uploaded_at = models.DateTimeField(auto_now_add=True)
-
+    photo_taken_at = models.DateTimeField()
     # Uploaded image
     image = models.ImageField(upload_to="service_photos/")
 
@@ -27,8 +27,8 @@ class WorkOrderPhoto(BaseModel):
     gps_longitude = models.FloatField(null=True, blank=True)
     device_info = models.CharField(max_length=100, blank=True)
 
-    # Optional customer signature
-
+    add_watermark = models.BooleanField(default=True)
+    watermark_has_company_logo = models.BooleanField(default=False)
     class Meta:
         ordering = ["uploaded_at"]
 
