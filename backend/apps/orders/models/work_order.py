@@ -9,6 +9,12 @@ class WorkOrder(TenantOwnedModel):
     assigned_to = models.ForeignKey("core.Technician", on_delete=models.PROTECT, related_name="assigned_orders")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # new fields patch
+    first_access = models.BooleanField(default=False)
+    work_start = models.DateTimeField()
+    work_end = models.DateTimeField()
+    has_remaining_work = models.BooleanField(default=False)
+    #-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     status = models.CharField(max_length=50)
     client = models.ForeignKey("clients.Client", null=True, blank=True, on_delete=models.SET_NULL)
     client_name = models.CharField(max_length=200, blank=True)  # Nome livre preenchido na hora
