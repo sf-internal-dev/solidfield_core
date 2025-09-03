@@ -245,7 +245,7 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 
 	xCursor := xStart
 	for i, lg := range logos {
-		imaging.Paste(dst, rgba(lg), image.Pt(xCursor, yLogos))
+		dst = imaging.Paste(dst, rgba(lg), image.Pt(xCursor, yLogos))
 		xCursor += lg.Bounds().Dx()
 		if i == 0 && len(logos) == 2 {
 			xCursor += spacing
