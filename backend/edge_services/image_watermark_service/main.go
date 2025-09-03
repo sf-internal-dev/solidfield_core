@@ -245,7 +245,8 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 
 	xCursor := xStart
 	for i, lg := range logos {
-		dst = imaging.Paste(dst, rgba(lg), image.Pt(xCursor, yLogos))
+		logo := imaging.Clone(lg) // garante NRGBA com alpha
+		dst = imaging.Overlay(dst, logo, image.Pt(xCursor, yLogos), 1.0)
 		xCursor += lg.Bounds().Dx()
 		if i == 0 && len(logos) == 2 {
 			xCursor += spacing
@@ -397,7 +398,7 @@ func main() {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "encode failed: " + err.Error()})
 				return
 			}
-			c.Data(http.StatusOK, "image/jpeg", buf.Bytes())
+			c.Data(http.StatusOK, "image/png", buf.Bytes())
 			return
 		}
 
@@ -421,7 +422,7 @@ func main() {
 
 		// Salva e responde
 		id := uuid.New().String()
-		outPath := filepath.Join(outputDir, id+".jpg")
+		outPath := filepath.Join(outputDir, id+".png")
 		f, err := os.Create(outPath)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create output: " + err.Error()})
@@ -441,7 +442,7 @@ func main() {
 		}
 
 		c.Header("X-Output-Path", outPath)
-		c.Data(http.StatusOK, "image/jpeg", buf.Bytes())
+		c.Data(http.StatusOK, "image/png", buf.Bytes())
 	})
 
 	port := envOr("PORT", "8080")
