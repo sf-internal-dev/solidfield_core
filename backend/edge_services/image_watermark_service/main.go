@@ -171,18 +171,21 @@ func parseTime(iso string) (string, error) {
 	// Apresenta em fuso local do servidor
 	return t.Local().Format("2006-01-02 15:04:05"), nil
 }
-
 func drawTextLines(dst *image.NRGBA, lines []string, x, y int, face font.Face, col color.Color, lineHeight int) error {
-	dr := &font.Drawer{
-		Dst:  dst,
-		Src:  image.NewUniform(col),
-		Face: face,
-	}
+	// sombra
+	shadow := image.NewUniform(color.RGBA{0, 0, 0, 140})
+	dr := &font.Drawer{Dst: dst, Face: face}
+
 	pt := fixed.P(x, y)
 	for _, line := range lines {
-		dr.Dot = pt
+		// sombra levemente deslocada
+		dr.Dot, dr.Src = fixed.P(x+1, y+1), shadow
+		dr.DrawString(line)
+		// texto
+		dr.Dot, dr.Src = pt, image.NewUniform(col)
 		dr.DrawString(line)
 		pt.Y += fixed.I(lineHeight)
+		y += lineHeight
 	}
 	return nil
 }
@@ -376,8 +379,12 @@ func main() {
 		}
 
 		// Carrega imagem base
-		var base image.Image
-		var err error
+
+		var (
+			base image.Image
+			err  error
+		)
+
 		switch {
 		case strings.TrimSpace(p.ImageBase64) != "":
 			base, _, err = loadImageFromBase64(p.ImageBase64)
@@ -389,6 +396,12 @@ func main() {
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load image: " + err.Error()})
 			return
+		}
+
+		maxDim := 1600 // pode virar env (ex.: MAX_DIM)
+		bw, bh := base.Bounds().Dx(), base.Bounds().Dy()
+		if bw > maxDim || bh > maxDim {
+			base = imaging.Fit(base, maxDim, maxDim, imaging.Lanczos)
 		}
 
 		if !p.AddWatermark {
