@@ -84,6 +84,32 @@ func loadImageFromURL(url string) (image.Image, string, error) {
 	return decodeImage(b)
 }
 
+func textWidthPx(face font.Face, s string) int {
+	d := &font.Drawer{Face: face}
+	return int(d.MeasureString(s) >> 6) // converte 26.6 fix -> px
+}
+
+func wrapLines(face font.Face, text string, maxWidth int) []string {
+	words := strings.Fields(text)
+	if len(words) == 0 {
+		return []string{""}
+	}
+
+	var lines []string
+	cur := words[0]
+	for _, w := range words[1:] {
+		test := cur + " " + w
+		if textWidthPx(face, test) <= maxWidth {
+			cur = test
+		} else {
+			lines = append(lines, cur)
+			cur = w
+		}
+	}
+	lines = append(lines, cur)
+	return lines
+}
+
 func decodeImage(b []byte) (image.Image, string, error) {
 	// Tenta PNG
 	if img, err := png.Decode(bytes.NewReader(b)); err == nil {
@@ -210,6 +236,69 @@ func faceFromTTF(ttfPath string, size float64) (font.Face, error) {
 	return face, nil
 }
 
+func layoutPayloadBox(
+	imgW, imgH int,
+	face font.Face,
+	rawLines []string,
+) (box image.Rectangle, lines []string, textX, textY, lineH, padding int) {
+
+	// Tamanho baseado na altura da imagem
+	fontPx := max(14, imgH/60)
+	lineH = int(float64(fontPx) + float64(fontPx)*0.33)
+	padding = max(10, fontPx/2)
+	margin := max(10, fontPx/2)
+
+	// Largura máxima permitida p/ o texto (ex.: 45% da largura da imagem)
+	maxTextW := int(float64(imgW) * 0.45)
+
+	// Wrap linha a linha respeitando maxTextW
+	var wrapped []string
+	for _, s := range rawLines {
+		// permite quebra manual com \n
+		parts := strings.Split(s, "\n")
+		for _, p := range parts {
+			ws := wrapLines(face, p, maxTextW)
+			wrapped = append(wrapped, ws...)
+		}
+	}
+
+	// Encontra a maior largura real
+	widest := 0
+	for _, s := range wrapped {
+		w := textWidthPx(face, s)
+		if w > widest {
+			widest = w
+		}
+	}
+
+	textW := widest
+	textH := lineH * len(wrapped)
+	boxW := textW + padding*2
+	boxH := textH + padding*2
+
+	// Caixa âncorada no canto inferior-direito
+	x2 := imgW - margin
+	y2 := imgH - margin
+	x1 := x2 - boxW
+	y1 := y2 - boxH
+
+	// Clamp: se por algum motivo ficou negativo, empurra pra dentro
+	if x1 < margin {
+		x1 = margin
+		x2 = x1 + boxW
+	}
+	if y1 < margin {
+		y1 = margin
+		y2 = y1 + boxH
+	}
+
+	box = image.Rect(x1, y1, x2, y2)
+	lines = wrapped
+	textX = x1 + padding
+	textY = y1 + padding + fontPx
+	return
+}
+
 func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Image, clientLogo image.Image, fontPath string) (image.Image, error) {
 	dst := rgba(base)
 	b := dst.Bounds()
@@ -258,6 +347,7 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 
 	// Caixinha de info no canto inferior-direito
 	// Conteúdo
+
 	whenStr, _ := parseTime(p.PhotoTakenAt)
 	gpsStr := ""
 	if p.GPSLatitude != nil && p.GPSLongitude != nil {
@@ -305,12 +395,13 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 	wm := imaging.New(bw*wmScale, bh*wmScale, color.NRGBA{0, 0, 0, 0})
 
 	boxRect := image.Rect(W-boxW-borderThickness-10, H-boxH-borderThickness-10, W-borderThickness-10, H-borderThickness-10)
-	// Fundo semi-transparente
-	drawRoundedRect(wm, boxRect, 12*wmScale, color.RGBA{13, 31, 46, 160})
-
 	// Render do texto em branco
 	textX := boxRect.Min.X + padding
 	textY := boxRect.Min.Y + padding + int(fontSize)
+	// Fundo semi-transparente
+	boxRect, lines, textX, textY, lineH, padding = layoutPayloadBox(bw, bh, face, lines)
+
+	drawRoundedRect(wm, boxRect, 12*wmScale, color.RGBA{13, 31, 46, 160})
 
 	err = drawTextLines(dst, lines, textX, textY, face, color.RGBA{255, 255, 255, 255}, lineH)
 	if err != nil {
