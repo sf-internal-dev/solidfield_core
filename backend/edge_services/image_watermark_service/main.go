@@ -216,8 +216,8 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 	W, H := b.Dx(), b.Dy()
 
 	// Moldura (linhas)
-	borderThickness := max(4, min(W, H)/300) // proporcional
-	drawBorder(dst, borderThickness, color.RGBA{0, 0, 0, 255})
+	borderThickness := max(4, min(W, H)/800) // proporcional
+	drawBorder(dst, borderThickness, color.RGBA{13, 31, 46, 255})
 
 	// Logos na base (centro). Software logo sempre; client logo opcional.
 	logoMaxH := max(32, H/18) // ~5-6% da altura
@@ -298,13 +298,20 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 	boxW := textW + padding*2
 	boxH := textH + padding*2
 
+	bw, bh := base.Bounds().Dx(), base.Bounds().Dy()
+	wmScale := 2
+
+	// cria layer transparente em 2× do tamanho da foto
+	wm := imaging.New(bw*wmScale, bh*wmScale, color.NRGBA{0, 0, 0, 0})
+
 	boxRect := image.Rect(W-boxW-borderThickness-10, H-boxH-borderThickness-10, W-borderThickness-10, H-borderThickness-10)
 	// Fundo semi-transparente
-	drawRoundedRect(dst, boxRect, 12, color.RGBA{0, 0, 0, 120})
+	drawRoundedRect(wm, boxRect, 12*wmScale, color.RGBA{13, 31, 46, 160})
 
 	// Render do texto em branco
 	textX := boxRect.Min.X + padding
 	textY := boxRect.Min.Y + padding + int(fontSize)
+
 	err = drawTextLines(dst, lines, textX, textY, face, color.RGBA{255, 255, 255, 255}, lineH)
 	if err != nil {
 		return nil, err
