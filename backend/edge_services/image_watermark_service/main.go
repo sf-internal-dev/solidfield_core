@@ -21,6 +21,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	exiflib "github.com/rwcarlsen/goexif/exif"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
@@ -54,36 +55,6 @@ func must(err error) {
 	}
 }
 
-func loadImageFromURL(url string) (image.Image, string, error) {
-	client := &http.Client{
-		Timeout: 15 * time.Second,
-	}
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, "", err
-	}
-	// Alguns hosts exigem User-Agent e/ou Referer
-	req.Header.Set("User-Agent", "CoreSF-ImageWatermarker/1.0 (+https://coresf.example)")
-	req.Header.Set("Referer", url)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		// ajuda muito na depuração
-		return nil, "", fmt.Errorf("fetch failed: status %d from %s", resp.StatusCode, url)
-	}
-
-	b, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, "", err
-	}
-	return decodeImage(b)
-}
-
 func textWidthPx(face font.Face, s string) int {
 	d := &font.Drawer{Face: face}
 	return int(d.MeasureString(s) >> 6) // converte 26.6 fix -> px
@@ -110,6 +81,28 @@ func wrapLines(face font.Face, text string, maxWidth int) []string {
 	return lines
 }
 
+func decodeImageWithEXIF(b []byte) (image.Image, string, error) {
+	// tenta PNG
+	if img, err := png.Decode(bytes.NewReader(b)); err == nil {
+		return img, "png", nil
+	}
+	// tenta JPEG
+	if img, err := jpeg.Decode(bytes.NewReader(b)); err == nil {
+		// normaliza orientação via EXIF
+		img = normalizeOrientationJPEG(b, img, "jpeg")
+		return img, "jpeg", nil
+	}
+	// genérico (pode não carregar EXIF/outros formatos)
+	img, format, err := image.Decode(bytes.NewReader(b))
+	if err != nil {
+		return nil, "", err
+	}
+	if format == "jpeg" || format == "jpg" {
+		img = normalizeOrientationJPEG(b, img, format)
+	}
+	return img, format, nil
+}
+
 func decodeImage(b []byte) (image.Image, string, error) {
 	// Tenta PNG
 	if img, err := png.Decode(bytes.NewReader(b)); err == nil {
@@ -124,14 +117,37 @@ func decodeImage(b []byte) (image.Image, string, error) {
 	return img, format, err
 }
 
+func loadImageFromURL(url string) (image.Image, string, error) {
+	client := &http.Client{Timeout: 15 * time.Second}
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, "", err
+	}
+	req.Header.Set("User-Agent", "CoreSF-ImageWatermarker/1.0")
+	req.Header.Set("Referer", url)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return nil, "", fmt.Errorf("fetch failed: status %d", resp.StatusCode)
+	}
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, "", err
+	}
+	return decodeImageWithEXIF(b)
+}
+
 func loadImageFromBase64(s string) (image.Image, string, error) {
-	// Permite base64 puro (sem prefixo data:)
 	s = strings.TrimSpace(s)
 	data, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		return nil, "", err
 	}
-	return decodeImage(data)
+	return decodeImageWithEXIF(data)
 }
 
 func loadPNGFromPath(path string) (image.Image, error) {
@@ -297,6 +313,60 @@ func layoutPayloadBox(
 	textX = x1 + padding
 	textY = y1 + padding + fontPx
 	return
+}
+
+// normaliza a orientação de JPEG com base no EXIF Orientation.
+// Para PNG/sem EXIF, retorna como veio.
+func normalizeOrientationJPEG(origBytes []byte, img image.Image, format string) image.Image {
+	if strings.ToLower(format) != "jpeg" && strings.ToLower(format) != "jpg" {
+		return img
+	}
+	x, err := exiflib.Decode(bytes.NewReader(origBytes))
+	if err != nil || x == nil {
+		return img // sem EXIF ou erro: mantém como está
+	}
+	tag, err := x.Get(exiflib.Orientation)
+	if err != nil || tag == nil {
+		return img
+	}
+	o, err := tag.Int(0)
+	if err != nil {
+		return img
+	}
+
+	// Mapeamento EXIF Orientation:
+	// 1: Normal
+	// 2: FlipH
+	// 3: Rotate180
+	// 4: FlipV
+	// 5: Transpose (FlipH + Rotate90CW)
+	// 6: Rotate90CW
+	// 7: Transverse (FlipH + Rotate270CW)
+	// 8: Rotate270CW
+	switch o {
+	case 2:
+		return imaging.FlipH(img)
+	case 3:
+		return imaging.Rotate180(img)
+	case 4:
+		return imaging.FlipV(img)
+	case 5:
+		// aproxima Transpose: rotaciona 90° CW e espelha horizontal
+		tmp := imaging.Rotate270(img) // 90° CW = Rotate270 (imaging é CCW)
+		return imaging.FlipH(tmp)
+	case 6:
+		// 90° CW
+		return imaging.Rotate270(img)
+	case 7:
+		// aproxima Transverse: rotaciona 270° CW (90° CCW) e espelha horizontal
+		tmp := imaging.Rotate90(img) // 90° CCW
+		return imaging.FlipH(tmp)
+	case 8:
+		// 270° CW (90° CCW)
+		return imaging.Rotate90(img)
+	default:
+		return img
+	}
 }
 
 func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Image, clientLogo image.Image, fontPath string) (image.Image, error) {
