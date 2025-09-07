@@ -374,14 +374,80 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 	b := dst.Bounds()
 	W, H := b.Dx(), b.Dy()
 
-	// Moldura (linhas)
-	borderThickness := max(4, min(W, H)/800) // proporcional
-	drawBorder(dst, borderThickness, color.RGBA{13, 31, 46, 255})
+	// -----------------------------
+	// 1) Moldura (linhas)
+	// -----------------------------
+	borderThickness := max(4, min(W, H)/800)                      // proporcional e discreto
+	drawBorder(dst, borderThickness, color.RGBA{13, 31, 46, 255}) // #0D1F2E
 
-	// Logos na base (centro). Software logo sempre; client logo opcional.
-	logoMaxH := max(32, H/18) // ~5-6% da altura
-	spacing := max(12, W/200)
+	// -----------------------------
+	// 2) Conteúdo (linhas de texto)
+	// -----------------------------
+	whenStr, _ := parseTime(p.PhotoTakenAt)
+	gpsStr := ""
+	if p.GPSLatitude != nil && p.GPSLongitude != nil {
+		gpsStr = formatGPS(*p.GPSLatitude, *p.GPSLongitude) // ex.: "-26.304123,-48.846789"
+	}
 
+	linesRaw := []string{
+		"Type: " + strings.TrimSpace(p.PhotoType),
+		"By: " + strings.TrimSpace(p.UploadedBy),
+	}
+	if whenStr != "" {
+		linesRaw = append(linesRaw, "Taken: "+whenStr)
+	}
+	if gpsStr != "" {
+		// se quiser forçar quebra após a vírgula:
+		// gpsStr = strings.Replace(gpsStr, ",", ",\n", 1)
+		linesRaw = append(linesRaw, "GPS: "+gpsStr)
+	}
+	if s := strings.TrimSpace(p.DeviceInfo); s != "" {
+		linesRaw = append(linesRaw, "Device: "+s)
+	}
+
+	// Tipografia base (proporcional à altura da imagem)
+	fontSize := float64(max(14, H/60))
+	face, err := faceFromTTF(fontPath, fontSize)
+	if err != nil {
+		return nil, err
+	}
+
+	// Layout adaptativo da caixa (mede texto de verdade e faz wrap)
+	boxRect, lines, textX, textY, lineH, _ := layoutPayloadBox(W, H, face, linesRaw)
+
+	// Fundo da caixa (azul-escuro translúcido #0D1F2E A=160)
+	drawRoundedRect(dst, boxRect, max(8, int(fontSize/1.2)), color.RGBA{13, 31, 46, 160})
+
+	// Texto com sombra (legibilidade em qualquer fundo)
+	_ = drawTextLines(dst, lines, textX+1, textY+1, face, color.RGBA{0, 0, 0, 140}, lineH)                       // sombra
+	if err := drawTextLines(dst, lines, textX, textY, face, color.RGBA{255, 255, 255, 255}, lineH); err != nil { // branco
+		return nil, err
+	}
+
+	// -----------------------------
+	// 3) Logos (patch retrato/topo)
+	// -----------------------------
+	isPortrait := H > W
+
+	// parâmetros ajustáveis
+	topMarginPx := max(8, H/120)    // margem superior em retrato
+	bottomMarginPx := max(6, H/130) // margem inferior em paisagem
+	sideMarginPx := max(8, W/120)   // margem lateral mínima
+	spacingPx := max(12, W/200)     // espaço entre logos
+	landscapeLogoDiv := 18          // altura logo ~ H/18 em paisagem
+	portraitLogoDiv := 22           // altura logo ~ H/22 em retrato (menor)
+	portraitScale := 0.85           // encolhe ~15% adicional em retrato
+
+	// calcula altura máxima das logos conforme orientação
+	logoMaxH := H / landscapeLogoDiv
+	if isPortrait {
+		logoMaxH = int(float64(H/portraitLogoDiv) * portraitScale)
+	}
+	if logoMaxH < 28 {
+		logoMaxH = 28 // piso mínimo
+	}
+
+	// prepara as logos (PNG com alpha recomendado)
 	var logos []image.Image
 	if softwareLogo != nil {
 		logos = append(logos, imaging.Fit(softwareLogo, W, logoMaxH, imaging.Lanczos))
@@ -390,92 +456,41 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 		logos = append(logos, imaging.Fit(clientLogo, W, logoMaxH, imaging.Lanczos))
 	}
 
-	totalW := 0
-	maxH := 0
-	for _, lg := range logos {
-		totalW += lg.Bounds().Dx()
-		if lg.Bounds().Dy() > maxH {
-			maxH = lg.Bounds().Dy()
+	if len(logos) > 0 {
+		// mede largura total e altura máxima do conjunto
+		totalW, maxH := 0, 0
+		for _, lg := range logos {
+			totalW += lg.Bounds().Dx()
+			if h := lg.Bounds().Dy(); h > maxH {
+				maxH = h
+			}
 		}
-	}
-	if len(logos) == 2 {
-		totalW += spacing
-	}
-
-	yLogos := H - maxH - (borderThickness * 2) - 6
-	xStart := (W - totalW) / 2
-
-	xCursor := xStart
-	for i, lg := range logos {
-		logo := imaging.Clone(lg) // garante NRGBA com alpha
-		dst = imaging.Overlay(dst, logo, image.Pt(xCursor, yLogos), 1.0)
-		xCursor += lg.Bounds().Dx()
-		if i == 0 && len(logos) == 2 {
-			xCursor += spacing
+		if len(logos) >= 2 {
+			totalW += spacingPx * (len(logos) - 1)
 		}
-	}
 
-	// Caixinha de info no canto inferior-direito
-	// Conteúdo
-
-	whenStr, _ := parseTime(p.PhotoTakenAt)
-	gpsStr := ""
-	if p.GPSLatitude != nil && p.GPSLongitude != nil {
-		gpsStr = formatGPS(*p.GPSLatitude, *p.GPSLongitude)
-	}
-	lines := []string{
-		"Type: " + strings.TrimSpace(p.PhotoType),
-		"By: " + strings.TrimSpace(p.UploadedBy),
-	}
-	if whenStr != "" {
-		lines = append(lines, "Taken: "+whenStr)
-	}
-	if gpsStr != "" {
-		lines = append(lines, "GPS: "+gpsStr)
-	}
-	if strings.TrimSpace(p.DeviceInfo) != "" {
-		lines = append(lines, "Device: "+strings.TrimSpace(p.DeviceInfo))
-	}
-
-	// Tipografia
-	fontSize := float64(max(14, H/60))
-	face, err := faceFromTTF(fontPath, fontSize)
-	if err != nil {
-		return nil, err
-	}
-	lineH := int(fontSize) + max(6, int(fontSize/3))
-	// Calcula largura aproximada
-	maxChars := 0
-	for _, s := range lines {
-		if len(s) > maxChars {
-			maxChars = len(s)
+		// Y: topo (retrato) ou base (paisagem)
+		var y int
+		if isPortrait {
+			y = topMarginPx
+		} else {
+			y = H - maxH - bottomMarginPx
 		}
-	}
-	textW := int(float64(maxChars) * fontSize * 0.60) // heurística
-	textH := lineH * len(lines)
 
-	padding := max(10, int(fontSize/2))
-	boxW := textW + padding*2
-	boxH := textH + padding*2
+		// X: centralizado com margem mínima
+		x := (W - totalW) / 2
+		if x < sideMarginPx {
+			x = sideMarginPx
+		}
 
-	bw, bh := base.Bounds().Dx(), base.Bounds().Dy()
-	wmScale := 2
-
-	// cria layer transparente em 2× do tamanho da foto
-	wm := imaging.New(bw*wmScale, bh*wmScale, color.NRGBA{0, 0, 0, 0})
-
-	boxRect := image.Rect(W-boxW-borderThickness-10, H-boxH-borderThickness-10, W-borderThickness-10, H-borderThickness-10)
-	// Render do texto em branco
-	textX := boxRect.Min.X + padding
-	textY := boxRect.Min.Y + padding + int(fontSize)
-	// Fundo semi-transparente
-	boxRect, lines, textX, textY, lineH, padding = layoutPayloadBox(bw, bh, face, lines)
-
-	drawRoundedRect(wm, boxRect, 12*wmScale, color.RGBA{13, 31, 46, 160})
-
-	err = drawTextLines(dst, lines, textX, textY, face, color.RGBA{255, 255, 255, 255}, lineH)
-	if err != nil {
-		return nil, err
+		// desenha (usar Overlay e guardar retorno!)
+		for i, lg := range logos {
+			dst = imaging.Overlay(dst, imaging.Clone(lg), image.Pt(x, y), 1.0)
+			x += lg.Bounds().Dx()
+			if i < len(logos)-1 {
+				x += spacingPx
+			}
+		}
 	}
 
 	return dst, nil

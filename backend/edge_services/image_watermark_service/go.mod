@@ -6,6 +6,7 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
+	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	golang.org/x/image v0.19.0
 )
 
