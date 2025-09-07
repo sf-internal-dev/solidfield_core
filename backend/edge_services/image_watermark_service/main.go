@@ -28,17 +28,18 @@ import (
 )
 
 type WebhookPayload struct {
-	ImageBase64             string   `json:"image_base64"`
-	ImageURL                string   `json:"image_url"`
-	PhotoType               string   `json:"photo_type"`
-	UploadedBy              string   `json:"uploaded_by"`
-	PhotoTakenAt            string   `json:"photo_taken_at"`
-	AddWatermark            bool     `json:"add_watermark"`
-	WatermarkHasCompanyLogo bool     `json:"watermark_has_company_logo"`
-	GPSLatitude             *float64 `json:"gps_latitude"`
-	GPSLongitude            *float64 `json:"gps_longitude"`
-	DeviceInfo              string   `json:"device_info"`
-	CompanyLogoURL          string   `json:"company_logo_url"`
+	ImageBase64              string   `json:"image_base64"`
+	ImageURL                 string   `json:"image_url"`
+	PhotoType                string   `json:"photo_type"`
+	UploadedBy               string   `json:"uploaded_by"`
+	PhotoTakenAt             string   `json:"photo_taken_at"`
+	AddWatermark             bool     `json:"add_watermark"`
+	WatermarkHasCompanyLogo  bool     `json:"watermark_has_company_logo"`
+	WatermarkHasSoftwareLogo bool     `json:"watermark_has_software_logo"`
+	GPSLatitude              *float64 `json:"gps_latitude"`
+	GPSLongitude             *float64 `json:"gps_longitude"`
+	DeviceInfo               string   `json:"device_info"`
+	CompanyLogoURL           string   `json:"company_logo_url"`
 }
 
 func envOr(key, def string) string {
@@ -449,9 +450,10 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 
 	// prepara as logos (PNG com alpha recomendado)
 	var logos []image.Image
-	if softwareLogo != nil {
+	if p.WatermarkHasSoftwareLogo && softwareLogo != nil {
 		logos = append(logos, imaging.Fit(softwareLogo, W, logoMaxH, imaging.Lanczos))
 	}
+
 	if p.WatermarkHasCompanyLogo && clientLogo != nil {
 		logos = append(logos, imaging.Fit(clientLogo, W, logoMaxH, imaging.Lanczos))
 	}
