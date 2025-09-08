@@ -25,6 +25,7 @@ import (
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
+	_ "golang.org/x/image/webp"
 )
 
 type WebhookPayload struct {
@@ -83,17 +84,21 @@ func wrapLines(face font.Face, text string, maxWidth int) []string {
 }
 
 func decodeImageWithEXIF(b []byte) (image.Image, string, error) {
-	// tenta PNG
+	// 1) PNG
 	if img, err := png.Decode(bytes.NewReader(b)); err == nil {
 		return img, "png", nil
 	}
-	// tenta JPEG
+	// 2) JPEG (com normalização de orientação EXIF)
 	if img, err := jpeg.Decode(bytes.NewReader(b)); err == nil {
-		// normaliza orientação via EXIF
 		img = normalizeOrientationJPEG(b, img, "jpeg")
 		return img, "jpeg", nil
 	}
-	// genérico (pode não carregar EXIF/outros formatos)
+	// 3) HEIC/HEIF (se buildar com -tags heif)
+	if img, fmt, err := heifDecode(b); err == nil && img != nil {
+		// HEIC não usa EXIF Orientation da mesma forma; normalmente já vem correto.
+		return img, fmt, nil
+	}
+	// 4) Genérico (inclui WEBP pois registramos o decoder via import em branco)
 	img, format, err := image.Decode(bytes.NewReader(b))
 	if err != nil {
 		return nil, "", err
@@ -104,19 +109,19 @@ func decodeImageWithEXIF(b []byte) (image.Image, string, error) {
 	return img, format, nil
 }
 
-func decodeImage(b []byte) (image.Image, string, error) {
-	// Tenta PNG
-	if img, err := png.Decode(bytes.NewReader(b)); err == nil {
-		return img, "png", nil
-	}
-	// Tenta JPEG
-	if img, err := jpeg.Decode(bytes.NewReader(b)); err == nil {
-		return img, "jpeg", nil
-	}
-	// Tenta genérico
-	img, format, err := image.Decode(bytes.NewReader(b))
-	return img, format, err
-}
+// func decodeImage(b []byte) (image.Image, string, error) {
+// 	// Tenta PNG
+// 	if img, err := png.Decode(bytes.NewReader(b)); err == nil {
+// 		return img, "png", nil
+// 	}
+// 	// Tenta JPEG
+// 	if img, err := jpeg.Decode(bytes.NewReader(b)); err == nil {
+// 		return img, "jpeg", nil
+// 	}
+// 	// Tenta genérico
+// 	img, format, err := image.Decode(bytes.NewReader(b))
+// 	return img, format, err
+// }
 
 func loadImageFromURL(url string) (image.Image, string, error) {
 	client := &http.Client{Timeout: 15 * time.Second}
