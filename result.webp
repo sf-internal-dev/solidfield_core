@@ -1,1 +1,1 @@
-{"error":"compose failed: open ./assets/Inter.tff: no such file or directory"}
+{"error":"failed to load image: fetch failed: status 503"}
