@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -42,6 +43,12 @@ type WebhookPayload struct {
 	DeviceInfo               string   `json:"device_info"`
 	CompanyLogoURL           string   `json:"company_logo_url"`
 }
+
+//go:embed assets/solidfield_logo_gray.png
+var softwareLogoBytes []byte
+
+//go:embed assets/Inter.ttf
+var fontBytes []byte
 
 func envOr(key, def string) string {
 	v := os.Getenv(key)
@@ -271,24 +278,16 @@ func drawTextLines(dst *image.NRGBA, lines []string, x, y int, face font.Face, c
 	return nil
 }
 
-func faceFromTTF(ttfPath string, size float64) (font.Face, error) {
-	fontBytes, err := os.ReadFile(ttfPath)
+func faceFromBytes(fontData []byte, size float64) (font.Face, error) {
+	ft, err := opentype.Parse(fontData)
 	if err != nil {
 		return nil, err
 	}
-	fnt, err := opentype.Parse(fontBytes)
-	if err != nil {
-		return nil, err
-	}
-	face, err := opentype.NewFace(fnt, &opentype.FaceOptions{
+	return opentype.NewFace(ft, &opentype.FaceOptions{
 		Size:    size,
-		DPI:     96,
+		DPI:     72,
 		Hinting: font.HintingFull,
 	})
-	if err != nil {
-		return nil, err
-	}
-	return face, nil
 }
 
 func layoutPayloadBox(
@@ -408,7 +407,7 @@ func normalizeOrientationJPEG(origBytes []byte, img image.Image, format string) 
 	}
 }
 
-func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Image, clientLogo image.Image, fontPath string) (image.Image, error) {
+func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Image, clientLogo image.Image, fontBytes []byte) (image.Image, error) {
 	dst := rgba(base)
 	b := dst.Bounds()
 	W, H := b.Dx(), b.Dy()
@@ -446,7 +445,7 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 
 	// Tipografia base (proporcional à altura da imagem)
 	fontSize := float64(max(14, H/60))
-	face, err := faceFromTTF(fontPath, fontSize)
+	face, err := faceFromBytes([]byte(fontBytes), fontSize)
 	if err != nil {
 		return nil, err
 	}
@@ -573,23 +572,9 @@ func main() {
 	outputDir := envOr("OUTPUT_DIR", "./out")
 	must(os.MkdirAll(outputDir, 0o755))
 
-	softwareLogoPath := os.Getenv("SOFTWARE_LOGO_PATH")
-	if softwareLogoPath == "" {
-		log.Println("WARN: SOFTWARE_LOGO_PATH não definido — a logo do software não será renderizada.")
-	}
-	fontPath := os.Getenv("FONT_PATH")
-	if fontPath == "" {
-		log.Fatal("Defina FONT_PATH para uma fonte TTF (ex.: ./assets/Inter-Regular.ttf)")
-	}
-
-	var softwareLogo image.Image
-	if softwareLogoPath != "" {
-		img, err := loadPNGFromPath(softwareLogoPath)
-		if err != nil {
-			log.Println("WARN: não consegui carregar SOFTWARE_LOGO_PATH:", err)
-		} else {
-			softwareLogo = img
-		}
+	softwareLogo, err := png.Decode(bytes.NewReader(softwareLogoBytes))
+	if err != nil {
+		log.Fatalf("failed to decode embedded software logo: %v", err)
 	}
 
 	r := gin.Default()
@@ -650,7 +635,7 @@ func main() {
 			}
 		}
 
-		outImg, err := composeWatermark(base, p, softwareLogo, clientLogo, fontPath)
+		outImg, err := composeWatermark(base, p, softwareLogo, clientLogo, fontBytes)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "compose failed: " + err.Error()})
 			return
