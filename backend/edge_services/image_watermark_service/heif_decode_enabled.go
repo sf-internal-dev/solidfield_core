@@ -15,6 +15,9 @@ func heifDecode(b []byte) (image.Image, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	// formato canônico (pode retornar "heic" ou "heif", aqui padronizo "heic")
-	return img, "heic", nil
+
+	// >>> CÓPIA PROFUNDA PARA MEMÓRIA GO <<<
+	imgNRGBA := cloneToNRGBA(img)
+	return imgNRGBA, "heic", nil
+
 }
