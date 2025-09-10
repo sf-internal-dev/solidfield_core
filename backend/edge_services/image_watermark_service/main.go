@@ -50,6 +50,7 @@ var softwareLogoBytes []byte
 //go:embed assets/Inter.ttf
 var fontBytes []byte
 
+// I dont need this
 func envOr(key, def string) string {
 	v := os.Getenv(key)
 	if v == "" {
@@ -67,6 +68,14 @@ func must(err error) {
 func textWidthPx(face font.Face, s string) int {
 	d := &font.Drawer{Face: face}
 	return int(d.MeasureString(s) >> 6) // converte 26.6 fix -> px
+}
+
+func cloneToNRGBA(src image.Image) *image.NRGBA {
+	b := src.Bounds()
+	dst := image.NewNRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	// usa draw para copiar para memória 100% gerenciada pelo Go
+	draw.Draw(dst, dst.Bounds(), src, b.Min, draw.Src)
+	return dst
 }
 
 func wrapLines(face font.Face, text string, maxWidth int) []string {
