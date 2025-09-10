@@ -128,10 +128,13 @@ func decodeImageWithEXIF(b []byte) (image.Image, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	if format == "jpeg" || format == "jpg" {
-		img = normalizeOrientationJPEG(b, img, format)
+	switch format {
+	case "jpeg", "png", "webp":
+		// geralmente já é Go-managed, mas não custa nada padronizar:
+		return cloneToNRGBA(img), format, nil
+	default:
+		return cloneToNRGBA(img), format, nil
 	}
-	return img, format, nil
 }
 
 // func decodeImage(b []byte) (image.Image, string, error) {
