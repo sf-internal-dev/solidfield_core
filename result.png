@@ -1,1 +1,0 @@
-{"error":"failed to load image: heif/avif decode failed: heif support not built (use: go run -tags heif .)"}

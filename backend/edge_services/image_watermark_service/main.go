@@ -100,27 +100,30 @@ func wrapLines(face font.Face, text string, maxWidth int) []string {
 }
 
 func decodeImageWithEXIF(b []byte) (image.Image, string, error) {
-	// PNG
+	// PNG “puro”
 	if img, err := png.Decode(bytes.NewReader(b)); err == nil {
 		return img, "png", nil
 	}
-	// JPEG (+ EXIF orientation)
+	// JPEG (com correção de orientação se você já tinha isso)
 	if img, err := jpeg.Decode(bytes.NewReader(b)); err == nil {
 		img = normalizeOrientationJPEG(b, img, "jpeg")
 		return img, "jpeg", nil
 	}
 
-	// HEIF/AVIF brands
+	// === HEIC/AVIF: converte para JPEG antes de seguir ===
 	switch sniffFormat(b) {
 	case "heic", "avif":
-		if !allowHEIC {
-			return nil, "", fmt.Errorf("heif/avif provided but ALLOW_HEIC=false")
-		}
-		img, fmtStr, err := heifDecode(b) // usa a função com build tag heif
+		// converte (tenta interno; se falhar, usa heif-convert)
+		jb, err := heifToJPEGBytes(b, 90)
 		if err != nil {
-			return nil, "", fmt.Errorf("heif/avif decode failed: %w", err)
+			return nil, "", fmt.Errorf("heif/avif convert->jpeg failed: %w", err)
 		}
-		return img, fmtStr, nil
+		img, err := jpeg.Decode(bytes.NewReader(jb))
+		if err != nil {
+			return nil, "", fmt.Errorf("jpeg decode after heif convert failed: %w", err)
+		}
+		// já vem rasterizado na orientação correta pelo decoder HEIF
+		return img, "jpeg", nil
 	}
 
 	// Genérico (WEBP incluso via import em branco)
@@ -128,13 +131,10 @@ func decodeImageWithEXIF(b []byte) (image.Image, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	switch format {
-	case "jpeg", "png", "webp":
-		// geralmente já é Go-managed, mas não custa nada padronizar:
-		return cloneToNRGBA(img), format, nil
-	default:
-		return cloneToNRGBA(img), format, nil
+	if format == "jpeg" || format == "jpg" {
+		img = normalizeOrientationJPEG(b, img, format)
 	}
+	return img, format, nil
 }
 
 // func decodeImage(b []byte) (image.Image, string, error) {
