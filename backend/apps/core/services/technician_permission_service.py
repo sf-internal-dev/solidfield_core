@@ -75,7 +75,7 @@ def has_permission(technician: Technician, action_code: str) -> Tuple[bool, str]
             valid_until__gte=now,
             actions__action=action_code
         ).exists(), ""
-    return False, f"Technician doesn't have permission to {label}"
+    return False, f"technician_has_no_permission:{label}"
 
 # -> Lists all effective actions currently available to a technician
 # Includes both native permission level and active delegated actions
