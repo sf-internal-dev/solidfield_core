@@ -349,7 +349,7 @@ func layoutPayloadBox(
 	return
 }
 
-// normaliza a orientação de JPEG com base no EXIF Orientation.
+// normaliza a orientação de JPEzG com base no EXIF Orientation.
 // Para PNG/sem EXIF, retorna como veio.
 func normalizeOrientationJPEG(origBytes []byte, img image.Image, format string) image.Image {
 	if strings.ToLower(format) != "jpeg" && strings.ToLower(format) != "jpg" {
@@ -425,7 +425,7 @@ func composeWatermark(base image.Image, p WebhookPayload, softwareLogo image.Ima
 
 	linesRaw := []string{
 		"Type: " + strings.TrimSpace(p.PhotoType),
-		"By: " + strings.TrimSpace(p.UploadedBy),
+		"Technician: " + strings.TrimSpace(p.UploadedBy),
 	}
 	if whenStr != "" {
 		linesRaw = append(linesRaw, "Taken: "+whenStr)
