@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/draw"
 	"image/jpeg"
@@ -14,72 +15,88 @@ import (
 	"github.com/jdeng/goheif"
 )
 
-// Tenta decodificar HEIF/AVIF em memória e re-encoda para JPEG (qualidade configurável).
-func heifToJPEGBytesInternal(b []byte, quality int) ([]byte, error) {
-	// proteje contra panics vindos de CGO
-	defer func() { _ = recover() }()
+// heifDecode decodifica HEIC/AVIF usando goheif e retorna uma imagem
+// copiada para *image.NRGBA* (memória 100% gerenciada pelo Go).
+// Isso evita segfaults quando bibliotecas como "imaging" paralelizam leituras.
+func heifDecode(b []byte) (image.Image, string, error) {
+	// Protege contra possíveis panics vindos do CGO
+	defer func() {
+		_ = recover()
+	}()
 
 	imgC, err := goheif.Decode(bytes.NewReader(b))
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	// deep copy -> memória Go
-	srcB := imgC.Bounds()
-	nrgba := image.NewNRGBA(image.Rect(0, 0, srcB.Dx(), srcB.Dy()))
-	draw.Draw(nrgba, nrgba.Bounds(), imgC, srcB.Min, draw.Src)
 
-	// garante que os objetos C não sejam coletados antes da cópia
+	bnd := imgC.Bounds()
+	dst := image.NewNRGBA(image.Rect(0, 0, bnd.Dx(), bnd.Dy()))
+	draw.Draw(dst, dst.Bounds(), imgC, bnd.Min, draw.Src)
+
+	// Garante que os objetos C não sejam coletados antes da cópia
 	runtime.KeepAlive(imgC)
 	runtime.KeepAlive(b)
 
-	// encode para JPEG
-	var out bytes.Buffer
-	if quality <= 0 || quality > 100 {
-		quality = 90
-	}
-	if err := jpeg.Encode(&out, nrgba, &jpeg.Options{Quality: quality}); err != nil {
-		return nil, err
-	}
-	return out.Bytes(), nil
+	// “heic” aqui é um rótulo lógico; você pode usar "heif" se preferir
+	return dst, "heic", nil
 }
 
-// Fallback externo usando o utilitário `heif-convert`.
-// Requer: sudo apt-get install -y libheif-examples
-func heifToJPEGBytesExternal(b []byte, quality int) ([]byte, error) {
-	dir := os.TempDir()
-	in, err := os.CreateTemp(dir, "wm_in_*.heic")
-	if err != nil {
-		return nil, err
-	}
-	defer os.Remove(in.Name())
-	if _, err := in.Write(b); err != nil {
-		in.Close()
-		return nil, err
-	}
-	in.Close()
-
-	out, err := os.CreateTemp(dir, "wm_out_*.jpg")
-	if err != nil {
-		return nil, err
-	}
-	outName := out.Name()
-	out.Close()
-	defer os.Remove(outName)
-
-	// `heif-convert in.heic out.jpg` (ele escolhe qualidade boa por padrão)
-	cmd := exec.Command("heif-convert", in.Name(), outName)
-	// opcional: cmd.Stdout = io.Discard; cmd.Stderr = io.Discard
-	if err := cmd.Run(); err != nil {
-		return nil, err
-	}
-	return os.ReadFile(outName)
-}
-
-// Converte HEIF/AVIF -> JPEG. Tenta interno, cai para externo se precisar.
+// heifToJPEGBytes tenta converter HEIC/AVIF -> JPEG.
+// 1) tenta internamente (goheif -> NRGBA -> jpeg.Encode)
+// 2) se falhar, cai no fallback externo via `heif-convert` (libheif-examples)
 func heifToJPEGBytes(b []byte, quality int) ([]byte, error) {
 	if jb, err := heifToJPEGBytesInternal(b, quality); err == nil {
 		return jb, nil
 	}
-	// fallback externo (instale libheif-examples)
 	return heifToJPEGBytesExternal(b, quality)
+}
+
+// heifToJPEGBytesInternal: caminho “puro Go” (com CGO), usando goheif.
+func heifToJPEGBytesInternal(b []byte, quality int) ([]byte, error) {
+	img, _, err := heifDecode(b)
+	if err != nil {
+		return nil, err
+	}
+	if quality <= 0 || quality > 100 {
+		quality = 90
+	}
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: quality}); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// heifToJPEGBytesExternal: fallback usando o binário `heif-convert`.
+// Requer: sudo apt-get install -y libheif-examples
+func heifToJPEGBytesExternal(b []byte, quality int) ([]byte, error) {
+	inFile, err := os.CreateTemp("", "wm_in_*.heic")
+	if err != nil {
+		return nil, err
+	}
+	defer os.Remove(inFile.Name())
+
+	if _, err := inFile.Write(b); err != nil {
+		inFile.Close()
+		return nil, err
+	}
+	inFile.Close()
+
+	outFile, err := os.CreateTemp("", "wm_out_*.jpg")
+	if err != nil {
+		return nil, err
+	}
+	outName := outFile.Name()
+	outFile.Close()
+	defer os.Remove(outName)
+
+	// heif-convert não aceita “qualidade” por flag em todas as versões;
+	// ele escolhe defaults bons. Se precisar controlar, pode converter para PNG
+	// e depois JPEG você mesmo.
+	cmd := exec.Command("heif-convert", inFile.Name(), outName)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return nil, fmt.Errorf("heif-convert failed: %v (%s)", err, string(out))
+	}
+
+	return os.ReadFile(outName)
 }

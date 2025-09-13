@@ -4,9 +4,8 @@ package main
 
 import (
 	"errors"
-	"image"
 )
 
-func heifDecode(_ []byte) (image.Image, string, error) {
-	return nil, "", errors.New("heif support not built (use: go run -tags heif .)")
+func heifToJPEGBytes(_ []byte, _ int) ([]byte, error) {
+	return nil, errors.New("heif disabled at build time (compile with -tags heif)")
 }
