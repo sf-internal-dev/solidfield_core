@@ -1,8 +1,4 @@
 ERROR_MESSAGES = {
-    "message_test": {
-        "message":"This is a message text.",
-        "type":"info"
-    },
     "required_value_missing": {
         "message":"This is a message text.",
         "type":"positive"
