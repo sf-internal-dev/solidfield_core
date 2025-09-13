@@ -137,20 +137,6 @@ func decodeImageWithEXIF(b []byte) (image.Image, string, error) {
 	return img, format, nil
 }
 
-// func decodeImage(b []byte) (image.Image, string, error) {
-// 	// Tenta PNG
-// 	if img, err := png.Decode(bytes.NewReader(b)); err == nil {
-// 		return img, "png", nil
-// 	}
-// 	// Tenta JPEG
-// 	if img, err := jpeg.Decode(bytes.NewReader(b)); err == nil {
-// 		return img, "jpeg", nil
-// 	}
-// 	// Tenta genérico
-// 	img, format, err := image.Decode(bytes.NewReader(b))
-// 	return img, format, err
-// }
-
 func sniffFormat(b []byte) string {
 	if len(b) >= 12 && string(b[4:8]) == "ftyp" {
 		brand := string(b[8:12])
@@ -172,8 +158,6 @@ func sniffFormat(b []byte) string {
 	}
 	return ""
 }
-
-var allowHEIC = strings.ToLower(envOr("ALLOW_HEIC", "true")) == "true"
 
 func loadImageFromURL(url string) (image.Image, string, error) {
 	client := &http.Client{Timeout: 15 * time.Second}
