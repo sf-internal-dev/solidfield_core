@@ -56,7 +56,7 @@ def prepare_company_slug_and_code(company_name: str) -> dict:
 
 def register_tenant(name: str, slug: str, tenant_code: str,
     billind_account_id: str, owner: AccountHolderUser, locale: str, timezone: str):
-    
+
     errors = []
     primary_contact_name  = owner.full_name
     primary_contact_email = owner.email
@@ -102,5 +102,19 @@ ImageInput = Union[
     str, Path,        # caminho no disco
 ]
 
-def register_tenant_branding(color_primary: str, logo: ImageInput | None = None):
-    pass
+def register_tenant_branding(tenant: CompanyTenant, color_primary: str, logo: ImageInput | None = None):
+    errors = []
+
+    if not validate_hex_color(value=color_primary):
+        errors.append("invalid_hex_color")
+
+    if errors:
+        return None, errors
+    
+    tenant.color_primary = color_primary
+
+    # precisa validar logo!
+    # if not validate_logo(value=logo):
+    #     errors.append("invalid_logo)
+    tenant.logo = logo
+    tenant.save()
