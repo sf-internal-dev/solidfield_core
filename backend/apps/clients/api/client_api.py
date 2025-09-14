@@ -21,6 +21,7 @@ def register_client_api(request):
     country = data.get("country")
 
     client, messages = create_or_update_client(
+        technician_operating=..., #technician_operating
         person_type = person_type,
         name = name,
         document_id = document_id,
@@ -49,4 +50,54 @@ def register_client_api(request):
         "contact_name": client.contact_name,
         "phone": client.phone,
         "email": client.email
+    }, status=status.HTTP_201_CREATED)
+
+@api_view(["POST"])
+def register_client_adress_api(request):
+    data = request.data or {}
+    # technician_operating = getattr(request, "technician_operating", None)
+    
+    client = data.get("client")
+    label = data.get("label")
+    number = data.get("number")
+    complement = data.get("complement")
+    neighborhood = data.get("neighborhood")
+    city = data.get("city")
+    state = data.get("state")
+    postal_code = data.get("postal_code")
+    
+    gps_latitude = data.get("gps_latitude")
+    gps_longitude = data.get("gps_longitude")
+
+
+    client_adress, messages = register_client_address(
+        technician_operating= ..., #technician_operating
+        client = client,
+        label = label,
+        number = number,
+        complement= complement,
+        neighborhood= neighborhood,
+        city = city,
+        state = state, 
+        postal_code = postal_code,
+        gps_latitude = gps_latitude,
+        gps_longitude = gps_longitude
+    )
+
+    if messages:
+        payloads = [get_error_payload(c) for c in messages]
+        # eu vou provavelmente rever esse uso de tenant.id
+        publish_ui_messages(
+            technician_id=..., #technician_operating
+            tenant_id=...,#technician_operating.tenant.id
+            payloads=payloads,
+            source="django_api",
+        )
+        return Response({"messages": messages}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+
+    return Response({
+        "success": "Client adress registered",
+        "messages": messages,
+        # talvez eu faça as funções register retornar um payload dos dados
     }, status=status.HTTP_201_CREATED)
