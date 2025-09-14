@@ -23,7 +23,6 @@ def register_technician_api(request):
     )
     if messages:
         payloads = [get_error_payload(c) for c in messages]
-        
         # eu vou provavelmente rever esse uso de tenant.id
         publish_ui_messages(
             technician_id=..., #technician_operating
@@ -32,19 +31,6 @@ def register_technician_api(request):
             source="django_api",
         )
         return Response({"codes": messages}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-
-    # ❷ criou com sucesso → opcional: publicar “toast” positivo
-    publish_ui_messages(
-        technician_id=request.user.id,
-        tenant_id=str(getattr(request.user, "tenant_id", "")),
-        payloads=[{
-            "code": "technician_created",
-            "message": f"Técnico {technician.username} criado com sucesso.",
-            "type": "positive",
-            "context": {"id": str(technician.id)},
-        }],
-        source="django_api",
-    )
 
 
     return Response({
