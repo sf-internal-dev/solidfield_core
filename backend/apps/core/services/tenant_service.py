@@ -1,5 +1,7 @@
 from backend.apps.core.utils.tenant.tenant_slug_util import sanitize_tenant_slug, suggest_company_slug
 from backend.apps.core.utils.tenant.tenant_identifier_code_util import generate_tenant_identifier_code
+from backend.apps.core.validators.tenant_validator import validate_tenant_name, validate_hex_color, validate_optional_email, validate_optional_phone, validate_slug_format
+
 from core.models.tenant import CompanyTenant
 from core.models.user import AccountHolderUser
 from typing import Union, IO, Optional
@@ -52,14 +54,41 @@ def prepare_company_slug_and_code(company_name: str) -> dict:
         "tenant_code": code
     }
 
+def register_tenant(name: str, slug: str, tenant_code: str,
+    billind_account_id: str, owner: AccountHolderUser, locale: str, timezone: str):
+    
+    errors = []
+    primary_contact_name  = owner.full_name
+    primary_contact_email = owner.email
+    primary_contact_phone = owner.phone
 
+    if not validate_tenant_name(value=name):
+        errors.append("invalid_tenant_name")
+    if not validate_slug_format(value=slug):
+        errors.append("invalid_slug_format")
+    if not validate_optional_email(value=primary_contact_email):
+        errors.append("invalid_slug_format")
+    if not validate_optional_phone(value=primary_contact_phone):
+        errors.append("invalid_slug_format")
 
+    if errors:
+        return None, errors
+    
+    tenant = CompanyTenant.objects.create(
+        name = name,
+        slug = slug,
+        tenant_code = tenant_code,
+        primary_contact_name = primary_contact_name,
+        primary_contact_email = primary_contact_email,
+        primary_contact_phone = primary_contact_phone,
+        billind_account_id = billind_account_id,
+        owner = owner,
+        locale = locale,
+        timezone = timezone
+    )
+    
+    return tenant, errors
 
-
-def register_tenant(name: str, slug: str, tenant_code: str, primary_contact_name: str, primary_contact_email: str, primary_contact_phone: str, 
-                    billind_account_id: str, owner: AccountHolderUser, locale: str,
-                    timezone: str):
-    pass
 
 # Lê bytes (ex.: io.BytesIO)
 BinaryReadable = IO[bytes]
