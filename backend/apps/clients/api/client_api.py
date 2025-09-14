@@ -44,12 +44,9 @@ def register_client_api(request):
 
 
     return Response({
-        "id": str(client.id),
-        "name": client.name,
-        "document_id": client.document_id,
-        "contact_name": client.contact_name,
-        "phone": client.phone,
-        "email": client.email
+        "success": "Client adress registered",
+        "client_id": str(client.id),
+        "messages": messages,
     }, status=status.HTTP_201_CREATED)
 
 @api_view(["POST"])
