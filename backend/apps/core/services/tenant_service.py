@@ -1,8 +1,12 @@
 from backend.apps.core.utils.tenant.tenant_slug_util import sanitize_tenant_slug, suggest_company_slug
 from backend.apps.core.utils.tenant.tenant_identifier_code_util import generate_tenant_identifier_code
 from core.models.tenant import CompanyTenant
-from typing import Optional
-
+from core.models.user import AccountHolderUser
+from typing import Union, IO, Optional
+from pathlib import Path
+from django.core.files.uploadedfile import UploadedFile
+from django.core.files.base import File, ContentFile
+from django.db.models.fields.files import ImageFieldFile
 # -> Resolves a unique slug based on the company name
 # Tries cleaned username-style suggestions and checks availability
 # If all are taken, falls back to a numeric suffix strategy
@@ -47,3 +51,27 @@ def prepare_company_slug_and_code(company_name: str) -> dict:
         "slug": slug,
         "tenant_code": code
     }
+
+
+
+
+
+def register_tenant(name: str, slug: str, tenant_code: str, primary_contact_name: str, primary_contact_email: str, primary_contact_phone: str, 
+                    billind_account_id: str, owner: AccountHolderUser, locale: str,
+                    timezone: str):
+    pass
+
+# Lê bytes (ex.: io.BytesIO)
+BinaryReadable = IO[bytes]
+
+ImageInput = Union[
+    UploadedFile,     # vindo da request/form
+    File, ContentFile, 
+    ImageFieldFile,   # vindo de um model já salvo
+    BinaryReadable,   # ex.: BytesIO
+    bytes,            # bytes prontos
+    str, Path,        # caminho no disco
+]
+
+def register_tenant_branding(color_primary: str, logo: ImageInput | None = None):
+    pass
