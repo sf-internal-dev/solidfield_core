@@ -96,3 +96,45 @@ ERROR_MESSAGES = {
         "type": "negative"
     },
 }
+
+
+def get_error_payload(code: str) -> dict:
+    """
+    Given an error code, returns the error payload (message + type).
+    If the code has dynamic arguments (ex.: 'invalid_action:delete'),
+    they will be interpolated into the message.
+    """
+    # Verifica se tem argumentos no código
+    if ":" in code:
+        base_key, arg_part = code.split(":", 1)
+
+        # Procurar uma chave no dicionário que comece com base_key + ":"
+        for template_key, payload in ERROR_MESSAGES.items():
+            if template_key.startswith(base_key + ":"):
+                message_template = payload["message"]
+
+                # Extrair placeholders do template da chave
+                # Ex.: "invalid_action:{action}" -> ["action"]
+                import re
+                placeholders = re.findall(r"{(\w+)}", template_key)
+
+                # Se houver múltiplos placeholders, tentar separar por delimitadores
+                values = arg_part.split("->") if "->" in template_key else arg_part.split(":")
+
+                # Montar dicionário {placeholder: valor}
+                mapping = dict(zip(placeholders, values))
+
+                return {
+                    "message": message_template.format(**mapping),
+                    "type": payload["type"]
+                }
+
+    # Caso seja um erro fixo
+    if code in ERROR_MESSAGES:
+        return ERROR_MESSAGES[code]
+
+    # Retorno padrão se não achar
+    return {
+        "message": f"Unknown error code: {code}",
+        "type": "negative"
+    }
