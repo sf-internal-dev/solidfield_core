@@ -34,9 +34,7 @@ def register_technician_api(request):
 
 
     return Response({
+        "success": "Technician registered",
         "id": str(technician.id),
-        "username": technician.username,
-        "social_name": technician.social_name,
-        "technician_permission": technician.technician_permission,
-        "is_active": technician.is_active,
+        "messages": messages,
     }, status=status.HTTP_201_CREATED)
