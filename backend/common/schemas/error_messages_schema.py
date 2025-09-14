@@ -76,7 +76,7 @@ ERROR_MESSAGES = {
         "type": "negative"
     },
     "technician_has_no_permission:{label}": {
-        "message": "The technician does not have permission to perform action: {label}.",
+        "message": "As a {label}, you has no permission permission to perform this action.",
         "type": "negative"
     },
     "delegator_not_manager": {
@@ -138,3 +138,9 @@ def get_error_payload(code: str) -> dict:
         "message": f"Unknown error code: {code}",
         "type": "negative"
     }
+
+if __name__ == "__main__":
+    print(get_error_payload("transition_not_allowed:bla->blabla"))
+    print(get_error_payload("permission_denied_for_state:blablabla"))
+    print(get_error_payload("item_not_found_by_order:#SOLIWO0001"))
+    print(get_error_payload("technician_has_no_permission:L2"))
