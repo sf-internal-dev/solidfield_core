@@ -98,6 +98,7 @@ def register_client_adress_api(request):
 
     return Response({
         "success": "Client adress registered",
+        "client_adress_id": client_adress.id,
         "messages": messages,
         # talvez eu faça as funções register retornar um payload dos dados
     }, status=status.HTTP_201_CREATED)
