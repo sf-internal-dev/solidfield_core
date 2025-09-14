@@ -4,27 +4,48 @@ from backend.common.schemas.error_messages_schema import get_error_payload
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from backend.edge_services.webhook_forwarder_service.publisher import publish_ui_messages
 
 @api_view(["POST"])
 def register_technician_api(request):
     data = request.data or {}
+    # technician_operating = getattr(request, "technician_operating", None)
+
     username = data.get("username")
     social_name = data.get("social_name")
     technician_permission = data.get("technician_permission")
 
-    messages_to_publish = []
-    technician, errors = register_technician(
-            technician_operating=request.user,  # ou mapeia p/ teu Technician-operador
+    technician, messages = register_technician(
+            technician_operating=...,  # vai mapear para request.technician_operating depois
             username=username,
             social_name=social_name,
             technician_permission=technician_permission,
     )
-    if errors:
-        for error in errors:
-            messages_to_publish.append(get_error_payload(error))
-            # tem que fazer a publicação desses erros com algum serviço, provavelmente vai ser no corex
-        return Response({
-        }, status=status.HTTP_409_CONFLICT)
+    if messages:
+        payloads = [get_error_payload(c) for c in messages]
+        
+        # eu vou provavelmente rever esse uso de tenant.id
+        publish_ui_messages(
+            technician_id=..., #technician_operating
+            tenant_id=technician.tenant.id,
+            payloads=payloads,
+            source="django_api",
+        )
+        return Response({"codes": messages}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    # ❷ criou com sucesso → opcional: publicar “toast” positivo
+    publish_ui_messages(
+        technician_id=request.user.id,
+        tenant_id=str(getattr(request.user, "tenant_id", "")),
+        payloads=[{
+            "code": "technician_created",
+            "message": f"Técnico {technician.username} criado com sucesso.",
+            "type": "positive",
+            "context": {"id": str(technician.id)},
+        }],
+        source="django_api",
+    )
+
 
     return Response({
         "id": str(technician.id),
