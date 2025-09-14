@@ -44,7 +44,7 @@ def register_client_api(request):
 
 
     return Response({
-        "success": "Client adress registered",
+        "success": "Client registered",
         "client_id": str(client.id),
         "messages": messages,
     }, status=status.HTTP_201_CREATED)
