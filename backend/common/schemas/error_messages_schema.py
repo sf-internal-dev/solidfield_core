@@ -144,3 +144,8 @@ if __name__ == "__main__":
     print(get_error_payload("permission_denied_for_state:blablabla"))
     print(get_error_payload("item_not_found_by_order:#SOLIWO0001"))
     print(get_error_payload("technician_has_no_permission:L2"))
+    
+# {'message': 'Transition from bla to blabla is not allowed.', 'type': 'negative'}
+# {'message': 'You do not have permission to change the status to blablabla.', 'type': 'negative'}
+# {'message': 'Item with order #SOLIWO0001 was not found.', 'type': 'negative'}
+# {'message': 'As a L2, you has no permission permission to perform this action.', 'type': 'negative'}
