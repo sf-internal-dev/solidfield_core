@@ -1,12 +1,12 @@
 from backend.apps.core.utils.tenant.tenant_slug_util import sanitize_tenant_slug, suggest_company_slug
 from backend.apps.core.utils.tenant.tenant_identifier_code_util import generate_tenant_identifier_code
 from core.models.tenant import CompanyTenant
-
+from typing import Optional
 
 # -> Resolves a unique slug based on the company name
 # Tries cleaned username-style suggestions and checks availability
 # If all are taken, falls back to a numeric suffix strategy
-def resolve_available_slug_from_name(company_name: str) -> str:
+def resolve_available_slug_from_name(company_name: str) -> Optional[str]:
     suggestions = suggest_company_slug(company_name)
 
     for suggestion in suggestions:
@@ -20,10 +20,10 @@ def resolve_available_slug_from_name(company_name: str) -> str:
     for i in range(1, 30):
         slug_attempt = f"{base_slug}{i}"
         if not CompanyTenant.objects.filter(slug=slug_attempt).exists():
-            return slug_attempt
+            return slug_attempt, ""
 
-    raise ValueError("Couldn't create a slug suggestion for your company. Please choose one manually.")
-
+    # Couldn't create a slug suggestion for your company. Please choose one manually."
+    return None, "could_not_create_slug_suggestion."
 
 # -> Generates a unique tenant_code based on the slug
 # Iterates over identifier suggestions and checks availability
