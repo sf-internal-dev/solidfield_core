@@ -1,7 +1,7 @@
+from __future__ import annotations
 from backend.apps.checklist.utils.checklist_util import expected_field_for_type, has_required_value, choice_in_options
 from backend.apps.checklist.models.checklist import Checklist, ChecklistItemAnswer, ChecklistItemTemplate, ChecklistTemplate
 from backend.apps.core.models.technician import Technician
-from __future__ import annotations
 from typing import Optional, List, Tuple, Dict, Any, Iterable
 from django.db import transaction
 from backend.apps.core.services.technician_permission_service import has_permission
