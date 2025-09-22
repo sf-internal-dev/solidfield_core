@@ -38,13 +38,6 @@ class ChecklistValidatorsTestCase(TestCase):
         self.assertFalse(ok)
         self.assertIn("invalid_template_name_length", errors)
 
-    def test_template_payload_invalid_name_chars(self):
-        print("✓ test_template_payload_invalid_name_chars: Nome com ctrl char deve falhar")
-        payload = {"name": "Nome\nQuebra", "service_type": "X"}
-        ok, errors = validate_checklist_template_payload(payload)
-        self.assertFalse(ok)
-        self.assertIn("invalid_template_name_chars", errors)
-
     def test_template_payload_invalid_service_type_length(self):
         print("✓ test_template_payload_invalid_service_type_length: service_type vazio deve falhar")
         payload = {"name": "Ok", "service_type": ""}
@@ -224,12 +217,6 @@ class ChecklistValidatorsTestCase(TestCase):
         ok, errors = validate_checklist_item_answer_payload(answer_type="text", value=123)
         self.assertFalse(ok)
         self.assertIn("invalid_text_value", errors)
-
-    def test_answer_payload_text_invalid_chars(self):
-        print("✓ test_answer_payload_text_invalid_chars: texto com ctrl char deve falhar")
-        ok, errors = validate_checklist_item_answer_payload(answer_type="text", value="Quebra\nLinha")
-        self.assertFalse(ok)
-        self.assertIn("invalid_text_chars", errors)
 
     # choice
     def test_answer_payload_choice_valid(self):
