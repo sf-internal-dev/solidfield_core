@@ -24,6 +24,7 @@ class CompanyTenant(models.Model):
         related_name="owned_tenant"
     )
 
+    country = models.CharField(max_lengh=3, default="USA")
     locale = models.CharField(max_length=10, default="en-US")
     timezone = models.CharField(max_length=50, default="America/Los_Angeles")
 
