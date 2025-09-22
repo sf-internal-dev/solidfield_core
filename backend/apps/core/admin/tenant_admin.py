@@ -7,7 +7,7 @@ from backend.apps.core.models import (
     
 )
 from backend.apps.clients.admin import ClientInline
-from backend.apps.orders.admin import ServiceOrderInline
+from backend.apps.orders.admin import WorkOrderInline
 from backend.apps.clients.admin import ClientAdressInline
 from backend.apps.checklist.admin import ChecklistTemplateInline
 from backend.apps.core.admin import TechnicianInline, TemporaryDelegationInline, AuditLogInline
@@ -26,6 +26,6 @@ class CompanyTenantAdmin(nested_admin.NestedModelAdmin):
         ClientInline,
         TemporaryDelegationInline,
         ChecklistTemplateInline,
-        ServiceOrderInline,
+        WorkOrderInline,
         AuditLogInline
     ]
