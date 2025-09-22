@@ -89,6 +89,13 @@ class Checklist(BaseModel):
     filled_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT)
     filled_at = models.DateTimeField(auto_now_add=True)
 
+    work_order = models.ForeignKey(
+        'orders.WorkOrder',
+        on_delete=models.CASCADE,
+        related_name='checklists',
+        null=True, blank=True,   
+    )
+
     def __str__(self):
         return f"Checklist #{self.id} - OS {self.service_order.identifier}"
 
