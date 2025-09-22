@@ -8,7 +8,7 @@ from backend.apps.core.services.technician_permission_service import has_permiss
 # -> Creates a new checklist template record with the given parameters
 # Associates the template with the creating technician and service type
 # Sets the global visibility flag as specified and returns the created object
-def create_checklist_template(technician_operating: Technician, name: str, technician: Technician, service_type: str, is_global: bool):
+def create_checklist_template(technician_operating: Technician, name: str, technician: Technician, service_type: str, is_global: bool, version: int = 1):
     errors = []
     ok, perm_errors = has_permission(technician_operating, "create_checklist_template")
     if not ok:
@@ -16,7 +16,9 @@ def create_checklist_template(technician_operating: Technician, name: str, techn
         return None, errors
 
     checklist_template = ChecklistTemplate.objects.create(
+        tenant=technician_operating.tenant,
         name = name,
+        version=version,
         created_by  = technician,
         service_type = service_type,
         is_global = is_global
@@ -138,6 +140,7 @@ def update_checklist_template_version(technician_operating: Technician, template
         name=template.name,
         technician=template.created_by,
         service_type=template.service_type,
+        version=next_version,
         is_global=template.is_global,
     )
     errors.extend(errs2)
@@ -175,6 +178,7 @@ def update_checklist_template_version(technician_operating: Technician, template
     if items_to_add:
         for payload in items_to_add:
             item, errs = add_item_to_checklist_template(
+                technician_operating=technician_operating,
                 template=new_tpl,
                 question=(payload.get("question") or "").strip(),
                 answer_type=payload.get("answer_type"),
