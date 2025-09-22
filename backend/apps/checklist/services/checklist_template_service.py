@@ -133,12 +133,15 @@ def update_checklist_template_version(technician_operating: Technician, template
         .get("m") or 0
     ) + 1
 
-    new_tpl = create_checklist_template(
+    new_tpl, errs2 = create_checklist_template(
+        technician_operating=technician_operating,
         name=template.name,
         technician=template.created_by,
         service_type=template.service_type,
         is_global=template.is_global,
     )
+    errors.extend(errs2)
+
 
     new_tpl.version = next_version
     new_tpl.is_active = True
