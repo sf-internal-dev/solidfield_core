@@ -5,36 +5,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from backend.edge_services.webhook_forwarder_service.publisher import publish_ui_messages
 
-'''
-class CompanyTenant(models.Model):
-    name = models.CharField(max_length=150)
-    slug = models.SlugField(unique=True) 
-    tenant_code = models.CharField(max_length=10,unique=True,db_index=True,editable=False, validators=[validate_tenant_core])
-    is_active = models.BooleanField(default=True)
-    
-    primary_contact_name = models.CharField(max_length=100, blank=True)
-    primary_contact_email = models.EmailField(blank=True)
-    primary_contact_phone = models.CharField(max_length=30, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    billing_account_id = models.CharField(max_length=100, blank=True, null=True) 
-
-    owner = models.OneToOneField(
-        "core.AccountHolderUser",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="owned_tenant"
-    )
-
-    locale = models.CharField(max_length=10, default="en-US")
-    timezone = models.CharField(max_length=50, default="America/Los_Angeles")
-
-    logo = models.ImageField(upload_to="tenant_logos/", null=True, blank=True)
-    color_primary = models.CharField(max_length=7, default="#000000") 
-'''
-
 @api_view(["POST"])
 def register_tenant_api(request):
     data = request.data or {}
