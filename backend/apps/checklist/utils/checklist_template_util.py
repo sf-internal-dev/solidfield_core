@@ -1,5 +1,6 @@
 from typing import Optional, Tuple, List 
-from backend.common.datatypes import NUMERIC_TYPES
+from backend.common.number_codecs import NUMERIC_CODECS
+from typing import Optional, Any, Dict, Tuple
 
 # -> Parses raw options into a clean, unique, ordered list (comma or newline separated).
 # Needed when normalizing the 'choice_options' free-text field into a list of unique options.
@@ -18,50 +19,14 @@ def parse_choice_options(raw: Optional[str]) -> List[str]:
     return parts
 
 
+def is_numeric_type(answer_type: str) -> bool:
+    return answer_type in NUMERIC_CODECS
+
 # -> Returns a human-readable unit symbol for the item's answer type, if any.
 # Needed when displaying measurements or formatting answers with units.
-def unit_for_item(item) -> Optional[str]:
-    mapping = {
-        # General
-        "number": None,  # Generic number has no fixed unit
-
-        # Angles
-        "degree": "°",
-
-        # Metric
-        "length_cm": "cm",
-        "width_cm": "cm",
-        "height_cm": "cm",
-        "area_m2": "m²",
-        "volume_l": "L",
-        "weight_kg": "kg",
-
-        # Imperial
-        "length_in": "in",
-        "width_in": "in",
-        "height_in": "in",
-        "area_ft2": "ft²",
-        "volume_gal": "gal",
-        "weight_lb": "lb",
-
-        # Electrical
-        "voltage": "V",
-        "current_amp": "A",
-        "frequency_hz": "Hz",
-        "power_w": "W",
-        "power_kw": "kW",
-
-        # Environmental
-        "temperature": "°C",
-        "temperature_f": "°F",
-        "pressure": "psi/bar",
-        "humidity_pct": "%",
-        "speed_kmh": "km/h",
-        "speed_mph": "mph",
-    }
-
-    return mapping.get(item.answer_type)
-
+def unit_for_type(answer_type: str) -> Optional[str]:
+    codec = NUMERIC_CODECS.get(answer_type)
+    return codec.canon_unit if codec else None
 
 # -> Returns True if the 'order' value is unique within the item's template.
 # Needed to keep a strict, non-conflicting step sequence inside one template.
