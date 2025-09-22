@@ -25,7 +25,11 @@ def has_required_value(answer_type: str, required: bool, values: Dict[str, Any])
     if field == "answer_texto":
         return isinstance(v, str) and v.strip() != ""
     if field == "answer_number":
-        return isinstance(v, (int, float))
+        if isinstance(v, (int, float)):
+            return True
+        if isinstance(v, str):
+            return v.strip() != ""
+        return False
     if field == "answer_choice":
         return isinstance(v, str) and v.strip() != ""
     return False  # unknown types
