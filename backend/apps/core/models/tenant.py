@@ -1,6 +1,5 @@
 from django.db import models
 from .abstractions import TenantOwnedModel
-from backend.apps.core.validators import validate_tenant_core
 
 class CompanyTenant(models.Model):
     name = models.CharField(max_length=150)
