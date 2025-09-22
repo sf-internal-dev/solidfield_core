@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from backend.edge_services.webhook_forwarder_service.publisher import publish_ui_messages
 
+
+
 @api_view(["POST"])
 def register_technician_api(request):
     data = request.data or {}
