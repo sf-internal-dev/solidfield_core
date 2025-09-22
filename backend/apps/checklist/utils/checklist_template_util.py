@@ -28,6 +28,18 @@ def unit_for_type(answer_type: str) -> Optional[str]:
     codec = NUMERIC_CODECS.get(answer_type)
     return codec.canon_unit if codec else None
 
+def parse_number_for_type(answer_type: str, raw_value: Any) -> float:
+    """Usado na entrada do form → normaliza para a unidade canônica e retorna float."""
+    codec = NUMERIC_CODECS.get(answer_type)
+    if not codec: raise ValueError("not a numeric type")
+    return codec.parse(raw_value)
+
+def format_number_for_type(answer_type: str, value_canon: float) -> str:
+    """Usado na saída (exibição) → string formatada a partir do valor canônico."""
+    codec = NUMERIC_CODECS.get(answer_type)
+    if not codec: raise ValueError("not a numeric type")
+    return codec.fmt(value_canon)
+
 # -> Returns True if the 'order' value is unique within the item's template.
 # Needed to keep a strict, non-conflicting step sequence inside one template.
 # Note: 'order' is the positional sequence (1, 2, 3, ...) of the question in the checklist.
