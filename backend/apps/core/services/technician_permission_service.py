@@ -1,10 +1,10 @@
 from backend.apps.core.utils.technician_permission.technician_permission_delegation_util import get_effective_actions_for_level,technician_has_permission_for_action, get_action_label
-from backend.apps.core.utils.technician_permission.technician_permission_temporary_delegation_util import technician_has_permission_for_action, can_delegate_action
+from backend.apps.core.utils.technician_permission.technician_permission_temporary_delegation_util import can_delegate_action
 from backend.apps.core.utils.audition_log.audition_log_util import log_audit_action
 from backend.apps.core.models import Technician, TemporaryDelegation, DelegatedAction
 from backend.apps.core.services.audition_log_service import log_permission_level_delegation, log_temporary_delegation, log_revoke_temporary_delegation
 
-from core.models.log import AuditLog
+from backend.apps.core.models.log import AuditLog
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.db import transaction
