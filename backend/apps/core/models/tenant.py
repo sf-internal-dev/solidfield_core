@@ -5,7 +5,7 @@ from backend.apps.core.validators import validate_tenant_core
 class CompanyTenant(models.Model):
     name = models.CharField(max_length=150)
     slug = models.SlugField(unique=True) 
-    tenant_code = models.CharField(max_length=10,unique=True,db_index=True,editable=False, validators=[validate_tenant_core])
+    tenant_code = models.CharField(max_length=10,unique=True,db_index=True,editable=False)
     is_active = models.BooleanField(default=True)
     
     primary_contact_name = models.CharField(max_length=100, blank=True)
