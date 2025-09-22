@@ -88,7 +88,7 @@ def register_tenant_branding_api(request):
 
     return Response({
         "success": "Tenant branding registered",
-        "id": str(tenant.id),
+        "id": str(tenant_update.id),
         "messages": messages,
     }, status=status.HTTP_201_CREATED)
 
