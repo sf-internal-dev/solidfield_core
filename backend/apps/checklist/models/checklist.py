@@ -97,7 +97,7 @@ class Checklist(BaseModel):
     )
 
     def __str__(self):
-        return f"Checklist #{self.id} - OS {self.service_order.identifier}"
+        return f"Checklist #{self.id} - OS {self.work_order.identifier}"
 
 
 class ChecklistItemAnswer(BaseModel):
