@@ -266,10 +266,10 @@ def log_login_event(technician: Technician):
 def log_group_assignment(technician: Technician, technicians: list, aggroupment_tag: str):
     log_audit_action(
         technician=technician,
-        action="group_assignment",
+        action_code="aggroupment_assignment",
         object_instance=technician,
-        data = {
-            technicians: technicians,
-            aggroupment_tag: aggroupment_tag,
+        context_data = {
+            "technicians": technicians,
+            "aggroupment_tag": aggroupment_tag,
         }
     )
