@@ -9,25 +9,36 @@ def create_technicians_aggroupment(technician: Technician, tenant: CompanyTenant
         last_aggroupment = tenant.techniciansaggroupments.order_by("-id").first()
         tag = define_aggroupment_tag(company_last_aggroupment=last_aggroupment)
         aggroupment = TechniciansAggroupment.objects.create(
-            tenant=technician.tenant,
+            tenant=tenant,
             tag=tag
         )
         
         return aggroupment, error
     return None, error
 
-def add_technician_to_aggroupment(technician_operating: Technician, aggroupment: TechniciansAggroupment,technician_to_dd: Technician):
+def add_technician_to_aggroupment(technician_operating: Technician, aggroupment: TechniciansAggroupment,technician_to_add: Technician):
     ok_p, error_p = has_permission(technician=technician_operating, action_code='add_technician_to_aggroupment')
-    if error_p is not "":
+    
+    if not ok_p:
         return error_p
-    ok, error = can_add_technician_to_aggroupment(technician=technician_to_dd, target_aggroupment=aggroupment)
-    if ok and ok_p:
-        log_group_assignment(technician=technician_to_dd,technicians=aggroupment.members.username,aggroupment_tag=aggroupment.tag)
-        return technician_to_dd.aggroupment == aggroupment
-    return error
 
+    ok, error = can_add_technician_to_aggroupment(technician=technician_to_add, target_aggroupment=aggroupment)
+
+    if not ok:
+        return error
+
+    technician_to_add.aggroupment = aggroupment
+    technician_to_add.save(update_fields=["aggroupment"])
+
+    group_usernames = list(aggroupment.members.values_list("username", flat=True))
+
+    if ok and ok_p:
+        log_group_assignment(technician=technician_to_add,technicians=group_usernames,aggroupment_tag=aggroupment.tag)
+        return technician_to_add.aggroupment == aggroupment
+    
 def check_aggroupment_is_allowed_to_operate(technician_operating: Technician, aggroupment: TechniciansAggroupment):
     ok, error = has_permission(technician=technician_operating, action_code='check_aggroupment_is_allowed_to_operate')
+    
     if ok:
         count = aggroupment.members.count()
         if allowed_aggroupment(count):
