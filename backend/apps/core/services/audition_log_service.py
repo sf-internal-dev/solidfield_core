@@ -47,7 +47,7 @@ def log_revoke_temporary_delegation(tenant: CompanyTenant, delegation: Temporary
     log_audit_action(
         tenant=tenant,
         technician=delegation.from_user,
-        action="revoke_delegation",
+        action_code="revoke_delegation",
         object_instance=delegation,
         data={
             "delegate_user": delegation.to_user.username,
@@ -62,7 +62,7 @@ def log_work_order_creation(tenant: CompanyTenant, work_order: WorkOrder):
     log_audit_action(
         tenant=tenant,
         technician=work_order.created_by,
-        action="work_order_creation",
+        action_code="work_order_creation",
         object_instance=work_order,
         data={
             "order_id": work_order.identifier,
@@ -76,7 +76,7 @@ def log_work_order_assignment(tenant: CompanyTenant, work_order: WorkOrder, tech
     log_audit_action(
         tenant=tenant,
         technician=work_order.created_by,
-        action="work_order_assignment",
+        action_code="work_order_assignment",
         object_instance=work_order,
         data={
             "order_id": work_order.identifier,
@@ -90,7 +90,7 @@ def log_work_order_reassignment(tenant: CompanyTenant, work_order: WorkOrder, cu
     log_audit_action(
         tenant=tenant,
         technician=work_order.created_by,
-        action="work_order_reassignment",
+        action_code="work_order_reassignment",
         object_instance=work_order,
         data={
             "order_id": work_order.identifier,
@@ -105,7 +105,7 @@ def log_work_order_validation(tenant: CompanyTenant, work_order: WorkOrder):
     log_audit_action(
         tenant=tenant,
         technician=work_order.created_by,
-        action="work_order_validation",
+        action_code="work_order_validation",
         object_instance=work_order,
         data={
             "order_id": work_order.identifier,
@@ -120,7 +120,7 @@ def log_work_order_status_transition(tenant: CompanyTenant, work_order: WorkOrde
     return log_audit_action(
         tenant=tenant,
         technician=work_order.technician,
-        action="status_transition",
+        action_code="status_transition",
         object_instance=work_order,
         data={
             "order_id": work_order.identifier,
@@ -136,7 +136,7 @@ def log_work_order_download_link_creation(tenant: CompanyTenant, work_order_down
     log_audit_action(
         tenant=tenant,
         technician=work_order_download_link.work_order.from_user,
-        action="work_order_download_link_creation",
+        action_code="work_order_download_link_creation",
         object_instance=work_order_download_link,
         data={
             "order_id": work_order_download_link.work_order.identifier,
@@ -151,7 +151,7 @@ def log_work_order_pdf_generation(tenant: CompanyTenant, work_order_download_lin
     log_audit_action(
         tenant=tenant,
         technician=work_order_download_link.work_order.from_user,
-        action="work_order_pdf_generation",
+        action_code="work_order_pdf_generation",
         object_instance=work_order_download_link,
         data={
             "key":work_order_download_link.key,
@@ -166,7 +166,7 @@ def log_work_order_photo_upload(tenant: CompanyTenant, work_order_photo: WorkOrd
     log_audit_action(
         tenant=tenant,
         technician=work_order_photo.work_order.from_user,
-        action="work_order_pdf_generation",
+        action_code="work_order_pdf_generation",
         object_instance=work_order_photo,
         data={
             "order_id": work_order_photo.work_order.identifier,
@@ -180,7 +180,7 @@ def log_work_order_client_signature_upload(tenant: CompanyTenant, work_order_sig
     log_audit_action(
         tenant=tenant,
         technician=work_order_signature.work_order.from_user,
-        action="work_order_pdf_generation",
+        action_code="work_order_pdf_generation",
         object_instance=work_order_signature,
         data={
             "order_id": work_order_signature.work_order.identifier,
@@ -196,7 +196,7 @@ def log_feedback_request_generation(tenant: CompanyTenant, client_feedback_link:
     log_audit_action(
         tenant=tenant,
         technician=client_feedback_link.work_order.technician,
-        action="feedback_request_generation",
+        action_code="feedback_request_generation",
         object_instance=client_feedback_link,
         data = {
             "order_id": client_feedback_link.work_order.identifier,
@@ -209,7 +209,7 @@ def log_work_order_feedback_received(tenant: CompanyTenant, client_feedback: Cli
      log_audit_action(
         tenant=tenant,
         technician=client_feedback.work_order.technician,
-        action="work_order_feedback_received",
+        action_code="work_order_feedback_received",
         object_instance=client_feedback,
         data = {
             "order_id": client_feedback.work_order.identifier,
@@ -227,7 +227,7 @@ def log_offline_sync_event(tenant: CompanyTenant, sync_event: str, items_synced:
     log_audit_action(
         tenant=tenant,
         technician=sync_event.technician,
-        action="offline_sync_event",
+        action_code="offline_sync_event",
         object_instance=sync_event,
         data = {
             "timestamp": timezone.now().isoformat(),
@@ -243,7 +243,7 @@ def log_checklist_submission(tenant: CompanyTenant, checklist: Checklist):
     log_audit_action(
         tenant=tenant,
         technician=checklist.template.work_order.technician,
-        action="checklist_submission",
+        action_code="checklist_submission",
         object_instance=checklist,
         data = {
             "timestamp": timezone.now().isoformat(),
@@ -256,7 +256,7 @@ def log_template_version_update(tenant: CompanyTenant, checklist_template: Check
     log_audit_action(
         tenant=tenant,
         technician=checklist_template.work_order.technician,
-        action="template_version_update",
+        action_code="template_version_update",
         object_instance=checklist_template,
         data = {
             "template_name": checklist_template.name,
@@ -272,7 +272,7 @@ def log_login_event(tenant: CompanyTenant, technician: Technician):
     log_audit_action(
         tenant=tenant,
         technician=technician,
-        action="login_event",
+        action_code="login_event",
         object_instance=technician,
         data = {
             "timestamp": timezone.now().isoformat(),
