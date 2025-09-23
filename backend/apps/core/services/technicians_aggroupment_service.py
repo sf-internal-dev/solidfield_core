@@ -7,8 +7,14 @@ def create_technicians_aggroupment(technician: Technician, tenant: CompanyTenant
     ok, error = has_permission(technician=technician, action_code='create_technicians_aggroupment')
     if ok:
         last_aggroupment = tenant.techniciansaggroupments.order_by("-id").first()
-        return define_aggroupment_tag(company_last_aggroupment=last_aggroupment)
-    return error
+        tag = define_aggroupment_tag(company_last_aggroupment=last_aggroupment)
+        aggroupment = TechniciansAggroupment.objects.create(
+            tenant=technician.tenant,
+            tag=tag
+        )
+        
+        return aggroupment, error
+    return None, error
 
 def add_technician_to_aggroupment(technician_operating: Technician, aggroupment: TechniciansAggroupment,technician_to_dd: Technician):
     ok_p, error_p = has_permission(technician=technician_operating, action_code='add_technician_to_aggroupment')
