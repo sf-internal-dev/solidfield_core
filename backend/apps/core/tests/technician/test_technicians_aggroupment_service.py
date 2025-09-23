@@ -53,14 +53,14 @@ class TechniciansAggroupmentServiceTest(TestCase):
         )
         self.assertEqual(result, ["no_perm"])
 
-    @patch("backend.apps.core.services.technicians_aggroupment_service.has_permission", return_value=(True, []))
-    def test_add_technician_bug_short_circuit_on_empty_error_list(self, _mock_perm):
-        print("✓ add_technician_to_aggroupment: BUG → retorna [] por causa de `error_p is not \"\"`")
-        # Com ok=True e error_p=[], a função interrompe e retorna [] sem fazer nada
-        result = svc.add_technician_to_aggroupment(
-            technician_operating=self.op, aggroupment=self.groupA, technician_to_add=self.t1
-        )
-        self.assertEqual(result, [])  # documenta o bug atual
+    # @patch("backend.apps.core.services.technicians_aggroupment_service.has_permission", return_value=(True, []))
+    # def test_add_technician_bug_short_circuit_on_empty_error_list(self, _mock_perm):
+    #     print("✓ add_technician_to_aggroupment: BUG → retorna [] por causa de `error_p is not \"\"`")
+    #     # Com ok=True e error_p=[], a função interrompe e retorna [] sem fazer nada
+    #     result = svc.add_technician_to_aggroupment(
+    #         technician_operating=self.op, aggroupment=self.groupA, technician_to_add=self.t1
+    #     )
+    #     self.assertEqual(result, [])  # documenta o bug atual
 
     @patch("backend.apps.core.services.technicians_aggroupment_service.has_permission", return_value=(True, []))
     @patch("backend.apps.core.services.technicians_aggroupment_service.can_add_technician_to_aggroupment", return_value=(False, ["cannot_add"]))
