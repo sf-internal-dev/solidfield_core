@@ -11,8 +11,9 @@ from django.utils import timezone
 """ Permission Delegation """
 # -> Logs a permission level delegation from one technician to another
 # Includes context with usernames and assigned permission level
-def log_permission_level_delegation(delegator: Technician, delegate: Technician, permission_level: str):
+def log_permission_level_delegation(tenant: CompanyTenant, delegator: Technician, delegate: Technician, permission_level: str):
     return log_audit_action(
+        tenant=tenant,
         technician=delegator,
         action_code="permission_level_delegation",
         object_instance=delegate,
@@ -25,8 +26,9 @@ def log_permission_level_delegation(delegator: Technician, delegate: Technician,
 
 # -> Logs a temporary delegation of actions from one technician to another
 # Includes validity period and list of delegated actions in the context
-def log_temporary_delegation(delegation: TemporaryDelegation, actions: list[str]):
+def log_temporary_delegation(tenant: CompanyTenant, delegation: TemporaryDelegation, actions: list[str]):
     return log_audit_action(
+        tenant=tenant,
         technician=delegation.from_user,
         action_code="temporary_delegation",
         object_instance=delegation,
@@ -41,8 +43,9 @@ def log_temporary_delegation(delegation: TemporaryDelegation, actions: list[str]
 
 # -> Logs the revocation of a temporary delegation
 # Includes the affected user and timestamp of revocation
-def log_revoke_temporary_delegation(delegation: TemporaryDelegation):
+def log_revoke_temporary_delegation(tenant: CompanyTenant, delegation: TemporaryDelegation):
     log_audit_action(
+        tenant=tenant,
         technician=delegation.from_user,
         action="revoke_delegation",
         object_instance=delegation,
@@ -55,8 +58,9 @@ def log_revoke_temporary_delegation(delegation: TemporaryDelegation):
 """ Work Order """
 # -> Logs the creation of a Work order
 # Includes order identifier and creation date
-def log_work_order_creation(work_order: WorkOrder):
+def log_work_order_creation(tenant: CompanyTenant, work_order: WorkOrder):
     log_audit_action(
+        tenant=tenant,
         technician=work_order.created_by,
         action="work_order_creation",
         object_instance=work_order,
@@ -68,8 +72,9 @@ def log_work_order_creation(work_order: WorkOrder):
 
 # -> Logs the first assignment of a Work order to a technician
 # Includes order identifier assigned technician
-def log_work_order_assignment(work_order: WorkOrder, technician: Technician):
+def log_work_order_assignment(tenant: CompanyTenant, work_order: WorkOrder, technician: Technician):
     log_audit_action(
+        tenant=tenant,
         technician=work_order.created_by,
         action="work_order_assignment",
         object_instance=work_order,
@@ -81,8 +86,9 @@ def log_work_order_assignment(work_order: WorkOrder, technician: Technician):
 
 # -> Logs the reassignment of a Work order to a new technician
 # Includes order identifier, old and new technician assigned
-def log_work_order_reassignment(work_order: WorkOrder, current_technician: Technician, new_technician):
+def log_work_order_reassignment(tenant: CompanyTenant, work_order: WorkOrder, current_technician: Technician, new_technician):
     log_audit_action(
+        tenant=tenant,
         technician=work_order.created_by,
         action="work_order_reassignment",
         object_instance=work_order,
@@ -95,8 +101,9 @@ def log_work_order_reassignment(work_order: WorkOrder, current_technician: Techn
 
 # -> Logs the management-level validation of a finalizes Work order
 # Includes order identified and validation date
-def log_work_order_validation(work_order: WorkOrder):
+def log_work_order_validation(tenant: CompanyTenant, work_order: WorkOrder):
     log_audit_action(
+        tenant=tenant,
         technician=work_order.created_by,
         action="work_order_validation",
         object_instance=work_order,
@@ -109,8 +116,9 @@ def log_work_order_validation(work_order: WorkOrder):
 
 # -> Logs a Work order status transition
 # Includes previous and new status in the audit context
-def log_work_order_status_transition(work_order: WorkOrder, new_status: str):
+def log_work_order_status_transition(tenant: CompanyTenant, work_order: WorkOrder, new_status: str):
     return log_audit_action(
+        tenant=tenant,
         technician=work_order.technician,
         action="status_transition",
         object_instance=work_order,
@@ -124,8 +132,9 @@ def log_work_order_status_transition(work_order: WorkOrder, new_status: str):
 """ Work Order Download Link """
 # -> Logs the creation of a Work order
 # Includes order id, download link key and generation purpose
-def log_work_order_download_link_creation(work_order_download_link: WorkOrderDownloadLink):
+def log_work_order_download_link_creation(tenant: CompanyTenant, work_order_download_link: WorkOrderDownloadLink):
     log_audit_action(
+        tenant=tenant,
         technician=work_order_download_link.work_order.from_user,
         action="work_order_download_link_creation",
         object_instance=work_order_download_link,
@@ -138,8 +147,9 @@ def log_work_order_download_link_creation(work_order_download_link: WorkOrderDow
 
 # -> Logs the creation of a Work order
 # Includes download link key for pdf generation
-def log_work_order_pdf_generation(work_order_download_link: WorkOrderDownloadLink):
+def log_work_order_pdf_generation(tenant: CompanyTenant, work_order_download_link: WorkOrderDownloadLink):
     log_audit_action(
+        tenant=tenant,
         technician=work_order_download_link.work_order.from_user,
         action="work_order_pdf_generation",
         object_instance=work_order_download_link,
@@ -152,8 +162,9 @@ def log_work_order_pdf_generation(work_order_download_link: WorkOrderDownloadLin
 
 # -> Logs the upload of a audit photo to a Work order
 # Includes order identifier and act timestamp
-def log_work_order_photo_upload(work_order_photo: WorkOrderPhoto):
+def log_work_order_photo_upload(tenant: CompanyTenant, work_order_photo: WorkOrderPhoto):
     log_audit_action(
+        tenant=tenant,
         technician=work_order_photo.work_order.from_user,
         action="work_order_pdf_generation",
         object_instance=work_order_photo,
@@ -165,8 +176,9 @@ def log_work_order_photo_upload(work_order_photo: WorkOrderPhoto):
 
 # -> Logs the upload of a client signature to a Work order
 # Includes order identifier, client name and act timestamp
-def log_work_order_client_signature_upload(work_order_signature: WorkOrderSignature, client_name: str):
+def log_work_order_client_signature_upload(tenant: CompanyTenant, work_order_signature: WorkOrderSignature, client_name: str):
     log_audit_action(
+        tenant=tenant,
         technician=work_order_signature.work_order.from_user,
         action="work_order_pdf_generation",
         object_instance=work_order_signature,
@@ -180,8 +192,9 @@ def log_work_order_client_signature_upload(work_order_signature: WorkOrderSignat
 """ Client Feedback """
 # -> Logs the generation of a feedback request link
 # Includes order identifier
-def log_feedback_request_generation(client_feedback_link: FeedbackLink):
+def log_feedback_request_generation(tenant: CompanyTenant, client_feedback_link: FeedbackLink):
     log_audit_action(
+        tenant=tenant,
         technician=client_feedback_link.work_order.technician,
         action="feedback_request_generation",
         object_instance=client_feedback_link,
@@ -192,8 +205,9 @@ def log_feedback_request_generation(client_feedback_link: FeedbackLink):
 
 # -> Logs the feedback received for a Work execution
 # Includes order identifier
-def log_work_order_feedback_received(client_feedback: ClientFeedback, feedback_label: str):
+def log_work_order_feedback_received(tenant: CompanyTenant, client_feedback: ClientFeedback, feedback_label: str):
      log_audit_action(
+        tenant=tenant,
         technician=client_feedback.work_order.technician,
         action="work_order_feedback_received",
         object_instance=client_feedback,
@@ -209,8 +223,9 @@ def log_work_order_feedback_received(client_feedback: ClientFeedback, feedback_l
 # -> Logs the offline sync event of a technician
 # Includes timestamp and items synced
 # sync_event to define as model
-def log_offline_sync_event(sync_event: str, items_synced: list):
+def log_offline_sync_event(tenant: CompanyTenant, sync_event: str, items_synced: list):
     log_audit_action(
+        tenant=tenant,
         technician=sync_event.technician,
         action="offline_sync_event",
         object_instance=sync_event,
@@ -224,8 +239,9 @@ def log_offline_sync_event(sync_event: str, items_synced: list):
 """ Checklist & Template """
 # -> Logs the checklist submission to a Work order
 # Includes timestamp
-def log_checklist_submission(checklist: Checklist):
+def log_checklist_submission(tenant: CompanyTenant, checklist: Checklist):
     log_audit_action(
+        tenant=tenant,
         technician=checklist.template.work_order.technician,
         action="checklist_submission",
         object_instance=checklist,
@@ -236,8 +252,9 @@ def log_checklist_submission(checklist: Checklist):
 
 # -> Logs the update of a template version
 # Includes template name and version
-def log_template_version_update(checklist_template: ChecklistTemplate):
+def log_template_version_update(tenant: CompanyTenant, checklist_template: ChecklistTemplate):
     log_audit_action(
+        tenant=tenant,
         technician=checklist_template.work_order.technician,
         action="template_version_update",
         object_instance=checklist_template,
@@ -251,8 +268,9 @@ def log_template_version_update(checklist_template: ChecklistTemplate):
 
 # -> Logs the login event of a technician
 # Includes timestamp
-def log_login_event(technician: Technician):
+def log_login_event(tenant: CompanyTenant, technician: Technician):
     log_audit_action(
+        tenant=tenant,
         technician=technician,
         action="login_event",
         object_instance=technician,
