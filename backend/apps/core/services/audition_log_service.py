@@ -263,12 +263,14 @@ def log_login_event(technician: Technician):
 
 # -> Logs the assignment of technicians for a operational aggroupment
 # Includes technicians assigned and operational aggroupment name
-def log_group_assignment(technician: Technician, technicians: list, aggroupment_tag: str):
+def log_group_assignment(technician: Technician, technicians: list, aggroupment_tag: str,*, aggroupment=None):
+    obj = aggroupment if aggroupment is not None else technician
     log_audit_action(
         technician=technician,
         action_code="aggroupment_assignment",
-        object_instance=technician,
+        object_instance=obj,
         context_data = {
+            "technician":getattr(technician, "username", str(technician)),
             "technicians": technicians,
             "aggroupment_tag": aggroupment_tag,
         }
