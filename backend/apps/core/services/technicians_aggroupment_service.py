@@ -33,7 +33,7 @@ def add_technician_to_aggroupment(technician_operating: Technician, aggroupment:
     group_usernames = list(aggroupment.members.values_list("username", flat=True))
 
     if ok and ok_p:
-        log_group_assignment(technician=technician_to_add,technicians=group_usernames,aggroupment_tag=aggroupment.tag)
+        log_group_assignment(tenant=technician_operating.tenant,technician=technician_to_add,technicians=group_usernames,aggroupment_tag=aggroupment.tag)
         return technician_to_add.aggroupment == aggroupment
     
 def check_aggroupment_is_allowed_to_operate(technician_operating: Technician, aggroupment: TechniciansAggroupment):
