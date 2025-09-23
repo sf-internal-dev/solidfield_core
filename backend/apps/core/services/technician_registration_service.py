@@ -19,6 +19,7 @@ def register_technician(technician_operating: Technician, username: str, social_
         return None, errors
     
     technician = Technician.objects.create(
+        tenant=technician_operating.tenant,
         username=username,
         social_name=social_name,
         technician_permission=technician_permission,
