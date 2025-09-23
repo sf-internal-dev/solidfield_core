@@ -40,7 +40,7 @@ def create_temporary_delegation(from_user, to_user, actions: list[str], valid_fr
 
     valid_actions = []
     for action in actions:
-        if can_delegate_action(from_user, action, to_user):
+        if can_delegate_action(from_user, to_user, action):
             valid_actions.append(
                 DelegatedAction(delegation=delegation, action=action)
             )
