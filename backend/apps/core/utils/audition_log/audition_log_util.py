@@ -14,7 +14,7 @@ def get_model_from_schema_entry(schema_entry: dict):
 # Validates the action against the schema, formats a message using the template,
 # and creates an AuditLog entry tied to the related object
 # Returns the rendered message string
-def log_audit_action(technician, action_code: str, object_instance, context_data: dict = None):
+def log_audit_action(tenant, technician, action_code: str, object_instance, context_data: dict = None):
     schema_entry = AUDIT_LOG_ACTION_SCHEMA.get(action_code)
     if not schema_entry:
         raise ValueError(f"Audition Log action '{action_code}' is not registered in the schema.")
@@ -29,6 +29,7 @@ def log_audit_action(technician, action_code: str, object_instance, context_data
     message = template.format(**context_data) if context_data else description
 
     AuditLog.objects.create(
+        tenant=tenant,
         technician=technician,
         action=action_code,
         content_type=ContentType.objects.get_for_model(model_class),
