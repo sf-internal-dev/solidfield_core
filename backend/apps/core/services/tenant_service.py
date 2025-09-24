@@ -1,5 +1,5 @@
 from backend.apps.core.utils.tenant.tenant_slug_util import sanitize_tenant_slug, suggest_company_slug
-from backend.apps.core.utils.tenant.tenant_identifier_code_util import generate_tenant_identifier_code
+from backend.apps.core.utils.tenant.tenant_identifier_code_util import generate_tenant_code_attempts
 from backend.apps.core.validators.tenant_validator import validate_tenant_name, validate_hex_color, validate_optional_email, validate_optional_phone, validate_slug_format
 
 from core.models.tenant import CompanyTenant
@@ -35,12 +35,12 @@ def resolve_available_slug_from_name(company_name: str) -> Optional[str]:
 # Iterates over identifier suggestions and checks availability
 # If exhausted, falls back to a random suffix strategy
 def generate_valid_tenant_code(slug: str) -> str:
-    for attempt in generate_tenant_identifier_code(slug):
+    for attempt in generate_tenant_code_attempts(slug):
         if not CompanyTenant.objects.filter(tenant_code=attempt).exists():
             return attempt
 
-    base = generate_tenant_identifier_code(slug)[0][:4]
-    return f"{base}{generate_tenant_identifier_code(length=2).upper()}"
+    base = generate_tenant_code_attempts(slug)[0][:4]
+    return f"{base}{generate_tenant_code_attempts(length=2).upper()}"
 
 
 # -> Prepares both slug and tenant_code for a new CompanyTenant
