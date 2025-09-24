@@ -12,10 +12,12 @@ from django.utils import timezone
 # -> Logs a permission level delegation from one technician to another
 # Includes context with usernames and assigned permission level
 def log_permission_level_delegation(tenant: CompanyTenant, delegator: Technician, delegate: Technician, permission_level: str):
+    obj = ...
     return log_audit_action(
         tenant=tenant,
         technician=delegator,
         action_code="permission_level_delegation",
+        object_instance=obj,
         object_instance=delegate,
         context_data={
             "permission_level": permission_level,
@@ -27,10 +29,12 @@ def log_permission_level_delegation(tenant: CompanyTenant, delegator: Technician
 # -> Logs a temporary delegation of actions from one technician to another
 # Includes validity period and list of delegated actions in the context
 def log_temporary_delegation(tenant: CompanyTenant, delegation: TemporaryDelegation, actions: list[str]):
+    obj = ...
     return log_audit_action(
         tenant=tenant,
         technician=delegation.from_user,
         action_code="temporary_delegation",
+        object_instance=obj,
         object_instance=delegation,
         context_data={
             "delegate_user": delegation.to_user.username,
@@ -44,10 +48,12 @@ def log_temporary_delegation(tenant: CompanyTenant, delegation: TemporaryDelegat
 # -> Logs the revocation of a temporary delegation
 # Includes the affected user and timestamp of revocation
 def log_revoke_temporary_delegation(tenant: CompanyTenant, delegation: TemporaryDelegation):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=delegation.from_user,
         action_code="revoke_delegation",
+        object_instance=obj,
         object_instance=delegation,
         data={
             "delegate_user": delegation.to_user.username,
@@ -59,10 +65,12 @@ def log_revoke_temporary_delegation(tenant: CompanyTenant, delegation: Temporary
 # -> Logs the creation of a Work order
 # Includes order identifier and creation date
 def log_work_order_creation(tenant: CompanyTenant, work_order: WorkOrder):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=work_order.created_by,
         action_code="work_order_creation",
+        object_instance=obj,
         object_instance=work_order,
         data={
             "order_id": work_order.identifier,
@@ -73,10 +81,12 @@ def log_work_order_creation(tenant: CompanyTenant, work_order: WorkOrder):
 # -> Logs the first assignment of a Work order to a technician
 # Includes order identifier assigned technician
 def log_work_order_assignment(tenant: CompanyTenant, work_order: WorkOrder, technician: Technician):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=work_order.created_by,
         action_code="work_order_assignment",
+        object_instance=obj,
         object_instance=work_order,
         data={
             "order_id": work_order.identifier,
@@ -87,10 +97,12 @@ def log_work_order_assignment(tenant: CompanyTenant, work_order: WorkOrder, tech
 # -> Logs the reassignment of a Work order to a new technician
 # Includes order identifier, old and new technician assigned
 def log_work_order_reassignment(tenant: CompanyTenant, work_order: WorkOrder, current_technician: Technician, new_technician):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=work_order.created_by,
         action_code="work_order_reassignment",
+        object_instance=obj,
         object_instance=work_order,
         data={
             "order_id": work_order.identifier,
@@ -102,10 +114,12 @@ def log_work_order_reassignment(tenant: CompanyTenant, work_order: WorkOrder, cu
 # -> Logs the management-level validation of a finalizes Work order
 # Includes order identified and validation date
 def log_work_order_validation(tenant: CompanyTenant, work_order: WorkOrder):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=work_order.created_by,
         action_code="work_order_validation",
+        object_instance=obj,
         object_instance=work_order,
         data={
             "order_id": work_order.identifier,
@@ -117,10 +131,12 @@ def log_work_order_validation(tenant: CompanyTenant, work_order: WorkOrder):
 # -> Logs a Work order status transition
 # Includes previous and new status in the audit context
 def log_work_order_status_transition(tenant: CompanyTenant, work_order: WorkOrder, new_status: str):
+    obj = ...
     return log_audit_action(
         tenant=tenant,
         technician=work_order.technician,
         action_code="status_transition",
+        object_instance=obj,
         object_instance=work_order,
         data={
             "order_id": work_order.identifier,
@@ -133,10 +149,12 @@ def log_work_order_status_transition(tenant: CompanyTenant, work_order: WorkOrde
 # -> Logs the creation of a Work order
 # Includes order id, download link key and generation purpose
 def log_work_order_download_link_creation(tenant: CompanyTenant, work_order_download_link: WorkOrderDownloadLink):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=work_order_download_link.work_order.from_user,
         action_code="work_order_download_link_creation",
+        object_instance=obj,
         object_instance=work_order_download_link,
         data={
             "order_id": work_order_download_link.work_order.identifier,
@@ -148,10 +166,12 @@ def log_work_order_download_link_creation(tenant: CompanyTenant, work_order_down
 # -> Logs the creation of a Work order
 # Includes download link key for pdf generation
 def log_work_order_pdf_generation(tenant: CompanyTenant, work_order_download_link: WorkOrderDownloadLink):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=work_order_download_link.work_order.from_user,
         action_code="work_order_pdf_generation",
+        object_instance=obj,
         object_instance=work_order_download_link,
         data={
             "key":work_order_download_link.key,
@@ -163,10 +183,12 @@ def log_work_order_pdf_generation(tenant: CompanyTenant, work_order_download_lin
 # -> Logs the upload of a audit photo to a Work order
 # Includes order identifier and act timestamp
 def log_work_order_photo_upload(tenant: CompanyTenant, work_order_photo: WorkOrderPhoto):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=work_order_photo.work_order.from_user,
         action_code="work_order_pdf_generation",
+        object_instance=obj,
         object_instance=work_order_photo,
         data={
             "order_id": work_order_photo.work_order.identifier,
@@ -177,10 +199,12 @@ def log_work_order_photo_upload(tenant: CompanyTenant, work_order_photo: WorkOrd
 # -> Logs the upload of a client signature to a Work order
 # Includes order identifier, client name and act timestamp
 def log_work_order_client_signature_upload(tenant: CompanyTenant, work_order_signature: WorkOrderSignature, client_name: str):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=work_order_signature.work_order.from_user,
         action_code="work_order_pdf_generation",
+        object_instance=obj,
         object_instance=work_order_signature,
         data={
             "order_id": work_order_signature.work_order.identifier,
@@ -193,10 +217,12 @@ def log_work_order_client_signature_upload(tenant: CompanyTenant, work_order_sig
 # -> Logs the generation of a feedback request link
 # Includes order identifier
 def log_feedback_request_generation(tenant: CompanyTenant, client_feedback_link: FeedbackLink):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=client_feedback_link.work_order.technician,
         action_code="feedback_request_generation",
+        object_instance=obj,
         object_instance=client_feedback_link,
         data = {
             "order_id": client_feedback_link.work_order.identifier,
@@ -206,10 +232,12 @@ def log_feedback_request_generation(tenant: CompanyTenant, client_feedback_link:
 # -> Logs the feedback received for a Work execution
 # Includes order identifier
 def log_work_order_feedback_received(tenant: CompanyTenant, client_feedback: ClientFeedback, feedback_label: str):
-     log_audit_action(
+    obj = ...
+    log_audit_action(
         tenant=tenant,
         technician=client_feedback.work_order.technician,
         action_code="work_order_feedback_received",
+        object_instance=obj,
         object_instance=client_feedback,
         data = {
             "order_id": client_feedback.work_order.identifier,
@@ -224,10 +252,12 @@ def log_work_order_feedback_received(tenant: CompanyTenant, client_feedback: Cli
 # Includes timestamp and items synced
 # sync_event to define as model
 def log_offline_sync_event(tenant: CompanyTenant, sync_event: str, items_synced: list):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=sync_event.technician,
         action_code="offline_sync_event",
+        object_instance=obj,
         object_instance=sync_event,
         data = {
             "timestamp": timezone.now().isoformat(),
@@ -240,10 +270,12 @@ def log_offline_sync_event(tenant: CompanyTenant, sync_event: str, items_synced:
 # -> Logs the checklist submission to a Work order
 # Includes timestamp
 def log_checklist_submission(tenant: CompanyTenant, checklist: Checklist):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=checklist.template.work_order.technician,
         action_code="checklist_submission",
+        object_instance=obj,
         object_instance=checklist,
         data = {
             "timestamp": timezone.now().isoformat(),
@@ -253,10 +285,12 @@ def log_checklist_submission(tenant: CompanyTenant, checklist: Checklist):
 # -> Logs the update of a template version
 # Includes template name and version
 def log_template_version_update(tenant: CompanyTenant, checklist_template: ChecklistTemplate):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=checklist_template.work_order.technician,
         action_code="template_version_update",
+        object_instance=obj,
         object_instance=checklist_template,
         data = {
             "template_name": checklist_template.name,
@@ -269,10 +303,12 @@ def log_template_version_update(tenant: CompanyTenant, checklist_template: Check
 # -> Logs the login event of a technician
 # Includes timestamp
 def log_login_event(tenant: CompanyTenant, technician: Technician):
+    obj = ...
     log_audit_action(
         tenant=tenant,
         technician=technician,
         action_code="login_event",
+        object_instance=obj,
         object_instance=technician,
         data = {
             "timestamp": timezone.now().isoformat(),
