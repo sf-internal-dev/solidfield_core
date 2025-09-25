@@ -18,3 +18,13 @@ CA_PROVINCES = {
     "NU": "Nunavut", "ON": "Ontario", "PE": "Prince Edward Island", "QC": "Quebec",
     "SK": "Saskatchewan", "YT": "Yukon",
 }
+
+IE_COUNTIES = {
+    "CW": "Carlow", "CN": "Cavan", "CE": "Clare", "CO": "Cork",
+    "DL": "Donegal", "D": "Dublin", "G": "Galway", "KY": "Kerry",
+    "KE": "Kildare", "KK": "Kilkenny", "LS": "Laois", "LM": "Leitrim",
+    "LK": "Limerick", "LD": "Longford", "LH": "Louth", "MO": "Mayo",
+    "MH": "Meath", "MN": "Monaghan", "OY": "Offaly", "RN": "Roscommon",
+    "SO": "Sligo", "TA": "Tipperary", "WD": "Waterford", "WH": "Westmeath",
+    "WX": "Wexford", "WW": "Wicklow",
+}
