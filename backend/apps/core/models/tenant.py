@@ -9,7 +9,7 @@ class CompanyTenant(models.Model):
     
     primary_contact_name = models.CharField(max_length=100, blank=True)
     primary_contact_email = models.EmailField(blank=True)
-    primary_contact_phone = models.CharField(max_length=30, blank=True)
+    primary_contact_phone = models.CharField(max_length=30, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
