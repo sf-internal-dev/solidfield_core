@@ -1,0 +1,47 @@
+# backend/apps/clients/tests/test_feedback_request_util.py
+from django.test import TestCase
+from backend.apps.clients.utils.feedback import feedback_request_generation_util as util
+
+class GenerateFeedbackRequestKeyTest(TestCase):
+    def test_prefix_and_length(self):
+        print("→ generate_feedback_request_key: gera chave com prefixo FRL e tamanho correto")
+        key = util.generate_feedback_request_key(14)
+        self.assertTrue(key.startswith("FRL"))
+        self.assertEqual(len(key), 3 + 14)  # prefixo FRL + 14 caracteres
+
+    def test_randomness_uniqueness(self):
+        print("→ generate_feedback_request_key: baixa chance de colisão entre várias chaves")
+        keys = {util.generate_feedback_request_key(14) for _ in range(50)}
+        self.assertEqual(len(keys), 50)  # todas únicas
+
+    def test_different_lengths(self):
+        print("→ generate_feedback_request_key: suporta diferentes comprimentos")
+        k10 = util.generate_feedback_request_key(10)
+        k20 = util.generate_feedback_request_key(20)
+        self.assertEqual(len(k10), 3 + 10)
+        self.assertEqual(len(k20), 3 + 20)
+
+
+class FeedbackRequestLinkTest(TestCase):
+    def test_link_structure(self):
+        print("→ feedback_request_link: monta URL com /feedback/ e chave válida")
+        base = "https://example.com"
+        link = util.feedback_request_link(base, key_length=12)
+        self.assertTrue(link.startswith("https://example.com/feedback/FRL"))
+        key = link.split("/")[-1]
+        self.assertTrue(key.startswith("FRL"))
+        self.assertEqual(len(key), 3 + 12)
+
+    def test_base_url_with_trailing_slash(self):
+        print("→ feedback_request_link: normaliza barra final na base_url")
+        base = "https://example.com/"
+        link1 = util.feedback_request_link(base)
+        link2 = util.feedback_request_link(base.rstrip("/"))
+        self.assertTrue(link1.startswith("https://example.com/feedback/"))
+        self.assertTrue(link2.startswith("https://example.com/feedback/"))
+
+    def test_uniqueness_multiple_links(self):
+        print("→ feedback_request_link: cada chamada gera link único")
+        base = "https://test.com"
+        links = {util.feedback_request_link(base) for _ in range(30)}
+        self.assertEqual(len(links), 30)
