@@ -119,7 +119,7 @@ def register_client_address(technician_operating: Technician, client: Client, co
         neighborhood=neighborhood,
         city=city or "",
         state=state,
-        zip_code=code,
+        postal_code=code,
         gps_latitude=lat,
         gps_longitude=lng
     )
