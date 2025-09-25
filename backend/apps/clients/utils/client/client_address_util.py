@@ -2,7 +2,7 @@
 import re
 from typing import Optional
 from django.core.exceptions import ValidationError
-from backend.common.address_values import US_STATES, CA_PROVINCES
+from backend.common.address_values import US_STATES, CA_PROVINCES, IE_COUNTIES, UK_REGIONS
 
 # --- POSTAL/ZIP validators (boolean) ---
 def validate_postal_code(code: Optional[str], country: str) -> bool:
@@ -32,10 +32,11 @@ def validate_region_code(state: Optional[str], country: str) -> bool:
         return state in US_STATES
     if country == "CA":
         return state in CA_PROVINCES
-   
-    if country in ("UK", "IE"):
-        # Basic sanity for counties/regions: 2–40 chars, letters/space/hyphen
-        return bool(re.fullmatch(r"[A-Z][A-Z \-]{1,39}", state))
+    if country == "IE":
+        return state in IE_COUNTIES
+    if country == "UK":
+        return state in UK_REGIONS
+
     return False
 
 # --- coordinate sanity (boolean) ---
