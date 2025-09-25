@@ -28,3 +28,26 @@ IE_COUNTIES = {
     "SO": "Sligo", "TA": "Tipperary", "WD": "Waterford", "WH": "Westmeath",
     "WX": "Wexford", "WW": "Wicklow",
 }
+
+UK_REGIONS = {
+    # England
+    "GREATER LONDON": "Greater London (England)",
+    "WEST MIDLANDS": "West Midlands (England)",
+    "EAST MIDLANDS": "East Midlands (England)",
+    "NORTH WEST": "North West (England)",
+    "NORTH EAST": "North East (England)",
+    "YORKSHIRE AND THE HUMBER": "Yorkshire and the Humber (England)",
+    "SOUTH WEST": "South West (England)",
+    "SOUTH EAST": "South East (England)",
+    "EAST OF ENGLAND": "East of England (England)",
+
+    # Scotland
+    "SCOTLAND": "Scotland",
+
+    # Wales
+    "WALES": "Wales",
+
+    # Northern Ireland
+    "NORTHERN IRELAND": "Northern Ireland",
+}
+
