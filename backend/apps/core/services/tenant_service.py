@@ -1,10 +1,10 @@
 from backend.apps.core.utils.tenant.tenant_slug_util import sanitize_tenant_slug, suggest_company_slug
 from backend.apps.core.utils.tenant.tenant_identifier_code_util import generate_tenant_code_attempts
 from backend.apps.core.validators.tenant_validator import validate_tenant_name, validate_hex_color, validate_optional_email, validate_optional_phone, validate_slug_format
-
-from core.models.tenant import CompanyTenant
-from core.models.user import AccountHolderUser
-from typing import Union, IO, Optional
+from django.utils.crypto import get_random_string
+from backend.apps.core.models.tenant import CompanyTenant
+from backend.apps.core.models.user import AccountHolderUser
+from typing import Union, IO, Optional, Tuple
 from pathlib import Path
 from django.core.files.uploadedfile import UploadedFile
 from django.core.files.base import File, ContentFile
@@ -12,12 +12,13 @@ from django.db.models.fields.files import ImageFieldFile
 # -> Resolves a unique slug based on the company name
 # Tries cleaned username-style suggestions and checks availability
 # If all are taken, falls back to a numeric suffix strategy
-def resolve_available_slug_from_name(company_name: str) -> Optional[str]:
+def resolve_available_slug_from_name(company_name: str) -> Tuple[Optional[str], str]:
+
     suggestions = suggest_company_slug(company_name)
 
     for suggestion in suggestions:
         if not CompanyTenant.objects.filter(slug=suggestion).exists():
-            return suggestion
+            return suggestion, ""
 
     base_slug = sanitize_tenant_slug(company_name)
     if not base_slug:
@@ -40,14 +41,14 @@ def generate_valid_tenant_code(slug: str) -> str:
             return attempt
 
     base = generate_tenant_code_attempts(slug)[0][:4]
-    return f"{base}{generate_tenant_code_attempts(length=2).upper()}"
-
+    suffix = get_random_string(2).upper()
+    return f"{base}{suffix}"
 
 # -> Prepares both slug and tenant_code for a new CompanyTenant
 # Ensures both values are unique and derived from the company name
 def prepare_company_slug_and_code(company_name: str) -> dict:
-    slug = resolve_available_slug_from_name(company_name)
-    code = generate_valid_tenant_code(slug)
+    slug, err = resolve_available_slug_from_name(company_name)
+    code = generate_valid_tenant_code(slug) if slug else ""
 
     return {
         "slug": slug,
@@ -55,12 +56,12 @@ def prepare_company_slug_and_code(company_name: str) -> dict:
     }
 
 def register_tenant(name: str, slug: str, tenant_code: str,
-    billind_account_id: str, owner: AccountHolderUser, locale: str, timezone: str):
+    billing_account_id: str, owner: AccountHolderUser, locale: str, timezone: str):
 
     errors = []
     primary_contact_name  = owner.full_name
     primary_contact_email = owner.email
-    primary_contact_phone = owner.phone
+    primary_contact_phone = getattr(owner, "phone", None) or None
 
     if not validate_tenant_name(value=name):
         errors.append("invalid_tenant_name")
@@ -81,13 +82,14 @@ def register_tenant(name: str, slug: str, tenant_code: str,
         primary_contact_name = primary_contact_name,
         primary_contact_email = primary_contact_email,
         primary_contact_phone = primary_contact_phone,
-        billind_account_id = billind_account_id,
+        billing_account_id = billing_account_id,
         owner = owner,
         locale = locale,
         timezone = timezone
     )
     
     return tenant, errors
+
 
 
 # Lê bytes (ex.: io.BytesIO)
