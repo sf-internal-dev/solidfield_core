@@ -11,8 +11,8 @@ class WorkOrder(TenantOwnedModel):
     updated_at = models.DateTimeField(auto_now=True)
     # new fields patch
     first_access = models.BooleanField(default=False)
-    work_start = models.DateTimeField()
-    work_end = models.DateTimeField()
+    work_start = models.DateTimeField(blank=True,null=True)
+    work_end = models.DateTimeField(blank=True,null=True)
     has_remaining_work = models.BooleanField(default=False)
     #-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     status = models.CharField(max_length=50)

@@ -49,7 +49,7 @@ def return_feedback_preview(feedback: ClientFeedback):
 # Validates star rating and comment length before saving
 # Logs the feedback reception in the service order history
 # Returns the created ClientFeedback or None with an error list if validation or save fails
-def create_client_feedback(technician_operating: Technician, service_order: WorkOrder, client: Client, client_name: str,
+def create_client_feedback(technician_operating: Technician, work_order: WorkOrder, client: Client, client_name: str,
     client_email: str, stars: int, comment: str, strengths)-> Tuple[Optional[ClientFeedback], List[str]]:
     
     errors = []
@@ -68,20 +68,20 @@ def create_client_feedback(technician_operating: Technician, service_order: Work
         errors.append("comment_too_long")
         return None, errors
     
-    log_work_order_feedback_received(service_order, feedback_label)
+    log_work_order_feedback_received(work_order, feedback_label)
 
     if not reached_comment_max_characters(comment):
         if client:
             client_feedback = ClientFeedback.objects.create(
-                service_order=service_order,
+                work_order=work_order,
                 client=client,
-                client_name=client.client_name,
-                client_email=client.client_email,
+                client_name=client.name,
+                client_email=client.email,
                 stars = client_stars,
                 strengths = strengths if strengths else None,
             )
         client_feedback = ClientFeedback.objects.create(
-                service_order=service_order,
+                work_order=work_order,
                 client_name=client_name,
                 client_email=client_email,
                 stars = client_stars,
