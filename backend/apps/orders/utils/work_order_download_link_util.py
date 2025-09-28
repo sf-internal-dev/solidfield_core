@@ -1,6 +1,6 @@
 # backend.apps.orders.utils.service_order_donwload_link_util.py
 import secrets
-from backend.common.schemas.feedback_schemas import SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA
+from backend.common.schemas.feedback_schemas import WORK_ORDER_DOWNLOAD_PURPOSE_SCHEMA
 
 def validate_purpose_existance(purpose_schema: dict) -> bool:
     if purpose_schema == {}:
@@ -8,7 +8,7 @@ def validate_purpose_existance(purpose_schema: dict) -> bool:
     return True
 
 def get_purpose_rules(purpose: str) -> dict:
-    purpose_schema = SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA.get(purpose, {})
+    purpose_schema = WORK_ORDER_DOWNLOAD_PURPOSE_SCHEMA.get(purpose, {})
     purpose_rules = purpose_schema.get("purpose_rules",{})
     if validate_purpose_existance(purpose_rules):
         rules = {
