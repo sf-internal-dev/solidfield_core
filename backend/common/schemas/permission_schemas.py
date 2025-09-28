@@ -1,37 +1,37 @@
 ACTIONS_BY_PERMISSION_SCHEMA = {
     "L1": {
         "label": "Execution (Field Level)",
-        # Field-level technicians can perform their assigned tasks, upload evidence, and request new service orders.
+        # Field-level technicians can perform their assigned tasks, upload evidence, and request new work orders.
         "actions": [
             {
-                "code": "service_order_request",
-                "label": "Request Service Order",
+                "code": "work_order_request",
+                "label": "Request Work Order",
                 "delegable": False,
-                "description": "Request the creation of a new service order to the supervisor or manager."
+                "description": "Request the creation of a new work order to the supervisor or manager."
             },
             {
-                "code": "view_assigned_service_orders",
-                "label": "View Assigned Service Orders",
+                "code": "view_assigned_work_orders",
+                "label": "View Assigned Work Orders",
                 "delegable": False,
-                "description": "Can view and operate only on their assigned service orders."
+                "description": "Can view and operate only on their assigned work orders."
             },
             {
-                "code": "update_service_order_status",
-                "label": "Update Service Order Status",
+                "code": "update_work_order_status",
+                "label": "Update Work Order Status",
                 "delegable": True,
-                "description": "Can move the service order through allowed status transitions."
+                "description": "Can move the work order through allowed status transitions."
             },
             {
                 "code": "submit_checklist",
                 "label": "Submit Checklist",
                 "delegable": True,
-                "description": "Fills out and submits the service order checklist."
+                "description": "Fills out and submits the work order checklist."
             },
             {
                 "code": "upload_photos",
                 "label": "Upload Photos",
                 "delegable": True,
-                "description": "Can attach photos to the assigned service order."
+                "description": "Can attach photos to the assigned work order."
             },
             {
                 "code": "collect_signature",
@@ -43,35 +43,35 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
                 "code": "generate_feedback_link",
                 "label": "Generate Feedback Link",
                 "delegable": True,
-                "description": "Generates a feedback link after completing the service order."
+                "description": "Generates a feedback link after completing the work order."
             }
         ]
     },
     "L2": {
         "label": "Coordination (Local Supervision)",
         "inherits_selectively_from": {
-            "L1": ["service_order_request","view_assigned_service_orders", "collect_signature","update_service_order_status",
+            "L1": ["work_order_request","view_assigned_work_orders", "collect_signature","update_work_order_status",
                    "generate_feedback_link","upload_photos","submit_checklist"]
                 },
         # Supervisors inherit L1 capabilities and can approve requests, create internal tasks, and organize their local team.
         "actions": [
             {
-                "code": "approve_service_order_request",
-                "label": "Approve Service Order Request (L1)",
+                "code": "approve_work_order_request",
+                "label": "Approve Work Order Request (L1)",
                 "delegable": True,
-                "description": "Can approve or deny service order requests made by L1 technicians."
+                "description": "Can approve or deny work order requests made by L1 technicians."
             },
             {
-                "code": "create_internal_service_order",
-                "label": "Create Internal Service Order",
+                "code": "create_internal_work_order",
+                "label": "Create Internal Work Order",
                 "delegable": True,
-                "description": "Can create service orders for routine internal tasks."
+                "description": "Can create work orders for routine internal tasks."
             },
             {
                 "code": "view_team_orders",
-                "label": "View Team Service Orders",
+                "label": "View Team Work Orders",
                 "delegable": True,
-                "description": "Can view service orders assigned to their team members."
+                "description": "Can view work orders assigned to their team members."
             },
             {
                 "code": "group_assignment_visual",
@@ -84,36 +84,36 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
     "L3": {
         "label": "Full Control (Operational Management)",
         "inherits_selectively_from": {
-            "L1": ["view_assigned_service_orders", "collect_signature","update_service_order_status",
+            "L1": ["view_assigned_work_orders", "collect_signature","update_work_order_status",
                    "generate_feedback_link","upload_photos","submit_checklist"],
-            "L2": ["group_assignment_visual","view_team_orders","create_internal_service_order",
-                   "approve_service_order_request","view_team_orders"]
+            "L2": ["group_assignment_visual","view_team_orders","create_internal_work_order",
+                   "approve_work_order_request","view_team_orders"]
                 },
         # Managers inherit all permissions and handle distribution, validation, escalation, and technician management.
         "actions": [
             {
-                "code": "assign_service_order",
-                "label": "Assign Service Order",
+                "code": "assign_work_order",
+                "label": "Assign Work Order",
                 "delegable": True,
-                "description": "Assigns service orders to technicians or supervisors."
+                "description": "Assigns work orders to technicians or supervisors."
             },
             {
-                "code": "reassign_service_order",
-                "label": "Reassign Service Order",
+                "code": "reassign_work_order",
+                "label": "Reassign Work Order",
                 "delegable": True,
-                "description": "Can reassign service orders to a different technician."
+                "description": "Can reassign work orders to a different technician."
             },
             {
-                "code": "validate_service_order",
-                "label": "Validate Service Order",
+                "code": "validate_work_order",
+                "label": "Validate Work Order",
                 "delegable": True,
-                "description": "Validates the execution of a service order before releasing it."
+                "description": "Validates the execution of a work order before releasing it."
             },
             {
-                "code": "return_service_order",
-                "label": "Return Service Order for Adjustments",
+                "code": "return_work_order",
+                "label": "Return Work Order for Adjustments",
                 "delegable": True,
-                "description": "Returns the service order to the technician for corrections."
+                "description": "Returns the work order to the technician for corrections."
             },
             {
                 "code": "create_checklist_template",
