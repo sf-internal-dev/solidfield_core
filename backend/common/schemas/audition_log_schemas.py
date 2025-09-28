@@ -77,7 +77,7 @@ AUDIT_LOG_ACTION_SCHEMA = {
         "label": "Work Order Assignment",
         "model": "orders.WorkOrder",
         "description": "First assignment of a work order to a technician.",
-        "template": "Work Order #{order_id} originally assigned to {assigned_technician} by {technician}."
+        "template": "Work Order #{order_id} originally assigned to {assigned_technician} by {delegator}."
     },
     "work_order_reassignment": {
         "label": "Work Order Reassignment",
