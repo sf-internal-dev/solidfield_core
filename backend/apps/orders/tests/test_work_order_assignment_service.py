@@ -43,8 +43,8 @@ class WorkOrderAssignmentServiceTest(TestCase):
             work_end=None,
         )
 
-    @patch("backend.apps.core.services.audition_log_service.log_work_order_reassignment")
-    @patch("backend.apps.core.services.audition_log_service.log_work_order_assignment")
+    @patch("backend.apps.orders.services.work_order_assignment_service.log_work_order_reassignment")
+    @patch("backend.apps.orders.services.work_order_assignment_service.log_work_order_assignment")
     def test_assign_same_technician_returns_true_and_logs_assignment(self, log_assign, log_reassign):
         print("✓ assign_work_order_to_technician: mesmo técnico → retorna True, não altera assigned_to, loga assignment")
         result = assign_work_order_to_technician(self.wo, self.tech_a)
@@ -56,11 +56,11 @@ class WorkOrderAssignmentServiceTest(TestCase):
         self.assertEqual(self.wo.assigned_to_id, self.tech_a.id)
 
         # logs: com assigned_to já preenchido, service chama log_work_order_assignment
-        log_assign.assert_called_once_with(work_order=self.wo, technician=self.tech_a)
+        log_assign.assert_called_once_with(work_order=self.wo, technician=self.tech_a, tenant=self.tenant)
         log_reassign.assert_not_called()
 
-    @patch("backend.apps.core.services.audition_log_service.log_work_order_reassignment")
-    @patch("backend.apps.core.services.audition_log_service.log_work_order_assignment")
+    @patch("backend.apps.orders.services.work_order_assignment_service.log_work_order_reassignment")
+    @patch("backend.apps.orders.services.work_order_assignment_service.log_work_order_assignment")
     def test_assign_different_technician_returns_false_and_does_not_change_assigned(self, log_assign, log_reassign):
         print("✓ assign_work_order_to_technician: técnico diferente → retorna False, não altera assigned_to, loga assignment (BUG de não reatribuir)")
         result = assign_work_order_to_technician(self.wo, self.tech_b)
@@ -72,11 +72,11 @@ class WorkOrderAssignmentServiceTest(TestCase):
         self.assertEqual(self.wo.assigned_to_id, self.tech_a.id)
 
         # ainda assim loga assignment, não reassignment (documentando o comportamento atual)
-        log_assign.assert_called_once_with(work_order=self.wo, technician=self.tech_b)
+        log_assign.assert_called_once_with(work_order=self.wo, technician=self.tech_b,tenant=self.tenant )
         log_reassign.assert_not_called()
 
-    @patch("backend.apps.core.services.audition_log_service.log_work_order_reassignment")
-    @patch("backend.apps.core.services.audition_log_service.log_work_order_assignment")
+    @patch("backend.apps.orders.services.work_order_assignment_service.log_work_order_reassignment")
+    @patch("backend.apps.orders.services.work_order_assignment_service.log_work_order_assignment")
     def test_never_hits_else_branch_given_assigned_to_is_non_null(self, log_assign, log_reassign):
         print("✓ assign_work_order_to_technician: ramo 'else' é inalcançável porque assigned_to é obrigatório (não-nulo)")
         # No modelo atual o campo assigned_to é obrigatório; então sempre cairá no if.
