@@ -80,7 +80,8 @@ def log_work_order_assignment(tenant: CompanyTenant, work_order: WorkOrder, tech
         object_instance=work_order,
         context_data={
             "order_id": work_order.identifier,
-            "assigned_technician":technician,
+            "assigned_technician":technician.username,
+            "delegator": work_order.created_by.username
         }
     )
 
