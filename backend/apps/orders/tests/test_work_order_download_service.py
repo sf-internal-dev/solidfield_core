@@ -42,6 +42,7 @@ class WorkOrderDownloadServiceTest(TestCase):
             work_order=self.wo,
             key="K1",
             created_at=timezone.now(),
+            created_by=self.tech
         )
 
         expires = calculate_defined_download_link_life_time(link, 3)
@@ -76,6 +77,7 @@ class WorkOrderDownloadServiceTest(TestCase):
             link = create_work_order_download_link_with_key(
                 work_order=self.wo,
                 purpose="customer",
+                technician=self.tech
             )
 
         self.assertIsInstance(link, WorkOrderDownloadLink)
@@ -99,6 +101,8 @@ class WorkOrderDownloadServiceTest(TestCase):
         link = create_work_order_download_link_with_key(
             work_order=self.wo,
             purpose="customer",  # não está nas regras mockadas ["internal"]
+            technician=self.tech
+
         )
         self.assertIsInstance(link, WorkOrderDownloadLink)
         self.assertEqual(link.key, "KEY999")
