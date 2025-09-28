@@ -26,7 +26,7 @@ def create_work_order_download_link_with_key(work_order: WorkOrder, purpose: str
         work_order = work_order,
         key = download_key,
         created_by=technician,
-        created_at = datetime.now(),
+        purpose = purpose
     )
     
     purpose_rules = get_purpose_rules_for_work_order_download_link(work_order_download_link)
