@@ -4,7 +4,7 @@ from backend.apps.core.services.audition_log_service import log_work_order_assig
 
 def assign_work_order_to_technician(work_order: WorkOrder, technician: Technician):
     if work_order.assigned_to:
-        log_work_order_assignment(work_order=work_order,technician=technician)
+        log_work_order_assignment(work_order=work_order,technician=technician, tenant=technician.tenant)
         return work_order.assigned_to == technician
     
     log_work_order_reassignment(work_order=work_order,technician=technician)
