@@ -1,12 +1,12 @@
-# Used for business rules related to the service order download link.
+# Used for business rules related to the work order download link.
 # The link is just the link. The reason a purpose schema exists
 # is to make connections with a whole util-service business rules system
 # and it's generation on corex
 
-SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA = {
+WORK_ORDER_DOWNLOAD_PURPOSE_SCHEMA = {
     "client_review":{
         "label": "Client Review",
-        "description": "Client Review service order given to the client for feedback",
+        "description": "Client Review work order given to the client for feedback",
         "purpose_rules": 
             {
              "client_as_first":True,
@@ -35,7 +35,7 @@ SERVICE_ORDER_DOWNLOAD_PURPOSE_SCHEMA = {
     },
     "audit_and_compliance":{
         "label": "Audit and Compliance",
-        "description": "Complete service order for Audit and compliance",
+        "description": "Complete work order for Audit and compliance",
         "purpose_rules":
             {"client_as_first":False,
              "access_level_required":"L3",
