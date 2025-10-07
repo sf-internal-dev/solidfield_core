@@ -42,9 +42,9 @@ def register_technician_api(request):
 
         correlation = publish_ui_messages(
             payloads=payloads,
-            actor_user_id=manager_account_operating,
+            technician_operating_id=technician_operating,
             recipient_technician_id=technician_operating,
-            manager_account_id=manager_account_operating,
+            manager_account_operating_id=manager_account_operating,
             recipient_session_id=session_id,
             tenant_id=tenant_id,
             client_ip=client_ip,
