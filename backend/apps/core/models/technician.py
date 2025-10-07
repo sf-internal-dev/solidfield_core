@@ -32,7 +32,6 @@ class Technician(TenantOwnedModel, SoftDeletableModel):
     def __str__(self):
         return f"{self.social_name} ({self.username})"
 
-
 class PermissionFlag(BaseModel):
     level = models.CharField(max_length=2, 
             choices=PermissionLevel.choices)
@@ -44,7 +43,6 @@ class PermissionFlag(BaseModel):
 
     def __str__(self):
         return f"{self.level} | {self.action} → {'✔' if self.allowed else '✖'}"
-
 
 class TemporaryDelegation(TenantOwnedModel, BaseModel):
     from_user = models.ForeignKey(
