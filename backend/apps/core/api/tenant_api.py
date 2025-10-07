@@ -8,9 +8,7 @@ from backend.publisher import publish_ui_messages
 @api_view(["POST"])
 def register_tenant_api(request):
     data = request.data or {}
-    """ I will probably create a request for billing account id for this case as 
-    it is a operation that does not imply a technician registered"""
-    # billing_account_operating = getattr(request, "billing_account_operating", None)
+    manager_account_operating = getattr(request, "manager_account_operating", None)
 
     name                  = data.get("name")
     slug                  = data.get("slug")
@@ -25,7 +23,7 @@ def register_tenant_api(request):
     timezone              = data.get("timezone")
 
     tenant, messages = register_tenant(
-            billing_account_operating=...,  # vai mapear para request.billing_account_operating depois
+            billing_account_operating=manager_account_operating,
             name=name,
             slug=slug,
             tenant_code=tenant_code,
@@ -44,8 +42,6 @@ def register_tenant_api(request):
         # eu vou provavelmente rever esse uso de tenant.id
         """ Vou precisar esse publish_ui_messages por que não vai poder receber technician id"""
         publish_ui_messages(
-            # technician_id=..., #technician_operating
-            # tenant_id=technician.tenant.id,
             payloads=payloads,
             source="django_api",
         )
@@ -75,11 +71,7 @@ def register_tenant_branding_api(request):
 
     if messages:
         payloads = [get_error_payload(c) for c in messages]
-        # eu vou provavelmente rever esse uso de tenant.id
-        """ Vou precisar esse publish_ui_messages por que não vai poder receber technician id"""
         publish_ui_messages(
-            # technician_id=..., #technician_operating
-            # tenant_id=technician.tenant.id,
             payloads=payloads,
             source="django_api",
         )

@@ -36,9 +36,9 @@ def get_client_ip(request):
 def publish_ui_messages(
     payloads: list[dict],
     *,
-    actor_user_id: int | None = None,
+    manager_account_operating_id: int | None = None,
+    technician_operating_id: int | None = None,
     recipient_technician_id: int | None = None,
-    recipient_user_id: int | None = None,
     recipient_session_id: str | None = None,
     tenant_id: int | None = None,
     client_ip: str | None = None,
@@ -47,16 +47,16 @@ def publish_ui_messages(
     source: str = "django_api",
 ):
     env = {
-        "actor_user_id": actor_user_id,  
-        # The ID of the user who initiated the action.
+        "technician_operating_id": technician_operating_id,  
+        # The ID of the technician who initiated the action.
         # Used for auditing, logging, or displaying who caused the message.
         
         "recipient_technician_id": recipient_technician_id,  
         # The ID of the technician who should receive the message.
         # Direct delivery to a specific technician; if offline, message goes to pending/outbox.
 
-        "recipient_user_id": recipient_user_id,  
-        # The ID of the owner/manager user of the tenant.
+        "manager_account_operating_id": manager_account_operating_id,  
+        # The ID of the owner/manager account of the tenant.
         # Used as a fallback if the technician is not connected.
         # Can also be used for delivering messages only to the tenant owner.
 
