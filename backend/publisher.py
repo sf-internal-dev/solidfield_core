@@ -17,6 +17,20 @@ def _http_publish(body: bytes, timeout: float = 2.0):
     }
     return requests.post(GO_PUBLISH_URL, data=body, headers=hdr, timeout=timeout)
 
+def get_client_ip(request):
+    """
+    Tenta extrair o IP real do client considerando proxies reversos.
+    Atenção: upstream proxies devem setar X-Forwarded-For corretamente.
+    """
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    if xff:
+        # X-Forwarded-For pode conter uma lista de IPs: client, proxy1, proxy2
+        ip = xff.split(",")[0].strip()
+        return ip
+    # fallback
+    return request.META.get("REMOTE_ADDR")
+
+
 """ publish_ui_messages foi ajustada com objetivo de poder servir ao escopo de sessão
     quando não houver dados claros de quem é o tenant e technician"""
 def publish_ui_messages(
