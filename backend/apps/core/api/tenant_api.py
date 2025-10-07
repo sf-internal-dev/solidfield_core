@@ -3,7 +3,8 @@ from backend.common.schemas.error_messages_schema import get_error_payload
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from backend.publisher import publish_ui_messages
+from backend.publisher import publish_ui_messages, get_client_ip
+import hashlib
 
 @api_view(["POST"])
 def register_tenant_api(request):
@@ -39,13 +40,22 @@ def register_tenant_api(request):
 
     if messages:
         payloads = [get_error_payload(c) for c in messages]
-        # eu vou provavelmente rever esse uso de tenant.id
-        """ Vou precisar esse publish_ui_messages por que não vai poder receber technician id"""
-        publish_ui_messages(
+
+        session_id = request.session.session_key or request.COOKIES.get("sessionid")
+        client_ip = get_client_ip(request)
+
+        ua = request.META.get("HTTP_USER_AGENT", "")
+        client_fingerprint = hashlib.sha1(ua.encode()).hexdigest()[:16] if ua else None
+
+        correlation = publish_ui_messages(
+            manager_account_operating_id=manager_account_operating,
+            session_id=session_id,
+            client_ip=client_ip,
+            client_fingerprint=client_fingerprint,
             payloads=payloads,
             source="django_api",
         )
-        return Response({"codes": messages}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return Response({"codes": messages, "correlation_id": correlation}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     return Response({
         "success": "Tenant registered",
@@ -58,6 +68,8 @@ def register_tenant_api(request):
 @api_view(["POST"])
 def register_tenant_branding_api(request):
     data = request.data or {}
+    manager_account_operating = getattr(request, "manager_account_operating", None)
+
 
     tenant        = data.get("tenant")
     logo          = data.get("logo")
@@ -71,11 +83,23 @@ def register_tenant_branding_api(request):
 
     if messages:
         payloads = [get_error_payload(c) for c in messages]
-        publish_ui_messages(
-            payloads=payloads,
-            source="django_api",
-        )
-        return Response({"codes": messages}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        session_id = request.session.session_key or request.COOKIES.get("sessionid")
+        client_ip = get_client_ip(request)
+
+        ua = request.META.get("HTTP_USER_AGENT", "")
+        client_fingerprint = hashlib.sha1(ua.encode()).hexdigest()[:16] if ua else None
+
+        correlation = publish_ui_messages(
+                manager_account_operating_id=manager_account_operating,
+                session_id=session_id,
+                client_ip=client_ip,
+                client_fingerprint=client_fingerprint,
+                payloads=payloads,
+                source="django_api",
+            )
+
+        return Response({"codes": messages, "correlation_id": correlation}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
     return Response({
