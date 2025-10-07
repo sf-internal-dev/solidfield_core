@@ -38,13 +38,13 @@ def register_technician_api(request):
         elif technician_operating is not None and getattr(technician_operating, "tenant", None) is not None:
             tenant_id = getattr(technician_operating.tenant, "id", None)
 
-        account_manager_id = getattr(request.user, "id", None)
+        manager_account_operating = getattr(request.user, "id", None)
 
         correlation = publish_ui_messages(
             payloads=payloads,
-            actor_user_id=account_manager_id,
+            actor_user_id=manager_account_operating,
             recipient_technician_id=technician_operating,
-            recipient_user_id=account_manager_id,
+            manager_account_id=manager_account_operating,
             recipient_session_id=session_id,
             tenant_id=tenant_id,
             client_ip=client_ip,
