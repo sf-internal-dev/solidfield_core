@@ -4,7 +4,7 @@ from backend.common.schemas.error_messages_schema import get_error_payload
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from backend.publisher import publish_ui_messages
+from backend.publisher import publish_ui_messages, get_client_ip
 
 
 @api_view(["POST"])
@@ -24,7 +24,10 @@ def register_technician_api(request):
     )
     if messages:
         payloads = [get_error_payload(c) for c in messages]
-        # eu vou provavelmente rever esse uso de tenant.id
+
+        session_id = request.session.session_key or request.COOKIES.get("sessionid")
+        client_ip = get_client_ip(request)
+
         publish_ui_messages(
             technician_id=..., #technician_operating
             tenant_id=technician.tenant.id,
