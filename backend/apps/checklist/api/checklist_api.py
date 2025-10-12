@@ -21,13 +21,14 @@ def create_checklist_template_api(request):
 
     name = data.get("name")
     service_type = data.get("service_type")
-
     aggroupment = data.get("aggroupment")
 
     checklist_template, messages = create_checklist_template(
+        technician_operating=technician_operating,
         name = name,
         service_type = service_type,
-        aggroupment = aggroupment if aggroupment else None
+        aggroupment = aggroupment if aggroupment else None,
+        is_global= False if aggroupment else True
     )
 
     if messages:
@@ -61,23 +62,6 @@ def create_checklist_template_api(request):
         "messages": messages,
         # talvez eu faça as funções register retornar um payload dos dados
     }, status=status.HTTP_201_CREATED)
-
-
-
-"""class Checklist(BaseModel):
-    template = models.ForeignKey(ChecklistTemplate, on_delete=models.PROTECT)
-    filled_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT)
-    filled_at = models.DateTimeField(auto_now_add=True)
-
-    work_order = models.ForeignKey(
-        'orders.WorkOrder',
-        on_delete=models.CASCADE,
-        related_name='checklists',
-        null=True, blank=True,   
-    )
-
-    def __str__(self):
-        return f"Checklist #{self.id} - OS {self.work_order.identifier}"""
 
 def create_checklist_api(request):
     data = request.data or {}
