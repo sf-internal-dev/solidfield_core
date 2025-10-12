@@ -110,25 +110,25 @@ def create_checklist_api(request):
     }, status=status.HTTP_201_CREATED)
     
 
-def create_checklist_item_template(request):
+def create_checklist_item_template_api(request):
     data = request.data or {}
     template = data.get("template")
     order = data.get("order")
     question = data.get("question")
     answer_type = data.get("answer_type")
-    required = data.get("required")
+    is_required = data.get("is_required")
     choice_options = data.get("choice_options")
 
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
 
-    checklist_item_template, messages = create_checklist_item_template(
+    checklist_item_template, messages = add_item_to_checklist_template(
         technician_operating = technician_operating,
         template = template,
         order = order,
         question = question,
         answer_type = answer_type,
-        required = required,
+        is_required = is_required,
         choice_options = choice_options if choice_options else None
     )
 
@@ -164,7 +164,7 @@ def create_checklist_item_template(request):
         # talvez eu faça as funções register retornar um payload dos dados
     }, status=status.HTTP_201_CREATED)
 
-def create_checklist_item_answer(request):
+def create_checklist_item_answer_api(request):
     data = request.data or {}
     checklist = data.get("checklist")
     item_template = data.get("item_template")
@@ -177,14 +177,13 @@ def create_checklist_item_answer(request):
     for field in possible_fields:
         if field in data:
             answer_value = data[field]
-            answer_field = field
             break
     
-    checklist_item_answer, messages = publish_ui_messages(
+    checklist_item_answer, messages = save_answer(
         technician_operating = technician_operating,
         checklist = checklist,
         item_template = item_template,
-        **{answer_field: answer_value}
+        value=answer_value
     )
 
     if messages:
