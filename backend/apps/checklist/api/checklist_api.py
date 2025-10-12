@@ -168,6 +168,7 @@ def create_checklist_item_answer_api(request):
     data = request.data or {}
     checklist = data.get("checklist")
     item_template = data.get("item_template")
+    note = data.get("note")
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
 
@@ -183,7 +184,8 @@ def create_checklist_item_answer_api(request):
         technician_operating = technician_operating,
         checklist = checklist,
         item_template = item_template,
-        value=answer_value
+        value=answer_value,
+        note=note if note else None
     )
 
     if messages:
