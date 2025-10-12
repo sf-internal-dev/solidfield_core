@@ -21,14 +21,11 @@ def create_checklist_template_api(request):
 
     name = data.get("name")
     service_type = data.get("service_type")
-    aggroupment = data.get("aggroupment")
 
     checklist_template, messages = create_checklist_template(
         technician_operating=technician_operating,
         name = name,
         service_type = service_type,
-        aggroupment = aggroupment if aggroupment else None,
-        is_global= False if aggroupment else True
     )
 
     if messages:
@@ -63,6 +60,7 @@ def create_checklist_template_api(request):
         # talvez eu faça as funções register retornar um payload dos dados
     }, status=status.HTTP_201_CREATED)
 
+@api_view(["POST"])
 def create_checklist_api(request):
     data = request.data or {}
     template = data.get("template")
@@ -109,7 +107,7 @@ def create_checklist_api(request):
         # talvez eu faça as funções register retornar um payload dos dados
     }, status=status.HTTP_201_CREATED)
     
-
+@api_view(["POST"])
 def create_checklist_item_template_api(request):
     data = request.data or {}
     template = data.get("template")
@@ -164,6 +162,7 @@ def create_checklist_item_template_api(request):
         # talvez eu faça as funções register retornar um payload dos dados
     }, status=status.HTTP_201_CREATED)
 
+@api_view(["POST"])
 def create_checklist_item_answer_api(request):
     data = request.data or {}
     checklist = data.get("checklist")
