@@ -109,8 +109,112 @@ def create_checklist_api(request):
         # talvez eu faça as funções register retornar um payload dos dados
     }, status=status.HTTP_201_CREATED)
     
-def create_checklist_item_template():
-    pass
 
-def create_checklist_item_answer():
-    pass
+def create_checklist_item_template(request):
+    data = request.data or {}
+    template = data.get("template")
+    order = data.get("order")
+    question = data.get("question")
+    answer_type = data.get("answer_type")
+    required = data.get("required")
+    choice_options = data.get("choice_options")
+
+    technician_operating = getattr(request, "technician_operating", None)
+    manager_account_operating = getattr(request, "manager_account_operating", None)
+
+    checklist_item_template, messages = create_checklist_item_template(
+        technician_operating = technician_operating,
+        template = template,
+        order = order,
+        question = question,
+        answer_type = answer_type,
+        required = required,
+        choice_options = choice_options if choice_options else None
+    )
+
+    if messages:
+        payloads = [get_error_payload(c) for c in messages]
+
+        session_id = request.session.session_key or request.COOKIES.get("sessionid")
+        client_ip = get_client_ip(request)
+
+        ua = request.META.get("HTTP_USER_AGENT", "")
+        client_fingerprint = hashlib.sha1(ua.encode()).hexdigest()[:16] if ua else None
+
+        tenant_id = None
+        if technician_operating is not None and getattr(technician_operating, "tenant", None) is not None:
+            tenant_id = getattr(technician_operating.tenant, "id", None)
+
+            correlation = publish_ui_messages(
+            manager_account_operating_id=manager_account_operating,
+            technician_operating_id=technician_operating,
+            client_ip=client_ip,
+            client_fingerprint=client_fingerprint,
+            session_id=session_id,
+            tenant_id=tenant_id,
+            payloads=payloads,
+            source="django_api",
+        )
+        return Response({"codes": messages, "correlation_id": correlation}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    return Response({
+        "success": "Checklist Item Template registered",
+        "checklist_item_template_id":  str(checklist_item_template.id),
+        "messages": messages,
+        # talvez eu faça as funções register retornar um payload dos dados
+    }, status=status.HTTP_201_CREATED)
+
+def create_checklist_item_answer(request):
+    data = request.data or {}
+    checklist = data.get("checklist")
+    item_template = data.get("item_template")
+    technician_operating = getattr(request, "technician_operating", None)
+    manager_account_operating = getattr(request, "manager_account_operating", None)
+
+
+    possible_fields = ["answer_bool", "answer_texto", "answer_number", "answer_choice"]
+
+    for field in possible_fields:
+        if field in data:
+            answer_value = data[field]
+            answer_field = field
+            break
+    
+    checklist_item_answer, messages = publish_ui_messages(
+        technician_operating = technician_operating,
+        checklist = checklist,
+        item_template = item_template,
+        **{answer_field: answer_value}
+    )
+
+    if messages:
+        payloads = [get_error_payload(c) for c in messages]
+
+        session_id = request.session.session_key or request.COOKIES.get("sessionid")
+        client_ip = get_client_ip(request)
+
+        ua = request.META.get("HTTP_USER_AGENT", "")
+        client_fingerprint = hashlib.sha1(ua.encode()).hexdigest()[:16] if ua else None
+
+        tenant_id = None
+        if technician_operating is not None and getattr(technician_operating, "tenant", None) is not None:
+            tenant_id = getattr(technician_operating.tenant, "id", None)
+
+            correlation = publish_ui_messages(
+            manager_account_operating_id=manager_account_operating,
+            technician_operating_id=technician_operating,
+            client_ip=client_ip,
+            client_fingerprint=client_fingerprint,
+            session_id=session_id,
+            tenant_id=tenant_id,
+            payloads=payloads,
+            source="django_api",
+        )
+        return Response({"codes": messages, "correlation_id": correlation}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    return Response({
+        "success": "Checklist Item Answer registered",
+        "checklist_item_answer_id":  str(checklist_item_answer.id),
+        "messages": messages,
+        # talvez eu faça as funções register retornar um payload dos dados
+    }, status=status.HTTP_201_CREATED)
