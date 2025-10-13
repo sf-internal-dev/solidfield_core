@@ -88,7 +88,7 @@ class Checklist(BaseModel):
     template = models.ForeignKey(ChecklistTemplate, on_delete=models.PROTECT)
     filled_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT)
     filled_at = models.DateTimeField(auto_now_add=True)
-
+    incomplete = models.BooleanField(default=True)
     work_order = models.ForeignKey(
         'orders.WorkOrder',
         on_delete=models.CASCADE,
