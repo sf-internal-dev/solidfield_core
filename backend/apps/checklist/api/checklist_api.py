@@ -1,4 +1,4 @@
-from backend.apps.checklist.services.checklist_service import create_checklist, save_answer, bulk_save_answers, remove_answer, list_missing_required_answers
+from backend.apps.checklist.services.checklist_service import create_checklist, bulk_save_answers, remove_answer, list_missing_required_answers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,6 +7,7 @@ from backend.common.schemas.error_messages_schema import get_error_payload
 import hashlib
 from backend.apps.core.services.technician_permission_service import has_permission
 from backend.apps.checklist.models import Checklist
+
 @api_view(["POST"])
 def create_checklist_api(request):
     data = request.data or {}
@@ -88,6 +89,8 @@ def create_checklist_item_answer_api(request):
     
     saved, messages = bulk_save_answers(checklist=checklist, payloads=payloads)
 
+    missing_after_save, list_errors = list_missing_required_answers(checklist=checklist)
+
     if messages:
         payloads = [get_error_payload(c) for c in messages]
 
@@ -118,7 +121,8 @@ def create_checklist_item_answer_api(request):
             "success": "Checklist answers registered",
             "saved": [str(a.id) for a in saved],
             "saved_count": len(saved),
-            "messages": messages,
+            "messages": messages + list_errors,
+            "missing_after_save": missing_after_save,
         },
         status=status.HTTP_201_CREATED,
     )
