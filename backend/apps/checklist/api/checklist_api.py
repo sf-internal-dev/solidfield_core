@@ -6,7 +6,7 @@ from backend.publisher import publish_ui_messages, get_client_ip
 from backend.common.schemas.error_messages_schema import get_error_payload
 import hashlib
 from backend.apps.core.services.technician_permission_service import has_permission
-
+from backend.apps.checklist.models import Checklist
 @api_view(["POST"])
 def create_checklist_api(request):
     data = request.data or {}
@@ -54,33 +54,39 @@ def create_checklist_api(request):
         # talvez eu faça as funções register retornar um payload dos dados
     }, status=status.HTTP_201_CREATED)
 
-### Fazer uma função pra fazer o get de todos os answers especificos
-## depois fazer bulk de todas as answers nessa função
-# --- Refatorar ---
+
 @api_view(["POST"])
 def create_checklist_item_answer_api(request):
     data = request.data or {}
-    checklist = data.get("checklist")
-    item_template = data.get("item_template")
-    note = data.get("note")
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
+    answers = data.get("answers", [])  # espera lista de dicts
+    checklist_id = data.get("checklist")
 
+    checklist = None
+    if checklist_id is not None:
+        checklist = Checklist.objects.get(pk=checklist_id)
 
     possible_fields = ["answer_bool", "answer_texto", "answer_number", "answer_choice"]
+    payloads = []
+    for ans in answers:
+        item_template = ans.get("item_template")
+        note = ans.get("note") if "note" in ans else None
 
-    for field in possible_fields:
-        if field in data:
-            answer_value = data[field]
-            break
+        # detecta o campo de valor presente (prioridade na ordem possível)
+        value = None
+        for field in possible_fields:
+            if field in ans:
+                value = ans[field]
+                break
+
+        payloads.append({
+            "item_template": item_template,
+            "value": value,
+            "note": note,
+        })
     
-    checklist_item_answer, messages = save_answer(
-        technician_operating = technician_operating,
-        checklist = checklist,
-        item_template = item_template,
-        value=answer_value,
-        note=note if note else None
-    )
+    saved, messages = bulk_save_answers(checklist=checklist, payloads=payloads)
 
     if messages:
         payloads = [get_error_payload(c) for c in messages]
@@ -105,11 +111,14 @@ def create_checklist_item_answer_api(request):
             payloads=payloads,
             source="django_api",
         )
-        return Response({"codes": messages, "correlation_id": correlation}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return Response({"codes": messages, "correlation_id": correlation, "saved_count":len(saved)}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    return Response({
-        "success": "Checklist Item Answer registered",
-        "checklist_item_answer_id":  str(checklist_item_answer.id),
-        "messages": messages,
-        # talvez eu faça as funções register retornar um payload dos dados
-    }, status=status.HTTP_201_CREATED)
+    return Response(
+        {
+            "success": "Checklist answers registered",
+            "saved": [str(a.id) for a in saved],
+            "saved_count": len(saved),
+            "messages": messages,
+        },
+        status=status.HTTP_201_CREATED,
+    )
