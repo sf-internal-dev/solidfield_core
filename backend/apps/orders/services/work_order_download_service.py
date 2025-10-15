@@ -20,7 +20,7 @@ def get_purpose_rules_for_work_order_download_link(work_order_download_link: Wor
     purpose_rules = get_purpose_rules(purpose)
     return purpose_rules
     
-def create_work_order_download_link_with_key(work_order: WorkOrder, purpose: str, technician: Technician):
+def create_work_order_download_link_with_key(technician_operating: Technician, work_order: WorkOrder, purpose: str, technician: Technician):
     download_key = generate_work_order_download_key()
     work_order_download_link = WorkOrderDownloadLink.objects.create(
         work_order = work_order,
