@@ -24,7 +24,7 @@ def delegate_permission_level(delegator: Technician, delegate: Technician, level
 # Validates each action, persists the delegation and logs the event
 # Fails if technician attempts to delegate to themselves or invalid actions
 @transaction.atomic
-def create_temporary_delegation(from_user, to_user, actions: list[str], valid_from, valid_until):
+def create_temporary_delegation(technician_operating: Technician, from_user, to_user, actions: list[str], valid_from, valid_until):
     errors: List[str] = []
 
     if from_user == to_user:
@@ -55,7 +55,7 @@ def create_temporary_delegation(from_user, to_user, actions: list[str], valid_fr
         da.delegation = delegation
     DelegatedAction.objects.bulk_create(valid_actions)
 
-    log_temporary_delegation(delegation,actions)
+    log_temporary_delegation(tenant=technician_operating.tenant, delegation=delegation,actions=actions)
 
     return delegation, errors
 
@@ -93,8 +93,8 @@ def list_effective_permissions(technician: Technician) -> list[str]:
     return list(actions)
 
 # -> Revokes a temporary delegation and logs the action
-def revoke_delegation(delegation: TemporaryDelegation):
-    log_revoke_temporary_delegation(delegation)
+def revoke_delegation(technician_operating: Technician, delegation: TemporaryDelegation):
+    log_revoke_temporary_delegation(tenant=technician_operating.tenant, delegation=delegation)
     delegation.delete()
 
 # -> Returns all delegations created by the technician

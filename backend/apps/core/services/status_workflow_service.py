@@ -70,7 +70,7 @@ def check_if_custom_status_workflow(tenant_id) -> tuple[dict | None, list[str]]:
 # Validates if the transition is allowed by the workflow definition
 # Also verifies if the technician has permission to reach the target status
 # Appends the change to status_history and logs the transition
-def transition_work_order_status(work_order, new_status: str, technician: Technician)-> Tuple[Optional[object], List[str]]:
+def transition_work_order_status(technician_operating: Technician, work_order, new_status: str, technician: Technician)-> Tuple[Optional[object], List[str]]:
     errors: List[str] = []
     
     tenant = work_order.tenant
@@ -98,7 +98,7 @@ def transition_work_order_status(work_order, new_status: str, technician: Techni
     work_order.status = new_status
     work_order.save(update_fields=["status", "status_history"])
 
-    log_work_order_status_transition(work_order, new_status)
+    log_work_order_status_transition(tenant=technician_operating.tenant, work_order=work_order, new_status=new_status)
 
     return work_order, errors
 
