@@ -7,5 +7,5 @@ def assign_work_order_to_technician(technician_operating: Technician, work_order
         log_work_order_assignment(work_order=work_order,technician=technician, tenant=technician.tenant)
         return work_order.assigned_to == technician
     
-    log_work_order_reassignment(work_order=work_order,technician=technician)
+    log_work_order_reassignment(tenant=technician_operating.tenant, work_order=work_order,technician=technician)
     return work_order.assigned_to == technician
