@@ -34,6 +34,6 @@ def create_work_order_download_link_with_key(technician_operating: Technician, w
         work_order_download_link.purpose = None
         work_order_download_link.save(update_fields=["purpose"])
 
-    log_work_order_download_link_creation(work_order_download_link)
+    log_work_order_download_link_creation(tenant=technician_operating.tenant, work_order_download_link=work_order_download_link)
 
     return work_order_download_link
