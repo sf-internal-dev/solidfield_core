@@ -68,7 +68,7 @@ def create_client_feedback(technician_operating: Technician, work_order: WorkOrd
         errors.append("comment_too_long")
         return None, errors
     
-    log_work_order_feedback_received(work_order, feedback_label)
+    log_work_order_feedback_received(tenant=technician_operating.tenant, work_order=work_order, feedback_label=feedback_label)
 
     if not reached_comment_max_characters(comment):
         if client:
