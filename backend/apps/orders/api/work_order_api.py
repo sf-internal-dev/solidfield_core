@@ -14,6 +14,7 @@ def create_work_order_api(request):
     company = data.get("company")
     work_order, messages = create_work_order_api(
             company = company,
+            created_by = technician_operating,
             )
     if messages:
         payloads = [get_error_payload(c) for c in messages]
