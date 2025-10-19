@@ -17,4 +17,11 @@ urlpatterns = [
     path("create_checklist_item_answer_api/",checklist_api.create_checklist_item_answer_api, name="create_checklist_item_answer_api"),
     path("create_checklist_template_api/",checklist_template_api.create_checklist_template_api, name="create_checklist_template_api"),
     path("create_checklist_item_template_api/",checklist_template_api.create_checklist_item_template_api, name="create_checklist_item_template_api"),
+    path("register_client_api/",client_api.register_client_api, name="register_client_api"),
+    path("register_client_adress_api/", client_api.register_client_adress_api, name="register_client_adress_api"),
+    path("create_feedback_link_api/", client_feedback_api.create_feedback_link_api, name="create_feedback_link_api"),
+    path("create_client_feedback_api/", client_feedback_api.create_client_feedback_api, name="create_client_feedback_api"),
+    path("create_client_feedback_api/", client_feedback_api.create_client_feedback_api, name="create_client_feedback_api"),
+    path("create_work_order_api/", work_order_api.create_work_order_api, name="create_work_order_api"),
+    path("create_work_order_download_link_api/",work_order_api.create_work_order_download_link_api, name="create_work_order_download_link_api")
 ]
