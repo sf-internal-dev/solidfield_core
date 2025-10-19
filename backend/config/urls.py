@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     path('_nested_admin/', include('nested_admin.urls')),
-    path('token_api/',include("backend.apps.core.routes.tokens_urls"))
+    path('token_api/',include("backend.apps.core.routes.tokens_urls")),
+    path('api/', include('backend.apps.apis.urls'))
 ]

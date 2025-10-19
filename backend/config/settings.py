@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'backend.apps.quality_control',
     'backend.apps.reporting',
     'backend.apps.filehub',
+    'backend.apps.apis',
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_spectacular',
