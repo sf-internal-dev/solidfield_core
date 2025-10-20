@@ -5,13 +5,19 @@ from rest_framework import status
 from backend.publisher import publish_ui_messages, get_client_ip
 from backend.common.schemas.error_messages_schema import get_error_payload
 import hashlib
+from backend.apps.orders.models import WorkOrder
+from backend.apps.clients.models import Client
 
 @api_view(["POST"])
 def create_feedback_link_api(request):
     data = request.data or {}
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
-    work_order = data.get("work_order")
+    work_order_id = data.get("work_order")
+
+    work_order = None
+    if work_order_id is not None:
+        work_order = WorkOrder.objects.get(pk=work_order_id)
 
     feedback_link, messages = create_feedback_link(
         technician_operating=technician_operating,
@@ -55,8 +61,19 @@ def create_client_feedback_api(request):
     data = request.data or {}
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
-    work_order = data.get("work_order")
-    client = data.get("client")
+
+    work_order_id = data.get("work_order")
+
+    work_order = None
+    if work_order_id is not None:
+        work_order = WorkOrder.objects.get(pk=work_order_id)
+
+    client_id = data.get("client")
+
+    client = None
+    if client_id is not None:
+        client = Client.objects.get(pk=client_id)
+
     client_name = data.get("client_name")
     client_email = data.get("client_email")
     stars = data.get("stars")
