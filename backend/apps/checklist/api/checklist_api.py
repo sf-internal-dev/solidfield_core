@@ -6,13 +6,25 @@ from backend.publisher import publish_ui_messages, get_client_ip
 from backend.common.schemas.error_messages_schema import get_error_payload
 import hashlib
 from backend.apps.core.services.technician_permission_service import has_permission
-from backend.apps.checklist.models import Checklist
+from backend.apps.checklist.models import Checklist, ChecklistTemplate
+from backend.apps.orders.models import WorkOrder
 
 @api_view(["POST"])
 def create_checklist_api(request):
     data = request.data or {}
-    template = data.get("template")
-    work_order = data.get("work_order")
+
+    template_id = data.get("template")
+
+    template = None
+    if template_id is not None:
+        template = ChecklistTemplate.objects.get(pk=template_id)
+
+    work_order_id = data.get("work_order")
+
+    work_order = None
+    if work_order_id is not None:
+        work_order = WorkOrder.objects.get(pk=work_order_id)
+
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
 
