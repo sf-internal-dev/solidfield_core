@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from backend.publisher import publish_ui_messages, get_client_ip
 import hashlib
+from backend.apps.core.models import Technician, CompanyTenant
 
 @api_view(["POST"])
 def register_tenant_api(request):
@@ -18,7 +19,13 @@ def register_tenant_api(request):
     primary_contact_email = data.get("primary_contact_email")
     primary_contact_phone = data.get("primary_contact_phone")
     billing_account_id    = data.get("billing_account_id")
-    owner                 = data.get("owner")
+    owner_id                = data.get("owner")
+
+    owner = None
+    if owner_id is not None:
+        owner = Technician.objects.get(pk=owner_id)
+
+
     country               = data.get("country")
     locale                = data.get("locale")
     timezone              = data.get("timezone")
@@ -70,8 +77,11 @@ def register_tenant_branding_api(request):
     data = request.data or {}
     manager_account_operating = getattr(request, "manager_account_operating", None)
 
+    tenant_id       = data.get("tenant")
+    tenant = None
+    if tenant_id is not None:
+        tenant = CompanyTenant.objects.get(pk=tenant_id)
 
-    tenant        = data.get("tenant")
     logo          = data.get("logo")
     color_primary = data.get("color_primary")
 
