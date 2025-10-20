@@ -5,6 +5,7 @@ from rest_framework import status
 from backend.publisher import publish_ui_messages, get_client_ip
 from backend.common.schemas.error_messages_schema import get_error_payload
 import hashlib
+from backend.apps.clients.models import Client
 
 @api_view(["POST"])
 def register_client_api(request):
@@ -70,7 +71,12 @@ def register_client_adress_api(request):
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
 
-    client = data.get("client")
+    client_id = data.get("client")
+
+    client = None
+    if client_id is not None:
+        client = Client.objects.get(pk=client_id)
+
     label = data.get("label")
     number = data.get("number")
     complement = data.get("complement")
