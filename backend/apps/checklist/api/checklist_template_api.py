@@ -6,6 +6,8 @@ from backend.common.schemas.error_messages_schema import get_error_payload
 import hashlib
 from backend.apps.checklist.services.checklist_template_service import (next_order_for_template, remove_aggroupment_from_template, create_checklist_template, 
 add_item_to_checklist_template, delegate_checklist_template_to_aggroupment, update_checklist_template_version,)
+from backend.apps.checklist.models import ChecklistTemplate
+from backend.apps.orders.models import WorkOrder
 
 @api_view(["POST"])
 def create_checklist_template_api(request):
@@ -59,8 +61,14 @@ def create_checklist_template_api(request):
 @api_view(["POST"])
 def create_checklist_item_template_api(request):
     data = request.data or {}
-    template = data.get("template")
+    template_id = data.get("template")
+
+    template = None
+    if template_id is not None:
+        template = ChecklistTemplate.objects.get(pk=template_id)
+
     order = data.get("order")
+    
     question = data.get("question")
     answer_type = data.get("answer_type")
     is_required = data.get("is_required")
