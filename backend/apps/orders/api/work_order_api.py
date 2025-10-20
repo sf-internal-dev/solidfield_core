@@ -5,13 +5,20 @@ from rest_framework import status
 from backend.publisher import publish_ui_messages, get_client_ip
 from backend.common.schemas.error_messages_schema import get_error_payload
 import hashlib
+from backend.apps.core.models import CompanyTenant
+from backend.apps.orders.models import WorkOrder
 
 @api_view(["POST"])
 def create_work_order_api(request):
     data = request.data or {}
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
-    company = data.get("company")
+    company_id = data.get("company")
+
+    company = None
+    if company_id is not None:
+        company = CompanyTenant.objects.get(pk=company_id)
+
     work_order, messages = create_work_order_api(
             company = company,
             created_by = technician_operating,
@@ -55,7 +62,12 @@ def create_work_order_download_link_api(request):
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
 
-    work_order = data.get("work_order")
+    work_order_id = data.get("work_order")
+
+    work_order = None
+    if work_order_id is not None:
+        work_order = WorkOrder.objects.get(pk=work_order_id)
+
     days = data.get("days")
 
     work_order_download_link, messages = create_work_order_with_identifier(
