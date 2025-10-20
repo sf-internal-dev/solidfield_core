@@ -9,9 +9,10 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = ["id", "person_type", "name", "document_id", "contact_name", "phone", "email", "created_at", "is_active"]  
 
-class TechniciansAggroupmentSerializer(serializers.ModelSerializer):
-    tenant = TenantSerializer(read_only=True) 
+
+class ClientAddressSerializer(serializers.ModelSerializer):
+    client = ClientSerializer(read_only=True) 
 
     class Meta:
-        model = TechniciansAggroupment
-        fields = ["id", "tag", "allowed_to_operate", "created_at", "updated_at"]
+        model = ClientAddress
+        fields = ["id", "label", "street", "number", "complement", "neighborhood", "city", "state", "postal_code", "gps_latitude", "gps_longitude"]
