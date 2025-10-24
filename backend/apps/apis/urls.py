@@ -10,18 +10,27 @@ router = DefaultRouter()
 
 urlpatterns = [
     path("", include(router.urls)),
+    # Technician APIs
     path('register_technician_api/',technician_api.register_technician_api, name="register_technician_api"),
+    path('update_technician_api/<int:technician_id>/',technician_api.update_technician_api, name="update_technician_api"),
+    path('delete_technician_api/<int:technician_id>/',technician_api.delete_technician_api, name="delete_technician_api"),
+    path('delegate_permissions_api/',technician_api.delegate_permissions_api, name="delegate_permissions_api"),
+    path('get_technician_permissions_api/<int:technician_id>/',technician_api.get_technician_permissions_api, name="get_technician_permissions_api"),
+    # Tenant APIs
     path("register_tenant_api/",tenant_api.register_tenant_api, name="register_tenant_api"),
     path("register_tenant_branding_api/",tenant_api.register_tenant_branding_api, name="register_tenant_branding_api"),
+    # Checklist APIs
     path("create_checklist_api/",checklist_api.create_checklist_api, name="create_checklist_api"),
     path("create_checklist_item_answer_api/",checklist_api.create_checklist_item_answer_api, name="create_checklist_item_answer_api"),
     path("create_checklist_template_api/",checklist_template_api.create_checklist_template_api, name="create_checklist_template_api"),
     path("create_checklist_item_template_api/",checklist_template_api.create_checklist_item_template_api, name="create_checklist_item_template_api"),
+    # Client APIs
     path("register_client_api/",client_api.register_client_api, name="register_client_api"),
     path("register_client_adress_api/", client_api.register_client_adress_api, name="register_client_adress_api"),
     path("create_feedback_link_api/", client_feedback_api.create_feedback_link_api, name="create_feedback_link_api"),
     path("create_client_feedback_api/", client_feedback_api.create_client_feedback_api, name="create_client_feedback_api"),
     path("create_client_feedback_api/", client_feedback_api.create_client_feedback_api, name="create_client_feedback_api"),
+    # Work Order APIs
     path("create_work_order_api/", work_order_api.create_work_order_api, name="create_work_order_api"),
     path("create_work_order_download_link_api/",work_order_api.create_work_order_download_link_api, name="create_work_order_download_link_api")
 ]

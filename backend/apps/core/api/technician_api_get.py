@@ -1,4 +1,3 @@
-from backend.common.schemas.error_messages_schema import get_error_payload
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
