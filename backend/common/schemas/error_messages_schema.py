@@ -139,6 +139,22 @@ ERROR_MESSAGES = {
         "message": "The provided color is not a valid hex color.",
         "type": "negative"
     },
+    "checklist_not_found": {
+        "message": "The requested checklist could not be found.",
+        "type": "negative"
+    },
+    "checklist_already_submitted": {
+        "message": "This checklist has already been submitted.",
+        "type": "negative"
+    },
+    "missing_required_answers": {
+        "message": "Some required answers are missing. Please complete all mandatory fields.",
+        "type": "negative"
+    },
+    "item_template_not_found": {
+        "message": "The requested checklist item template could not be found.",
+        "type": "negative"
+    },
 }
 
 
