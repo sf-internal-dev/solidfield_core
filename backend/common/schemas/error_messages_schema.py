@@ -323,6 +323,14 @@ ERROR_MESSAGES = {
         "message": "The requested client could not be found.",
         "type": "negative"
     },
+    "template_not_found": {
+        "message": "The requested checklist template could not be found.",
+        "type": "negative"
+    },
+    "aggroupment_not_found": {
+        "message": "The requested technician aggroupment could not be found.",
+        "type": "negative"
+    },
 }
 
 

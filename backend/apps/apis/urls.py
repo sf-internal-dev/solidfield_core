@@ -31,6 +31,10 @@ urlpatterns = [
     path("get_checklist_progress_api/<int:checklist_id>/",checklist_api.get_checklist_progress_api, name="get_checklist_progress_api"),
     path("create_checklist_template_api/",checklist_template_api.create_checklist_template_api, name="create_checklist_template_api"),
     path("create_checklist_item_template_api/",checklist_template_api.create_checklist_item_template_api, name="create_checklist_item_template_api"),
+    path("get_next_order_for_template_api/<int:template_id>/",checklist_template_api.get_next_order_for_template_api, name="get_next_order_for_template_api"),
+    path("delegate_checklist_template_to_aggroupment_api/<int:template_id>/",checklist_template_api.delegate_checklist_template_to_aggroupment_api, name="delegate_checklist_template_to_aggroupment_api"),
+    path("remove_aggroupment_from_template_api/<int:template_id>/<int:aggroupment_id>/",checklist_template_api.remove_aggroupment_from_template_api, name="remove_aggroupment_from_template_api"),
+    path("update_checklist_template_version_api/<int:template_id>/",checklist_template_api.update_checklist_template_version_api, name="update_checklist_template_version_api"),
     # Client APIs
     path("register_client_api/",client_api.register_client_api, name="register_client_api"),
     path("register_client_adress_api/", client_api.register_client_adress_api, name="register_client_adress_api"),
