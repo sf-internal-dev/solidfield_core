@@ -39,5 +39,10 @@ urlpatterns = [
     path("create_client_feedback_api/", client_feedback_api.create_client_feedback_api, name="create_client_feedback_api"),
     # Work Order APIs
     path("create_work_order_api/", work_order_api.create_work_order_api, name="create_work_order_api"),
-    path("create_work_order_download_link_api/",work_order_api.create_work_order_download_link_api, name="create_work_order_download_link_api")
+    path("create_work_order_download_link_api/",work_order_api.create_work_order_download_link_api, name="create_work_order_download_link_api"),
+    path("list_work_orders_api/",work_order_api.list_work_orders_api, name="list_work_orders_api"),
+    path("get_work_order_api/<int:work_order_id>/",work_order_api.get_work_order_api, name="get_work_order_api"),
+    path("update_work_order_api/<int:work_order_id>/",work_order_api.update_work_order_api, name="update_work_order_api"),
+    path("assign_work_order_api/<int:work_order_id>/",work_order_api.assign_work_order_api, name="assign_work_order_api"),
+    path("get_work_order_status_history_api/<int:work_order_id>/",work_order_api.get_work_order_status_history_api, name="get_work_order_status_history_api")
 ]

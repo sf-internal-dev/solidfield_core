@@ -119,10 +119,6 @@ ERROR_MESSAGES = {
         "message": "The provided active status is invalid.",
         "type": "negative"
     },
-    "tenant_not_found": {
-        "message": "The requested tenant could not be found.",
-        "type": "negative"
-    },
     "slug_already_exists": {
         "message": "The provided slug is already in use by another tenant.",
         "type": "negative"
@@ -153,6 +149,174 @@ ERROR_MESSAGES = {
     },
     "item_template_not_found": {
         "message": "The requested checklist item template could not be found.",
+        "type": "negative"
+    },
+    "work_order_not_found": {
+        "message": "The requested work order could not be found.",
+        "type": "negative"
+    },
+    "invalid_priority": {
+        "message": "The provided priority is invalid. Must be one of: low, medium, high, urgent.",
+        "type": "negative"
+    },
+    "invalid_status": {
+        "message": "The provided status is invalid. Must be one of: pending, assigned, in_progress, completed, cancelled.",
+        "type": "negative"
+    },
+    "invalid_usename": {
+        "message": "The provided username is invalid.",
+        "type": "negative"
+    },
+    "invalid_logo": {
+        "message": "The provided logo is invalid.",
+        "type": "negative"
+    },
+    "service_order_required": {
+        "message": "A service order is required for this operation.",
+        "type": "negative"
+    },
+    "client_name_too_long": {
+        "message": "The client name is too long. Please shorten it.",
+        "type": "negative"
+    },
+    "client_email_invalid": {
+        "message": "The provided client email is invalid.",
+        "type": "negative"
+    },
+    "stars_required": {
+        "message": "A star rating is required.",
+        "type": "negative"
+    },
+    "stars_out_of_range": {
+        "message": "The star rating is out of range. Please provide a value between 1 and 5.",
+        "type": "negative"
+    },
+    "stars_not_integer": {
+        "message": "The star rating must be an integer.",
+        "type": "negative"
+    },
+    "comment_not_string": {
+        "message": "The comment must be a string.",
+        "type": "negative"
+    },
+    "strengths_not_string": {
+        "message": "The strengths field must be a string.",
+        "type": "negative"
+    },
+    "invalid_template_name_length": {
+        "message": "The template name length is invalid.",
+        "type": "negative"
+    },
+    "invalid_template_name_chars": {
+        "message": "The template name contains invalid characters.",
+        "type": "negative"
+    },
+    "invalid_service_type_length": {
+        "message": "The service type length is invalid.",
+        "type": "negative"
+    },
+    "invalid_service_type_chars": {
+        "message": "The service type contains invalid characters.",
+        "type": "negative"
+    },
+    "invalid_is_active_type": {
+        "message": "The is_active field must be a boolean.",
+        "type": "negative"
+    },
+    "invalid_is_global_type": {
+        "message": "The is_global field must be a boolean.",
+        "type": "negative"
+    },
+    "invalid_aggroupments_type": {
+        "message": "The aggroupments field must be a list.",
+        "type": "negative"
+    },
+    "invalid_aggroupment_id": {
+        "message": "The provided aggroupment ID is invalid.",
+        "type": "negative"
+    },
+    "invalid_version_value": {
+        "message": "The version value is invalid.",
+        "type": "negative"
+    },
+    "invalid_order_value": {
+        "message": "The order value is invalid.",
+        "type": "negative"
+    },
+    "invalid_question_length": {
+        "message": "The question length is invalid.",
+        "type": "negative"
+    },
+    "invalid_question_chars": {
+        "message": "The question contains invalid characters.",
+        "type": "negative"
+    },
+    "invalid_answer_type": {
+        "message": "The answer type is invalid.",
+        "type": "negative"
+    },
+    "invalid_required_type": {
+        "message": "The required field must be a boolean.",
+        "type": "negative"
+    },
+    "empty_choice_options": {
+        "message": "Choice options cannot be empty.",
+        "type": "negative"
+    },
+    "choice_option_too_long": {
+        "message": "One or more choice options are too long.",
+        "type": "negative"
+    },
+    "invalid_choice_option_chars": {
+        "message": "One or more choice options contain invalid characters.",
+        "type": "negative"
+    },
+    "invalid_bool_value": {
+        "message": "The boolean value is invalid.",
+        "type": "negative"
+    },
+    "invalid_text_value": {
+        "message": "The text value is invalid.",
+        "type": "negative"
+    },
+    "invalid_text_chars": {
+        "message": "The text contains invalid characters.",
+        "type": "negative"
+    },
+    "invalid_choice_value": {
+        "message": "The choice value is invalid.",
+        "type": "negative"
+    },
+    "choice_value_too_long": {
+        "message": "The choice value is too long.",
+        "type": "negative"
+    },
+    "invalid_choice_chars": {
+        "message": "The choice value contains invalid characters.",
+        "type": "negative"
+    },
+    "invalid_number_value": {
+        "message": "The number value is invalid.",
+        "type": "negative"
+    },
+    "invalid_note_chars": {
+        "message": "The note contains invalid characters.",
+        "type": "negative"
+    },
+    "Invalid transition: {from_state} → {to_state} not in 'states'.": {
+        "message": "Invalid transition: '{from_state}' → '{to_state}' not in 'states'.",
+        "type": "negative"
+    },
+    "Invalid permission key: {role} (must be string).": {
+        "message": "Invalid permission key: {role} (must be string).",
+        "type": "negative"
+    },
+    "Permissions for '{role}' must be a list of strings.": {
+        "message": "Permissions for '{role}' must be a list of strings.",
+        "type": "negative"
+    },
+    "Permissions for '{role}' reference invalid states: {invalid_states}.": {
+        "message": "Permissions for '{role}' reference invalid states: {invalid_states}.",
         "type": "negative"
     },
 }
