@@ -34,6 +34,9 @@ urlpatterns = [
     # Client APIs
     path("register_client_api/",client_api.register_client_api, name="register_client_api"),
     path("register_client_adress_api/", client_api.register_client_adress_api, name="register_client_adress_api"),
+    path("update_client_api/<int:client_id>/", client_api.update_client_api, name="update_client_api"),
+    path("delete_client_api/<int:client_id>/", client_api.delete_client_api, name="delete_client_api"),
+    path("search_clients_api/", client_api.search_clients_api, name="search_clients_api"),
     path("create_feedback_link_api/", client_feedback_api.create_feedback_link_api, name="create_feedback_link_api"),
     path("create_client_feedback_api/", client_feedback_api.create_client_feedback_api, name="create_client_feedback_api"),
     path("create_client_feedback_api/", client_feedback_api.create_client_feedback_api, name="create_client_feedback_api"),

@@ -319,6 +319,10 @@ ERROR_MESSAGES = {
         "message": "Permissions for '{role}' reference invalid states: {invalid_states}.",
         "type": "negative"
     },
+    "client_not_found": {
+        "message": "The requested client could not be found.",
+        "type": "negative"
+    },
 }
 
 
