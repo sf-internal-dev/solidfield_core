@@ -6,9 +6,24 @@ from django.utils import timezone
 class WorkOrder(TenantOwnedModel):
     identifier = models.CharField(max_length=50, unique=True)
     created_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT, related_name="created_orders")
-    assigned_to = models.ForeignKey("core.Technician", on_delete=models.PROTECT, related_name="assigned_orders")
+    assigned_to = models.ForeignKey("core.Technician", on_delete=models.PROTECT, related_name="assigned_orders", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Work order details
+    title = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    status = models.CharField(max_length=50, default='pending')
+    priority = models.CharField(max_length=20, choices=[
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent')
+    ], default='medium')
+    due_date = models.DateTimeField(null=True, blank=True)
+    location = models.CharField(max_length=200, blank=True)
+    notes = models.TextField(blank=True)
+    
     # new fields patch
     first_access = models.BooleanField(default=False)
     work_start = models.DateTimeField(blank=True,null=True)
@@ -30,6 +45,21 @@ class WorkOrder(TenantOwnedModel):
     def __str__(self):
         return f"Work Order #{self.identifier} - {self.status.replace('_', ' ').title()}"
 
+
+class WorkOrderStatusHistory(models.Model):
+    work_order = models.ForeignKey("WorkOrder", on_delete=models.CASCADE, related_name="workorderstatushistory_set")
+    status = models.CharField(max_length=50)
+    changed_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT)
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Work Order Status History"
+        verbose_name_plural = "Work Order Status Histories"
+
+    def __str__(self):
+        return f"Status: {self.status} - Order #{self.work_order.identifier} - {self.created_at}"
 
 
 class WorkOrderDownloadLink(models.Model):
