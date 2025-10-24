@@ -5,6 +5,7 @@ from backend.apps.clients.models.client import Client, ClientAddress
 from backend.apps.core.models.technician import Technician
 from typing import Tuple, List, Optional
 from backend.apps.core.services.technician_permission_service import has_permission
+from django.db.models import Q
 
 # -> Registers a client's document ID and phone number with validation
 # Validates the document ID and phone number based on the provided country
@@ -125,3 +126,126 @@ def register_client_address(technician_operating: Technician, client: Client, co
     )
 
     return address, errors
+
+# -> Updates an existing client's information
+# Validates all provided fields and updates only the ones that are valid
+# Returns the updated client or None with error messages
+def update_client(technician_operating: Technician, client_id: int, **update_data) -> Tuple[Optional[Client], List[str]]:
+    errors = []
+    
+    # Check permission
+    ok, perm_errors = has_permission(technician_operating, "add_or_update_client")
+    if not ok:
+        return None, perm_errors
+    
+    try:
+        client = Client.objects.get(id=client_id, tenant=technician_operating.tenant)
+    except Client.DoesNotExist:
+        return None, ["client_not_found"]
+    
+    # Validate and update fields
+    if "person_type" in update_data:
+        if update_data["person_type"] not in dict(Client.PERSON_TYPE_CHOICES):
+            errors.append("invalid_person_type")
+        else:
+            client.person_type = update_data["person_type"]
+    
+    if "name" in update_data:
+        valid, name_errors = validate_name(update_data["name"])
+        if valid:
+            client.name = update_data["name"]
+        else:
+            errors.extend(name_errors)
+    
+    if "document_id" in update_data:
+        if validate_document_id(update_data["document_id"], update_data.get("country")):
+            client.document_id = update_data["document_id"]
+        else:
+            errors.append("invalid_document_id")
+    
+    if "contact_name" in update_data:
+        valid, contact_errors = validate_contact_name(update_data["contact_name"])
+        if valid:
+            client.contact_name = update_data["contact_name"]
+        else:
+            errors.extend(contact_errors)
+    
+    if "phone" in update_data:
+        if validate_phone_number(update_data["phone"], update_data.get("country")):
+            client.phone = update_data["phone"]
+        else:
+            errors.append("invalid_phone_number")
+    
+    if "email" in update_data:
+        if validate_email_field(update_data["email"]):
+            client.email = update_data["email"]
+        else:
+            errors.append("invalid_email")
+    
+    if "is_active" in update_data:
+        client.is_active = update_data["is_active"]
+    
+    if errors:
+        return None, errors
+    
+    client.save()
+    return client, errors
+
+# -> Soft deletes a client by setting is_active to False
+# Only authorized technicians can delete clients
+# Returns success status and error messages
+def delete_client(technician_operating: Technician, client_id: int) -> Tuple[bool, List[str]]:
+    errors = []
+    
+    # Check permission
+    ok, perm_errors = has_permission(technician_operating, "delete_client")
+    if not ok:
+        return False, perm_errors
+    
+    try:
+        client = Client.objects.get(id=client_id, tenant=technician_operating.tenant)
+    except Client.DoesNotExist:
+        return False, ["client_not_found"]
+    
+    client.is_active = False
+    client.save()
+    
+    return True, errors
+
+# -> Searches for clients with optional filtering by name, email, phone, or document
+# Supports pagination and ordering
+# Returns a list of clients matching the search criteria
+def search_clients(technician_operating: Technician, query: Optional[str] = None, 
+                  person_type: Optional[str] = None, is_active: Optional[bool] = None,
+                  limit: int = 50, offset: int = 0) -> Tuple[List[Client], List[str]]:
+    errors = []
+    
+    # Check permission
+    ok, perm_errors = has_permission(technician_operating, "view_clients")
+    if not ok:
+        return [], perm_errors
+    
+    # Build query
+    queryset = Client.objects.filter(tenant=technician_operating.tenant)
+    
+    # Apply filters
+    if is_active is not None:
+        queryset = queryset.filter(is_active=is_active)
+    
+    if person_type:
+        queryset = queryset.filter(person_type=person_type)
+    
+    # Apply search query
+    if query:
+        queryset = queryset.filter(
+            Q(name__icontains=query) |
+            Q(email__icontains=query) |
+            Q(phone__icontains=query) |
+            Q(document_id__icontains=query) |
+            Q(contact_name__icontains=query)
+        )
+    
+    # Apply pagination and ordering
+    clients = list(queryset.order_by('-created_at')[offset:offset + limit])
+    
+    return clients, errors
