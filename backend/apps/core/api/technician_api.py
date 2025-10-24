@@ -307,3 +307,38 @@ def get_technician_permissions_api(request, technician_id):
         "outgoing_delegations": outgoing_data,
         "incoming_delegations": incoming_data
     }, status=status.HTTP_200_OK)
+
+
+@api_view(["DELETE"])
+def revoke_delegation_api(request, delegation_id):
+    technician_operating = getattr(request, "technician_operating", None)
+    manager_account_operating = getattr(request, "manager_account_operating", None)
+
+    try:
+        from backend.apps.core.models import TemporaryDelegation
+        delegation = TemporaryDelegation.objects.get(id=delegation_id, tenant=technician_operating.tenant)
+    except TemporaryDelegation.DoesNotExist:
+        return Response({
+            "codes": ["delegation_not_found"],
+            "correlation_id": None
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    # Check if the technician can revoke this delegation
+    if delegation.from_user != technician_operating:
+        return Response({
+            "codes": ["cannot_revoke_others_delegation"],
+            "correlation_id": None
+        }, status=status.HTTP_403_FORBIDDEN)
+
+    revoke_delegation(
+        technician_operating=technician_operating,
+        delegation=delegation
+    )
+
+    return Response({
+        "success": "Delegation revoked",
+        "delegation_id": str(delegation_id),
+        "from_user_id": str(delegation.from_user.id),
+        "to_user_id": str(delegation.to_user.id),
+        "messages": []
+    }, status=status.HTTP_200_OK)

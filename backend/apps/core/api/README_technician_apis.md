@@ -138,6 +138,29 @@ This document describes the technician-related APIs implemented in the SolidFiel
 }
 ```
 
+### 6. Revoke Delegation
+- **Endpoint**: `DELETE /api/revoke_delegation_api/<delegation_id>/`
+- **Description**: Revokes a temporary delegation created by the technician
+- **Required Permission**: Implicit (can only revoke own delegations)
+
+**URL Parameters:**
+- `delegation_id`: ID of the delegation to revoke
+
+**Response:**
+```json
+{
+    "success": "Delegation revoked",
+    "delegation_id": "1",
+    "from_user_id": "123",
+    "to_user_id": "456",
+    "messages": []
+}
+```
+
+**Error Responses:**
+- `404 Not Found`: If delegation not found
+- `403 Forbidden`: If trying to revoke someone else's delegation
+
 ## Error Handling
 
 All APIs return consistent error responses:
@@ -158,6 +181,8 @@ All APIs return consistent error responses:
 - `cannot_delete_self`: Cannot delete own account
 - `delegator_not_manager`: Only managers can delegate permissions
 - `tried_to_delegate_to_itself`: Cannot delegate to self
+- `delegation_not_found`: Delegation not found
+- `cannot_revoke_others_delegation`: Can only revoke own delegations
 
 ## Permission Levels
 
