@@ -331,6 +331,14 @@ ERROR_MESSAGES = {
         "message": "The requested technician aggroupment could not be found.",
         "type": "negative"
     },
+    "delegation_not_found": {
+        "message": "The requested delegation could not be found.",
+        "type": "negative"
+    },
+    "cannot_revoke_others_delegation": {
+        "message": "You can only revoke delegations that you created.",
+        "type": "negative"
+    },
 }
 
 

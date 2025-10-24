@@ -16,6 +16,7 @@ urlpatterns = [
     path('delete_technician_api/<int:technician_id>/',technician_api.delete_technician_api, name="delete_technician_api"),
     path('delegate_permissions_api/',technician_api.delegate_permissions_api, name="delegate_permissions_api"),
     path('get_technician_permissions_api/<int:technician_id>/',technician_api.get_technician_permissions_api, name="get_technician_permissions_api"),
+    path('revoke_delegation_api/<int:delegation_id>/',technician_api.revoke_delegation_api, name="revoke_delegation_api"),
     # Tenant APIs
     path("register_tenant_api/",tenant_api.register_tenant_api, name="register_tenant_api"),
     path("register_tenant_branding_api/",tenant_api.register_tenant_branding_api, name="register_tenant_branding_api"),
