@@ -5,6 +5,7 @@ from backend.apps.core.models.technician import Technician
 from typing import Optional, List, Tuple, Dict, Any, Iterable
 from django.db import transaction
 from backend.apps.core.services.technician_permission_service import has_permission
+from django.db.models import Q, Count, Case, When, IntegerField
 #-> Creates a new checklist instance for a given template and technician
 # Associates the checklist with the provided template and filled_by technician
 # Returns the created checklist object along with any validation errors
@@ -151,3 +152,162 @@ def bulk_save_answers(*,checklist: Checklist, payloads: Iterable[Dict[str, Any]]
             saved.append(ans)
 
     return saved, errors
+
+# -> Lists checklists with optional filtering by technician, template, or work order
+# Supports pagination and ordering
+# Returns a list of checklists with basic information
+def list_checklists(*, technician_operating: Technician, technician_id: Optional[int] = None, 
+                   template_id: Optional[int] = None, work_order_id: Optional[int] = None,
+                   status: Optional[str] = None, limit: int = 50, offset: int = 0) -> Tuple[List[Checklist], List[str]]:
+    errors = []
+    
+    # Check permission
+    ok, perm_errors = has_permission(technician_operating, "view_checklists")
+    if not ok:
+        return [], perm_errors
+    
+    # Build query
+    queryset = Checklist.objects.filter(template__tenant=technician_operating.tenant)
+    
+    # Apply filters
+    if technician_id:
+        queryset = queryset.filter(filled_by_id=technician_id)
+    if template_id:
+        queryset = queryset.filter(template_id=template_id)
+    if work_order_id:
+        queryset = queryset.filter(work_order_id=work_order_id)
+    if status:
+        queryset = queryset.filter(status=status)
+    
+    # Apply pagination and ordering
+    checklists = list(queryset.order_by('-created_at')[offset:offset + limit])
+    
+    return checklists, errors
+
+# -> Retrieves a specific checklist with all its answers
+# Returns detailed checklist information including template and answers
+def get_checklist(*, technician_operating: Technician, checklist_id: int) -> Tuple[Optional[Checklist], List[str]]:
+    errors = []
+    
+    # Check permission
+    ok, perm_errors = has_permission(technician_operating, "view_checklists")
+    if not ok:
+        return None, perm_errors
+    
+    try:
+        checklist = Checklist.objects.select_related('template', 'filled_by', 'work_order').get(
+            id=checklist_id,
+            template__tenant=technician_operating.tenant
+        )
+    except Checklist.DoesNotExist:
+        return None, ["checklist_not_found"]
+    
+    return checklist, errors
+
+# -> Submits a checklist for final review/completion
+# Validates that all required answers are present
+# Updates checklist status to submitted
+@transaction.atomic
+def submit_checklist(*, technician_operating: Technician, checklist_id: int) -> Tuple[bool, List[str]]:
+    errors = []
+    
+    # Check permission
+    ok, perm_errors = has_permission(technician_operating, "submit_checklist")
+    if not ok:
+        return False, perm_errors
+    
+    try:
+        checklist = Checklist.objects.get(
+            id=checklist_id,
+            template__tenant=technician_operating.tenant
+        )
+    except Checklist.DoesNotExist:
+        return False, ["checklist_not_found"]
+    
+    # Check if already submitted
+    if checklist.status == "submitted":
+        return False, ["checklist_already_submitted"]
+    
+    # Validate all required answers are present
+    missing_required, missing_errors = list_missing_required_answers(checklist=checklist)
+    if missing_required:
+        errors.append("missing_required_answers")
+        errors.extend(missing_errors)
+        return False, errors
+    
+    # Update status
+    checklist.status = "submitted"
+    checklist.save(update_fields=['status'])
+    
+    return True, errors
+
+# -> Calculates progress statistics for a checklist
+# Returns completion percentage, answered items count, and missing required items
+def get_checklist_progress(*, technician_operating: Technician, checklist_id: int) -> Tuple[Optional[Dict], List[str]]:
+    errors = []
+    
+    # Check permission
+    ok, perm_errors = has_permission(technician_operating, "view_checklists")
+    if not ok:
+        return None, perm_errors
+    
+    try:
+        checklist = Checklist.objects.get(
+            id=checklist_id,
+            template__tenant=technician_operating.tenant
+        )
+    except Checklist.DoesNotExist:
+        return None, ["checklist_not_found"]
+    
+    # Get template items
+    template_items = ChecklistItemTemplate.objects.filter(template=checklist.template)
+    total_items = template_items.count()
+    required_items = template_items.filter(required=True).count()
+    
+    # Get answered items
+    answered_items = ChecklistItemAnswer.objects.filter(checklist=checklist).count()
+    
+    # Get missing required items
+    missing_required, _ = list_missing_required_answers(checklist=checklist)
+    missing_count = len(missing_required)
+    
+    # Calculate progress
+    progress_percentage = (answered_items / total_items * 100) if total_items > 0 else 0
+    required_progress = ((required_items - missing_count) / required_items * 100) if required_items > 0 else 100
+    
+    # Get answers with details
+    answers = ChecklistItemAnswer.objects.filter(checklist=checklist).select_related('item_template')
+    answers_data = []
+    for answer in answers:
+        answers_data.append({
+            "id": answer.id,
+            "item_template_id": answer.item_template.id,
+            "question": answer.item_template.question,
+            "answer_type": answer.item_template.answer_type,
+            "required": answer.item_template.required,
+            "answer_bool": answer.answer_bool,
+            "answer_texto": answer.answer_texto,
+            "answer_number": answer.answer_number,
+            "answer_choice": answer.answer_choice,
+            "note": answer.note,
+            "created_at": answer.created_at.isoformat(),
+            "updated_at": answer.updated_at.isoformat()
+        })
+    
+    progress_data = {
+        "checklist_id": checklist.id,
+        "template_name": checklist.template.name,
+        "status": checklist.status,
+        "total_items": total_items,
+        "required_items": required_items,
+        "answered_items": answered_items,
+        "missing_required_items": missing_count,
+        "progress_percentage": round(progress_percentage, 2),
+        "required_progress_percentage": round(required_progress, 2),
+        "is_complete": missing_count == 0 and required_items > 0,
+        "can_submit": missing_count == 0 and required_items > 0,
+        "answers": answers_data,
+        "missing_required_item_ids": missing_required
+    }
+    
+    return progress_data, errors
