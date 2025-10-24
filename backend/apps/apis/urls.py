@@ -25,6 +25,7 @@ urlpatterns = [
     # Checklist APIs
     path("create_checklist_api/",checklist_api.create_checklist_api, name="create_checklist_api"),
     path("create_checklist_item_answer_api/",checklist_api.create_checklist_item_answer_api, name="create_checklist_item_answer_api"),
+    path("remove_checklist_answer_api/<int:checklist_id>/<int:item_template_id>/",checklist_api.remove_checklist_answer_api, name="remove_checklist_answer_api"),
     path("list_checklists_api/",checklist_api.list_checklists_api, name="list_checklists_api"),
     path("get_checklist_api/<int:checklist_id>/",checklist_api.get_checklist_api, name="get_checklist_api"),
     path("submit_checklist_api/<int:checklist_id>/",checklist_api.submit_checklist_api, name="submit_checklist_api"),

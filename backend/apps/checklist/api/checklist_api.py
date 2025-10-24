@@ -6,7 +6,7 @@ from backend.publisher import publish_ui_messages, get_client_ip
 from backend.common.schemas.error_messages_schema import get_error_payload
 import hashlib
 from backend.apps.core.services.technician_permission_service import has_permission
-from backend.apps.checklist.models import Checklist, ChecklistTemplate
+from backend.apps.checklist.models import Checklist, ChecklistItemTemplate, ChecklistTemplate
 from backend.apps.orders.models import WorkOrder
 from backend.apps.checklist.api.serializers.checklist_serializers import ChecklistSerializer, ChecklistDetailSerializer
 
@@ -336,5 +336,66 @@ def get_checklist_progress_api(request, checklist_id):
     return Response({
         "success": "Checklist progress retrieved",
         "progress": progress_data,
+        "messages": messages,
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(["DELETE"])
+def remove_checklist_answer_api(request, checklist_id, item_template_id):
+    technician_operating = getattr(request, "technician_operating", None)
+    manager_account_operating = getattr(request, "manager_account_operating", None)
+
+    try:
+        checklist = Checklist.objects.get(id=checklist_id, template__tenant=technician_operating.tenant)
+    except Checklist.DoesNotExist:
+        return Response({
+            "codes": ["checklist_not_found"],
+            "correlation_id": None
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        item_template = ChecklistItemTemplate.objects.get(id=item_template_id, template=checklist.template)
+    except ChecklistItemTemplate.DoesNotExist:
+        return Response({
+            "codes": ["item_template_not_found"],
+            "correlation_id": None
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    success, messages = remove_answer(
+        technician_operating=technician_operating,
+        checklist=checklist,
+        item_template=item_template
+    )
+
+    if messages:
+        payloads = [get_error_payload(c) for c in messages]
+
+        session_id = request.session.session_key or request.COOKIES.get("sessionid")
+        client_ip = get_client_ip(request)
+
+        ua = request.META.get("HTTP_USER_AGENT", "")
+        client_fingerprint = hashlib.sha1(ua.encode()).hexdigest()[:16] if ua else None
+
+        tenant_id = None
+        if technician_operating is not None and getattr(technician_operating, "tenant", None) is not None:
+            tenant_id = getattr(technician_operating.tenant, "id", None)
+
+        correlation = publish_ui_messages(
+            manager_account_operating_id=manager_account_operating,
+            technician_operating_id=technician_operating,
+            client_ip=client_ip,
+            client_fingerprint=client_fingerprint,
+            session_id=session_id,
+            tenant_id=tenant_id,
+            payloads=payloads,
+            source="django_api",
+        )
+
+        return Response({"codes": messages, "correlation_id": correlation}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    return Response({
+        "success": "Answer removed",
+        "checklist_id": str(checklist.id),
+        "item_template_id": str(item_template.id),
         "messages": messages,
     }, status=status.HTTP_200_OK)
