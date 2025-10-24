@@ -95,6 +95,30 @@ ERROR_MESSAGES = {
         "message": "There are no valid actions available at this time.",
         "type": "negative"
     },
+    "technician_not_found": {
+        "message": "The requested technician could not be found.",
+        "type": "negative"
+    },
+    "cannot_delete_self": {
+        "message": "You cannot delete your own account.",
+        "type": "negative"
+    },
+    "invalid_username": {
+        "message": "The provided username is invalid.",
+        "type": "negative"
+    },
+    "invalid_social_name": {
+        "message": "The provided social name is invalid.",
+        "type": "negative"
+    },
+    "invalid_technician_permission": {
+        "message": "The provided technician permission level is invalid.",
+        "type": "negative"
+    },
+    "invalid_is_active": {
+        "message": "The provided active status is invalid.",
+        "type": "negative"
+    },
 }
 
 
