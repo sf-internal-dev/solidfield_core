@@ -2,9 +2,10 @@ from backend.apps.core.utils.tenant.tenant_slug_util import sanitize_tenant_slug
 from backend.apps.core.utils.tenant.tenant_identifier_code_util import generate_tenant_code_attempts
 from backend.apps.core.validators.tenant_validator import validate_tenant_name, validate_hex_color, validate_optional_email, validate_optional_phone, validate_slug_format
 from django.utils.crypto import get_random_string
-from backend.apps.core.models.tenant import CompanyTenant
+from backend.apps.core.models.tenant import CompanyTenant, TenantStatusWorkflow
 from backend.apps.core.models.user import AccountHolderUser
-from typing import Union, IO, Optional, Tuple
+from backend.apps.core.services.status_workflow_service import create_custom_status_workflow, check_if_custom_status_workflow
+from typing import Union, IO, Optional, Tuple, List
 from pathlib import Path
 from django.core.files.uploadedfile import UploadedFile
 from django.core.files.base import File, ContentFile
@@ -120,3 +121,108 @@ def register_tenant_branding(tenant: CompanyTenant, color_primary: str, logo: Im
     #     errors.append("invalid_logo)
     tenant.logo = logo
     tenant.save()
+    
+    return tenant, errors
+
+# -> Updates an existing tenant's information
+# Validates all provided fields and updates only the ones that are valid
+# Returns the updated tenant or None with error messages
+def update_tenant(tenant_id: int, **update_data) -> Tuple[Optional[CompanyTenant], List[str]]:
+    errors = []
+    
+    try:
+        tenant = CompanyTenant.objects.get(id=tenant_id)
+    except CompanyTenant.DoesNotExist:
+        return None, ["tenant_not_found"]
+    
+    # Validate and update fields
+    if "name" in update_data:
+        if validate_tenant_name(update_data["name"]):
+            tenant.name = update_data["name"]
+        else:
+            errors.append("invalid_tenant_name")
+    
+    if "slug" in update_data:
+        if validate_slug_format(update_data["slug"]):
+            # Check if slug is unique
+            if CompanyTenant.objects.filter(slug=update_data["slug"]).exclude(id=tenant_id).exists():
+                errors.append("slug_already_exists")
+            else:
+                tenant.slug = update_data["slug"]
+        else:
+            errors.append("invalid_slug_format")
+    
+    if "primary_contact_name" in update_data:
+        tenant.primary_contact_name = update_data["primary_contact_name"]
+    
+    if "primary_contact_email" in update_data:
+        if validate_optional_email(update_data["primary_contact_email"]):
+            tenant.primary_contact_email = update_data["primary_contact_email"]
+        else:
+            errors.append("invalid_email")
+    
+    if "primary_contact_phone" in update_data:
+        if validate_optional_phone(update_data["primary_contact_phone"]):
+            tenant.primary_contact_phone = update_data["primary_contact_phone"]
+        else:
+            errors.append("invalid_phone_number")
+    
+    if "billing_account_id" in update_data:
+        tenant.billing_account_id = update_data["billing_account_id"]
+    
+    if "country" in update_data:
+        tenant.country = update_data["country"]
+    
+    if "locale" in update_data:
+        tenant.locale = update_data["locale"]
+    
+    if "timezone" in update_data:
+        tenant.timezone = update_data["timezone"]
+    
+    if "color_primary" in update_data:
+        if validate_hex_color(update_data["color_primary"]):
+            tenant.color_primary = update_data["color_primary"]
+        else:
+            errors.append("invalid_hex_color")
+    
+    if "logo" in update_data:
+        tenant.logo = update_data["logo"]
+    
+    if "is_active" in update_data:
+        tenant.is_active = update_data["is_active"]
+    
+    if errors:
+        return None, errors
+    
+    tenant.save()
+    return tenant, errors
+
+# -> Gets the current workflow configuration for a tenant
+# Returns the workflow as a labeled structure or None if not found
+def get_tenant_workflow(tenant_id: int) -> Tuple[Optional[dict], List[str]]:
+    try:
+        tenant = CompanyTenant.objects.get(id=tenant_id)
+    except CompanyTenant.DoesNotExist:
+        return None, ["tenant_not_found"]
+    
+    # Check if tenant has a custom workflow
+    workflow, errors = check_if_custom_status_workflow(tenant.id)
+    
+    if errors:
+        return None, errors
+    
+    return workflow, []
+
+# -> Updates the workflow configuration for a tenant
+# Validates the workflow structure before saving
+# Returns success status and error messages
+def update_tenant_workflow(tenant_id: int, workflow_data: dict) -> Tuple[bool, List[str]]:
+    try:
+        tenant = CompanyTenant.objects.get(id=tenant_id)
+    except CompanyTenant.DoesNotExist:
+        return False, ["tenant_not_found"]
+    
+    # Create or update the workflow
+    success, errors = create_custom_status_workflow(tenant, workflow_data)
+    
+    return success, errors
