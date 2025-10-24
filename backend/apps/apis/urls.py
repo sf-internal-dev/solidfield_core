@@ -39,7 +39,8 @@ urlpatterns = [
     path("search_clients_api/", client_api.search_clients_api, name="search_clients_api"),
     path("create_feedback_link_api/", client_feedback_api.create_feedback_link_api, name="create_feedback_link_api"),
     path("create_client_feedback_api/", client_feedback_api.create_client_feedback_api, name="create_client_feedback_api"),
-    path("create_client_feedback_api/", client_feedback_api.create_client_feedback_api, name="create_client_feedback_api"),
+    path("list_feedback_api/", client_feedback_api.list_feedback_api, name="list_feedback_api"),
+    path("get_feedback_analytics_api/", client_feedback_api.get_feedback_analytics_api, name="get_feedback_analytics_api"),
     # Work Order APIs
     path("create_work_order_api/", work_order_api.create_work_order_api, name="create_work_order_api"),
     path("create_work_order_download_link_api/",work_order_api.create_work_order_download_link_api, name="create_work_order_download_link_api"),
