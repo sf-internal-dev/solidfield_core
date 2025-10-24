@@ -19,6 +19,9 @@ urlpatterns = [
     # Tenant APIs
     path("register_tenant_api/",tenant_api.register_tenant_api, name="register_tenant_api"),
     path("register_tenant_branding_api/",tenant_api.register_tenant_branding_api, name="register_tenant_branding_api"),
+    path("update_tenant_api/<int:tenant_id>/",tenant_api.update_tenant_api, name="update_tenant_api"),
+    path("get_tenant_workflow_api/<int:tenant_id>/",tenant_api.get_tenant_workflow_api, name="get_tenant_workflow_api"),
+    path("update_tenant_workflow_api/<int:tenant_id>/",tenant_api.update_tenant_workflow_api, name="update_tenant_workflow_api"),
     # Checklist APIs
     path("create_checklist_api/",checklist_api.create_checklist_api, name="create_checklist_api"),
     path("create_checklist_item_answer_api/",checklist_api.create_checklist_item_answer_api, name="create_checklist_item_answer_api"),

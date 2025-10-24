@@ -119,6 +119,26 @@ ERROR_MESSAGES = {
         "message": "The provided active status is invalid.",
         "type": "negative"
     },
+    "tenant_not_found": {
+        "message": "The requested tenant could not be found.",
+        "type": "negative"
+    },
+    "slug_already_exists": {
+        "message": "The provided slug is already in use by another tenant.",
+        "type": "negative"
+    },
+    "invalid_tenant_name": {
+        "message": "The provided tenant name is invalid.",
+        "type": "negative"
+    },
+    "invalid_slug_format": {
+        "message": "The provided slug format is invalid.",
+        "type": "negative"
+    },
+    "invalid_hex_color": {
+        "message": "The provided color is not a valid hex color.",
+        "type": "negative"
+    },
 }
 
 
