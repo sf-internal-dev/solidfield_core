@@ -10,7 +10,41 @@ import hashlib
 from backend.apps.core.models import CompanyTenant
 from backend.apps.orders.models import WorkOrder
 from backend.apps.orders.api.serializers.work_order_serializers import WorkOrderSerializer, WorkOrderListSerializer
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.types import OpenApiTypes
+from backend.apps.apis.spectacular_public import TAG_WORK_ORDER, schema_error_422
 
+_WO_JSON = {"type": "object", "additionalProperties": True}
+_WO_PATH_ID = OpenApiParameter("work_order_id", OpenApiTypes.INT, OpenApiParameter.PATH, required=True)
+_UPDATE_BODY = {
+    "application/json": {
+        "type": "object",
+        "properties": {
+            "title": {"type": "string", "nullable": True},
+            "description": {"type": "string", "nullable": True},
+            "priority": {"type": "string", "nullable": True},
+            "status": {"type": "string", "nullable": True},
+            "assigned_to": {"type": "integer", "nullable": True},
+            "due_date": {"type": "string", "format": "date-time", "nullable": True},
+            "location": {"type": "string", "nullable": True},
+            "notes": {"type": "string", "nullable": True},
+        },
+    }
+}
+
+
+@extend_schema(
+    tags=[TAG_WORK_ORDER],
+    operation_id="publicV1WorkOrderCreate",
+    summary="Cria work order (viagem / OS)",
+    request={
+        "application/json": {
+            "type": "object",
+            "properties": {"company": {"type": "integer", "nullable": True}},
+        }
+    },
+    responses={201: _WO_JSON, 422: schema_error_422()},
+)
 @api_view(["POST"])
 def create_work_order_api(request):
     data = request.data or {}
@@ -23,9 +57,9 @@ def create_work_order_api(request):
         company = CompanyTenant.objects.get(pk=company_id)
 
     work_order, messages = create_work_order_with_identifier(
-            company = company,
-            created_by = technician_operating,
-            )
+        company=company,
+        created_by=technician_operating,
+    )
     if messages:
         payloads = [get_error_payload(c) for c in messages]
 
@@ -39,7 +73,7 @@ def create_work_order_api(request):
         if technician_operating is not None and getattr(technician_operating, "tenant", None) is not None:
             tenant_id = getattr(technician_operating.tenant, "id", None)
 
-            correlation = publish_ui_messages(
+        correlation = publish_ui_messages(
             manager_account_operating_id=manager_account_operating,
             technician_operating_id=technician_operating,
             client_ip=client_ip,
@@ -113,6 +147,19 @@ def create_work_order_download_link_api(request):
     }, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    tags=[TAG_WORK_ORDER],
+    operation_id="publicV1WorkOrderList",
+    summary="Lista work orders",
+    parameters=[
+        OpenApiParameter("technician_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
+        OpenApiParameter("tenant_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("limit", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("offset", OpenApiTypes.INT, OpenApiParameter.QUERY),
+    ],
+    responses={200: _WO_JSON, 422: schema_error_422()},
+)
 @api_view(["GET"])
 def list_work_orders_api(request):
     technician_operating = getattr(request, "technician_operating", None)
@@ -177,6 +224,13 @@ def list_work_orders_api(request):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=[TAG_WORK_ORDER],
+    operation_id="publicV1WorkOrderRetrieve",
+    summary="Obtém uma work order por id",
+    parameters=[_WO_PATH_ID],
+    responses={200: _WO_JSON, 422: schema_error_422()},
+)
 @api_view(["GET"])
 def get_work_order_api(request, work_order_id):
     technician_operating = getattr(request, "technician_operating", None)
@@ -223,6 +277,14 @@ def get_work_order_api(request, work_order_id):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=[TAG_WORK_ORDER],
+    operation_id="publicV1WorkOrderUpdate",
+    summary="Atualiza work order",
+    parameters=[_WO_PATH_ID],
+    request=_UPDATE_BODY,
+    responses={200: _WO_JSON, 422: schema_error_422()},
+)
 @api_view(["PUT"])
 def update_work_order_api(request, work_order_id):
     data = request.data or {}
@@ -287,6 +349,24 @@ def update_work_order_api(request, work_order_id):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=[TAG_WORK_ORDER],
+    operation_id="publicV1WorkOrderAssign",
+    summary="Atribui work order a um técnico",
+    parameters=[_WO_PATH_ID],
+    request={
+        "application/json": {
+            "type": "object",
+            "required": ["technician_id"],
+            "properties": {"technician_id": {"type": "integer"}},
+        }
+    },
+    responses={
+        200: _WO_JSON,
+        400: {"type": "object", "properties": {"error": {"type": "string"}}},
+        422: schema_error_422(),
+    },
+)
 @api_view(["POST"])
 def assign_work_order_api(request, work_order_id):
     data = request.data or {}
@@ -337,6 +417,13 @@ def assign_work_order_api(request, work_order_id):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=[TAG_WORK_ORDER],
+    operation_id="publicV1WorkOrderStatusHistory",
+    summary="Histórico de status da work order",
+    parameters=[_WO_PATH_ID],
+    responses={200: _WO_JSON, 422: schema_error_422()},
+)
 @api_view(["GET"])
 def get_work_order_status_history_api(request, work_order_id):
     technician_operating = getattr(request, "technician_operating", None)

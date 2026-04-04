@@ -103,8 +103,12 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'SolidField API',
-    'DESCRIPTION': 'SolidField robust way to manage your work',
-    'VERSION': '0.0.1',
+    'DESCRIPTION': (
+        'API HTTP do SolidField. O subconjunto documentado com a tag **Public v1** é o contrato estável '
+        'para app de campo (Capacitor), checklist/viagem e fila offline, conforme `API_PUBLIC_CONTRACT.md`. '
+        'Demais rotas podem evoluir; quebras devem ser comunicadas ou versionadas em `/api/v2/` no futuro.'
+    ),
+    'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,

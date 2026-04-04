@@ -4,6 +4,8 @@
 
 **Objetivo do documento:** mapear a estrutura atual do SolidField (SaaS de operações em campo em tempo real) para um **Micro-SaaS de entrada (MVP)** que ataque a dor com maior impacto econômico imediato para o armador, com **baixo esforço de UI** e **alto valor analítico (Ti)**.
 
+Para **documentação técnica consolidada** (o que já existe no código, rotas, offline, OpenAPI e roadmap), ver **`DOCUMENTACAO_PESCA_INDUSTRIAL_LARGA_ESCALA.md`** na raiz do repositório.
+
 ---
 
 ## 1. Leitura do SolidField para pesca industrial
