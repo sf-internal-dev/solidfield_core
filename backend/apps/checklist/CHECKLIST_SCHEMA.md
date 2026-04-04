@@ -240,6 +240,7 @@ Source: `models/checklist.py` + `utils/checklist_util.py`
 - `GET /get_checklist_api/<checklist_id>/`
 - `POST /submit_checklist_api/<checklist_id>/`
 - `GET /get_checklist_progress_api/<checklist_id>/`
+- `GET /export_checklist_answers_csv_api/` (query: `work_order_id`, `service_type`, `template_id`)
 
 ### Template APIs
 
@@ -279,14 +280,17 @@ Source: `api/serializers/checklist_serializers.py`
 
 ## 9) Attention points in current implementation
 
-These are implementation mismatches worth tracking while evolving the module:
+Resolved / updated in codebase:
 
-- `create_checklist(...)` function currently expects `filled_by`, but API call passes `work_order` and not `filled_by`.
-- `create_checklist(...)` uses `errors` before declaration in permission failure branch.
-- `bulk_save_answers(...)` calls `save_answer(...)` without `technician_operating` argument.
-- several service/query paths use `checklist.status`, but `Checklist` model shown here does not declare a `status` field (may exist in shared base model; verify explicitly).
-- `Checklist.__str__` assumes `work_order` is always present, but field is nullable (`null=True, blank=True`).
-- detail serializer uses `source='checklistitemanswer_set'`, while model relation name is `answers`; verify expected reverse accessor.
+- `create_checklist(...)` accepts optional `work_order` and optional `filled_by` (defaults to `technician_operating`); API validates tenant scope.
+- `bulk_save_answers(...)` passes `technician_operating` into `save_answer(...)`.
+- `Checklist.status` exists (`draft` | `submitted`) with migration `0004_checklist_status`.
+- `Checklist.__str__` handles missing `work_order`.
+- `ChecklistDetailSerializer` uses default `answers` relation (`related_name="answers"`).
+
+Remaining gaps (optional follow-ups):
+
+- `create_checklist_template_api` pode não alinhar todos os parâmetros exigidos por `create_checklist_template` (ex.: `technician` criador, `is_global`); revisar ao evoluir o app.
 
 ---
 

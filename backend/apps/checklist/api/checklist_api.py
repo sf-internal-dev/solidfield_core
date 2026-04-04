@@ -1,11 +1,22 @@
-from backend.apps.checklist.services.checklist_service import create_checklist, bulk_save_answers, remove_answer, list_missing_required_answers, list_checklists, get_checklist, submit_checklist, get_checklist_progress
+from backend.apps.checklist.services.checklist_service import (
+    create_checklist,
+    bulk_save_answers,
+    remove_answer,
+    list_missing_required_answers,
+    list_checklists,
+    get_checklist,
+    submit_checklist,
+    get_checklist_progress,
+)
+from backend.apps.checklist.services.checklist_export_service import export_checklist_answers_csv
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from django.http import HttpResponse
 from backend.publisher import publish_ui_messages, get_client_ip
 from backend.common.schemas.error_messages_schema import get_error_payload
 import hashlib
-from backend.apps.core.services.technician_permission_service import has_permission
+from backend.apps.core.models.technician import Technician
 from backend.apps.checklist.models import Checklist, ChecklistItemTemplate, ChecklistTemplate
 from backend.apps.orders.models import WorkOrder
 from backend.apps.checklist.api.serializers.checklist_serializers import ChecklistSerializer, ChecklistDetailSerializer
@@ -15,26 +26,77 @@ def create_checklist_api(request):
     data = request.data or {}
 
     template_id = data.get("template")
-
-    template = None
-    if template_id is not None:
-        template = ChecklistTemplate.objects.get(pk=template_id)
-
     work_order_id = data.get("work_order")
-
-    work_order = None
-    if work_order_id is not None:
-        work_order = WorkOrder.objects.get(pk=work_order_id)
+    filled_by_id = data.get("filled_by")
 
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
 
+    pre_messages = []
+    template = None
+    if template_id is None:
+        pre_messages.append("template_required")
+    elif technician_operating is None:
+        pre_messages.append("technician_operating_required")
+    else:
+        try:
+            template = ChecklistTemplate.objects.get(
+                pk=template_id,
+                tenant_id=technician_operating.tenant_id,
+            )
+        except ChecklistTemplate.DoesNotExist:
+            pre_messages.append("template_not_found")
+
+    work_order = None
+    if work_order_id is not None and technician_operating is not None:
+        try:
+            work_order = WorkOrder.objects.get(
+                pk=work_order_id,
+                tenant_id=technician_operating.tenant_id,
+            )
+        except WorkOrder.DoesNotExist:
+            pre_messages.append("work_order_not_found")
+
+    filled_by = None
+    if filled_by_id is not None and technician_operating is not None:
+        try:
+            filled_by = Technician.objects.get(
+                pk=filled_by_id,
+                tenant_id=technician_operating.tenant_id,
+            )
+        except Technician.DoesNotExist:
+            pre_messages.append("filled_by_not_found")
+
+    if pre_messages:
+        payloads = [get_error_payload(c) for c in pre_messages]
+        session_id = request.session.session_key or request.COOKIES.get("sessionid")
+        client_ip = get_client_ip(request)
+        ua = request.META.get("HTTP_USER_AGENT", "")
+        client_fingerprint = hashlib.sha1(ua.encode()).hexdigest()[:16] if ua else None
+        tenant_id = None
+        if technician_operating is not None and getattr(technician_operating, "tenant", None) is not None:
+            tenant_id = getattr(technician_operating.tenant, "id", None)
+        correlation = publish_ui_messages(
+            manager_account_operating_id=manager_account_operating,
+            technician_operating_id=technician_operating,
+            client_ip=client_ip,
+            client_fingerprint=client_fingerprint,
+            session_id=session_id,
+            tenant_id=tenant_id,
+            payloads=payloads,
+            source="django_api",
+        )
+        return Response(
+            {"codes": pre_messages, "correlation_id": correlation},
+            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
 
     checklist, messages = create_checklist(
         technician_operating=technician_operating,
-        template = template,
-        work_order = work_order,
-        )
+        template=template,
+        work_order=work_order,
+        filled_by=filled_by,
+    )
     
     if messages:
         payloads = [get_error_payload(c) for c in messages]
@@ -100,7 +162,11 @@ def create_checklist_item_answer_api(request):
             "note": note,
         })
     
-    saved, messages = bulk_save_answers(checklist=checklist, payloads=payloads)
+    saved, messages = bulk_save_answers(
+        technician_operating=technician_operating,
+        checklist=checklist,
+        payloads=payloads,
+    )
 
     missing_after_save, list_errors = list_missing_required_answers(checklist=checklist)
 
@@ -399,3 +465,67 @@ def remove_checklist_answer_api(request, checklist_id, item_template_id):
         "item_template_id": str(item_template.id),
         "messages": messages,
     }, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def export_checklist_answers_csv_api(request):
+    technician_operating = getattr(request, "technician_operating", None)
+    manager_account_operating = getattr(request, "manager_account_operating", None)
+
+    if technician_operating is None:
+        return Response(
+            {"codes": ["technician_operating_required"], "correlation_id": None},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    work_order_id = request.GET.get("work_order_id")
+    service_type = request.GET.get("service_type") or None
+    template_id = request.GET.get("template_id")
+
+    try:
+        wo_id = int(work_order_id) if work_order_id else None
+    except (TypeError, ValueError):
+        return Response(
+            {"codes": ["invalid_work_order_id"], "correlation_id": None},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        tpl_id = int(template_id) if template_id else None
+    except (TypeError, ValueError):
+        return Response(
+            {"codes": ["invalid_template_id"], "correlation_id": None},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    csv_text, messages = export_checklist_answers_csv(
+        technician_operating=technician_operating,
+        work_order_id=wo_id,
+        service_type=service_type,
+        template_id=tpl_id,
+    )
+
+    if messages:
+        payloads = [get_error_payload(c) for c in messages]
+        session_id = request.session.session_key or request.COOKIES.get("sessionid")
+        client_ip = get_client_ip(request)
+        ua = request.META.get("HTTP_USER_AGENT", "")
+        client_fingerprint = hashlib.sha1(ua.encode()).hexdigest()[:16] if ua else None
+        tenant_id = getattr(technician_operating.tenant, "id", None)
+        correlation = publish_ui_messages(
+            manager_account_operating_id=manager_account_operating,
+            technician_operating_id=technician_operating,
+            client_ip=client_ip,
+            client_fingerprint=client_fingerprint,
+            session_id=session_id,
+            tenant_id=tenant_id,
+            payloads=payloads,
+            source="django_api",
+        )
+        return Response(
+            {"codes": messages, "correlation_id": correlation},
+            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
+    response = HttpResponse("\ufeff" + csv_text, content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="checklist_answers_export.csv"'
+    return response

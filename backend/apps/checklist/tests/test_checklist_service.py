@@ -38,7 +38,12 @@ class ChecklistServiceTestCase(TestCase):
         )
 
         # checklist simples (vai ser usado em vários testes)
-        self.checklist = Checklist.objects.create(template=self.tpl, filled_by=self.tech_filled)
+        self.checklist = Checklist.objects.create(
+            template=self.tpl,
+            filled_by=self.tech_filled,
+            status="draft",
+            incomplete=True,
+        )
 
     # -----------------------------
     # create_checklist
@@ -53,8 +58,6 @@ class ChecklistServiceTestCase(TestCase):
         self.assertIsInstance(cl, Checklist)
         self.assertEqual(cl.template, self.tpl)
         self.assertEqual(cl.filled_by, self.tech_filled)
-
-    # (não testo o deny aqui porque sua função usa 'errors' antes de declarar; evitar falha de UnboundLocal)
 
     # -----------------------------
     # save_answer
@@ -166,29 +169,15 @@ class ChecklistServiceTestCase(TestCase):
             template=self.tpl, order=11, question="Q2", answer_type="choice", required=True, choice_options="X,Y"
         )
 
-        # wrapper para injetar technician_operating no save_answer real
-        original_save_answer = svc.save_answer
-
-        def save_answer_wrapper(*, checklist, item_template, value, note=""):
-            # usa o save_answer real, mas injeta o operador
-            return original_save_answer(
-                technician_operating=self.tech_op,
-                checklist=checklist,
-                item_template=item_template,
-                value=value,
-                note=note,
-            )
-
-        # patcha apenas dentro deste teste
-        with patch.object(svc, "save_answer", side_effect=save_answer_wrapper):
-            saved, errs = svc.bulk_save_answers(
-                checklist=self.checklist,
-                payloads=[
-                    {"item_template": it1.id, "value": True},         # ok
-                    {"item_template": it2.id, "value": "Z"},          # choice inválida
-                    {"item_template": 999999, "value": "whatever"},   # item inexistente
-                ],
-            )
+        saved, errs = svc.bulk_save_answers(
+            technician_operating=self.tech_op,
+            checklist=self.checklist,
+            payloads=[
+                {"item_template": it1.id, "value": True},
+                {"item_template": it2.id, "value": "Z"},
+                {"item_template": 999999, "value": "whatever"},
+            ],
+        )
 
         # verificações
         self.assertTrue(any(isinstance(a, ChecklistItemAnswer) for a in saved))

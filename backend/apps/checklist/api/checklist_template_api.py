@@ -4,10 +4,15 @@ from rest_framework import status
 from backend.publisher import publish_ui_messages, get_client_ip
 from backend.common.schemas.error_messages_schema import get_error_payload
 import hashlib
-from backend.apps.checklist.services.checklist_template_service import (next_order_for_template, remove_aggroupment_from_template, create_checklist_template, 
-add_item_to_checklist_template, delegate_checklist_template_to_aggroupment, update_checklist_template_version,)
+from backend.apps.checklist.utils.checklist_template_util import next_order_for_template
+from backend.apps.checklist.services.checklist_template_service import (
+    remove_aggroupment_from_template,
+    create_checklist_template,
+    add_item_to_checklist_template,
+    delegate_checklist_template_to_aggroupment,
+    update_checklist_template_version,
+)
 from backend.apps.checklist.models import ChecklistTemplate
-from backend.apps.orders.models import WorkOrder
 from backend.apps.core.models import TechniciansAggroupment
 
 @api_view(["POST"])

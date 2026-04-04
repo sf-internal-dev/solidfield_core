@@ -36,7 +36,7 @@ class ChecklistSerializer(serializers.ModelSerializer):
         model = Checklist
         fields = [
             'id', 'template', 'filled_by', 'work_order_id', 'work_order_identifier',
-            'status', 'created_at', 'updated_at'
+            'status', 'incomplete', 'created_at', 'updated_at'
         ]
 
 
@@ -45,11 +45,11 @@ class ChecklistDetailSerializer(serializers.ModelSerializer):
     filled_by = TechnicianSerializer(read_only=True)
     work_order_id = serializers.IntegerField(source='work_order.id', read_only=True)
     work_order_identifier = serializers.CharField(source='work_order.identifier', read_only=True)
-    answers = ChecklistItemAnswerSerializer(source='checklistitemanswer_set', many=True, read_only=True)
+    answers = ChecklistItemAnswerSerializer(many=True, read_only=True)
 
     class Meta:
         model = Checklist
         fields = [
             'id', 'template', 'filled_by', 'work_order_id', 'work_order_identifier',
-            'status', 'answers', 'created_at', 'updated_at'
+            'status', 'incomplete', 'answers', 'created_at', 'updated_at'
         ]

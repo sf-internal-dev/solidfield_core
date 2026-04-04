@@ -2,21 +2,44 @@ from __future__ import annotations
 from backend.apps.checklist.utils.checklist_util import expected_field_for_type, has_required_value, choice_in_options
 from backend.apps.checklist.models.checklist import Checklist, ChecklistItemAnswer, ChecklistItemTemplate, ChecklistTemplate
 from backend.apps.core.models.technician import Technician
+from backend.apps.orders.models import WorkOrder
 from typing import Optional, List, Tuple, Dict, Any, Iterable
 from django.db import transaction
 from backend.apps.core.services.technician_permission_service import has_permission
-from django.db.models import Q, Count, Case, When, IntegerField
-#-> Creates a new checklist instance for a given template and technician
-# Associates the checklist with the provided template and filled_by technician
-# Returns the created checklist object along with any validation errors
-def create_checklist(*, technician_operating: Technician, template: ChecklistTemplate, filled_by: Technician) -> Tuple[Optional[Checklist], List[str]]:
+
+
+def create_checklist(
+    *,
+    technician_operating: Technician,
+    template: Optional[ChecklistTemplate],
+    filled_by: Optional[Technician] = None,
+    work_order: Optional[WorkOrder] = None,
+) -> Tuple[Optional[Checklist], List[str]]:
+    errors: List[str] = []
+    if template is None:
+        return None, ["template_required"]
+
     ok, perm_errors = has_permission(technician_operating, "submit_checklist")
     if not ok:
-        errors.extend(perm_errors)
-        return None, errors
+        return None, perm_errors
 
-    errors: List[str] = []
-    checklist = Checklist.objects.create(template=template, filled_by=filled_by)
+    if template.tenant_id != technician_operating.tenant_id:
+        return None, ["template_tenant_mismatch"]
+
+    actor = filled_by or technician_operating
+    if actor.tenant_id != technician_operating.tenant_id:
+        return None, ["filled_by_tenant_mismatch"]
+
+    if work_order is not None and work_order.tenant_id != technician_operating.tenant_id:
+        return None, ["work_order_tenant_mismatch"]
+
+    checklist = Checklist.objects.create(
+        template=template,
+        filled_by=actor,
+        work_order=work_order,
+        status="draft",
+        incomplete=True,
+    )
     return checklist, errors
 
 #-> Saves or updates a single checklist item answer for a given checklist
@@ -77,7 +100,7 @@ def remove_answer(*, technician_operating: Technician, checklist: Checklist, ite
     ok, perm_errors = has_permission(technician_operating, "remove_answer")
     if not ok:
         errors.extend(perm_errors)
-        return None, errors
+        return False, errors
 
     obj = ChecklistItemAnswer.objects.filter(
         checklist=checklist, item_template=item_template
@@ -121,7 +144,12 @@ def list_missing_required_answers(*, checklist: Checklist) -> Tuple[List[int], L
 # Resolves item_template IDs to objects and validates each before saving via save_answer
 # Returns a list of successfully saved answers and any accumulated validation errors
 @transaction.atomic
-def bulk_save_answers(*,checklist: Checklist, payloads: Iterable[Dict[str, Any]],) -> Tuple[List[ChecklistItemAnswer], List[str]]:
+def bulk_save_answers(
+    *,
+    technician_operating: Technician,
+    checklist: Checklist,
+    payloads: Iterable[Dict[str, Any]],
+) -> Tuple[List[ChecklistItemAnswer], List[str]]:
 
     errors: List[str] = []
     saved: List[ChecklistItemAnswer] = []
@@ -141,6 +169,7 @@ def bulk_save_answers(*,checklist: Checklist, payloads: Iterable[Dict[str, Any]]
             continue
 
         ans, errs = save_answer(
+            technician_operating=technician_operating,
             checklist=checklist,
             item_template=it,
             value=p.get("value"),
@@ -235,10 +264,10 @@ def submit_checklist(*, technician_operating: Technician, checklist_id: int) -> 
         errors.extend(missing_errors)
         return False, errors
     
-    # Update status
     checklist.status = "submitted"
-    checklist.save(update_fields=['status'])
-    
+    checklist.incomplete = False
+    checklist.save(update_fields=["status", "incomplete"])
+
     return True, errors
 
 # -> Calculates progress statistics for a checklist

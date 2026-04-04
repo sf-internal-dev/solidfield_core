@@ -1,3 +1,0 @@
-cd /home/adryan/solidfield_core
-python manage.py seed_pesca_diario_operacional --dry-run
-python manage.py seed_pesca_diario_operacional --tenant-id 1 --technician-id 1

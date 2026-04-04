@@ -12,7 +12,7 @@ O repositório oferece capacidades **reaproveitáveis** (sem assumir módulos qu
 
 | Capacidade no código | Onde vive | Uso direto em pesca |
 |----------------------|-----------|---------------------|
-| Formulários versionados + tipos numéricos (volume, temperatura, etc.) | `backend/apps/checklist/` + seed em `checklist/defaults/pesca_diario_operacional.py` | Leituras de **diesel**, **gelo**, **temperatura de câmara**, registros por turno/dia |
+| Formulários versionados + tipos numéricos (volume, temperatura, etc.) | `backend/apps/checklist/` + seed em `checklist/defaults/pesca_diario_operacional.py` | Leituras de **diesel**, **gelo**, **temperatura de câmara**, registros por turno/dia | feito
 | Execução em campo + progresso + submissão | `checklist/services/checklist_service.py` | “Diário” estruturado com regras de obrigatoriedade antes de fechar o dia |
 | Fila offline | `backend/apps/core/models/sync.py` (`OfflineSyncQueue`) | Mar sem sinal: enfileira respostas e sincroniza no porto |
 | Evidência (foto/assinatura + geo) | `backend/apps/filehub/` | Comprovação de leitura, estado do gelo, lacres, nota de abastecimento |
@@ -137,8 +137,12 @@ python manage.py seed_pesca_diario_operacional --tenant-id 1 --technician-id 1
 - Se `--technician-id` for omitido, usa o **primeiro** `Technician` ativo daquele tenant (como `created_by` do template).
 - Se o template **v1** com esse nome já existir para o tenant, o comando **não altera** nada (idempotente).
 
-### 7.3 Próximo passo de produto (ainda não implementado aqui)
+### 7.3 Vínculo com viagem e export (implementado)
 
-- Vincular cada preenchimento a uma **viagem** via `WorkOrder` na criação do checklist (`create_checklist` / API).
-- Export CSV ou view agregada para BI.
+- **Criar checklist com viagem:** `POST /create_checklist_api/` com JSON `template`, opcional `work_order` (ID da `WorkOrder` do mesmo tenant), opcional `filled_by` (senão usa o técnico da sessão).
+- **Export CSV para BI:** `GET /export_checklist_answers_csv_api/` com query opcional `work_order_id`, `service_type` (ex.: `pesca_industrial_diario`), `template_id`. Resposta: arquivo CSV (UTF-8 com BOM para Excel).
+
+### 7.4 Próximo passo de produto (opcional)
+
 - Opcional: itens de evidência (`filehub`) para foto do medidor / termômetro.
+- Dashboard dedicado ou agendamento de relatórios (hoje: download manual do CSV).

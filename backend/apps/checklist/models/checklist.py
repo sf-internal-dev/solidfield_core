@@ -89,6 +89,11 @@ class Checklist(BaseModel):
     filled_by = models.ForeignKey("core.Technician", on_delete=models.PROTECT)
     filled_at = models.DateTimeField(auto_now_add=True)
     incomplete = models.BooleanField(default=True)
+    status = models.CharField(
+        max_length=20,
+        default="draft",
+        help_text="draft | submitted",
+    )
     work_order = models.ForeignKey(
         'orders.WorkOrder',
         on_delete=models.CASCADE,
@@ -97,7 +102,10 @@ class Checklist(BaseModel):
     )
 
     def __str__(self):
-        return f"Checklist #{self.id} - OS {self.work_order.identifier}"
+        wo = getattr(self, "work_order", None)
+        if wo is not None:
+            return f"Checklist #{self.id} — {wo.identifier}"
+        return f"Checklist #{self.id}"
 
 
 class ChecklistItemAnswer(BaseModel):
