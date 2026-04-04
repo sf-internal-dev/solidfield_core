@@ -1,4 +1,4 @@
-from backend.apps.core.api import audition_log_api, tenant_api, technician_api
+from backend.apps.core.api import audition_log_api, offline_sync_api, tenant_api, technician_api
 from backend.apps.checklist.api import checklist_api, checklist_template_api
 from backend.apps.clients.api import client_api, client_feedback_api
 from backend.apps.orders.api import work_order_api
@@ -23,6 +23,10 @@ urlpatterns = [
     path("update_tenant_api/<int:tenant_id>/",tenant_api.update_tenant_api, name="update_tenant_api"),
     path("get_tenant_workflow_api/<int:tenant_id>/",tenant_api.get_tenant_workflow_api, name="get_tenant_workflow_api"),
     path("update_tenant_workflow_api/<int:tenant_id>/",tenant_api.update_tenant_workflow_api, name="update_tenant_workflow_api"),
+    # Offline sync queue
+    path("enqueue_offline_sync_api/", offline_sync_api.enqueue_offline_sync_api, name="enqueue_offline_sync_api"),
+    path("list_offline_sync_api/", offline_sync_api.list_offline_sync_api, name="list_offline_sync_api"),
+    path("process_offline_sync_api/<int:queue_id>/", offline_sync_api.process_offline_sync_api, name="process_offline_sync_api"),
     # Checklist APIs
     path("create_checklist_api/",checklist_api.create_checklist_api, name="create_checklist_api"),
     path("create_checklist_item_answer_api/",checklist_api.create_checklist_item_answer_api, name="create_checklist_item_answer_api"),
@@ -31,6 +35,7 @@ urlpatterns = [
     path("get_checklist_api/<int:checklist_id>/",checklist_api.get_checklist_api, name="get_checklist_api"),
     path("submit_checklist_api/<int:checklist_id>/",checklist_api.submit_checklist_api, name="submit_checklist_api"),
     path("get_checklist_progress_api/<int:checklist_id>/",checklist_api.get_checklist_progress_api, name="get_checklist_progress_api"),
+    path("export_checklist_answers_csv_api/", checklist_api.export_checklist_answers_csv_api, name="export_checklist_answers_csv_api"),
     path("create_checklist_template_api/",checklist_template_api.create_checklist_template_api, name="create_checklist_template_api"),
     path("create_checklist_item_template_api/",checklist_template_api.create_checklist_item_template_api, name="create_checklist_item_template_api"),
     path("get_next_order_for_template_api/<int:template_id>/",checklist_template_api.get_next_order_for_template_api, name="get_next_order_for_template_api"),

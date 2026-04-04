@@ -44,14 +44,27 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
                 "label": "Generate Feedback Link",
                 "delegable": True,
                 "description": "Generates a feedback link after completing the work order."
-            }
+            },
+            {
+                "code": "enqueue_offline_sync",
+                "label": "Enqueue Offline Sync",
+                "delegable": True,
+                "description": "Queues payloads captured offline for later synchronization."
+            },
+            {
+                "code": "process_offline_sync",
+                "label": "Process Offline Sync Queue",
+                "delegable": True,
+                "description": "Applies pending offline queue items when connectivity is available."
+            },
         ]
     },
     "L2": {
         "label": "Coordination (Local Supervision)",
         "inherits_selectively_from": {
             "L1": ["work_order_request","view_assigned_work_orders", "collect_signature","update_work_order_status",
-                   "generate_feedback_link","upload_photos","submit_checklist"]
+                   "generate_feedback_link","upload_photos","submit_checklist",
+                   "enqueue_offline_sync","process_offline_sync"]
                 },
         # Supervisors inherit L1 capabilities and can approve requests, create internal tasks, and organize their local team.
         "actions": [
@@ -85,7 +98,8 @@ ACTIONS_BY_PERMISSION_SCHEMA = {
         "label": "Full Control (Operational Management)",
         "inherits_selectively_from": {
             "L1": ["view_assigned_work_orders", "collect_signature","update_work_order_status",
-                   "generate_feedback_link","upload_photos","submit_checklist"],
+                   "generate_feedback_link","upload_photos","submit_checklist",
+                   "enqueue_offline_sync","process_offline_sync"],
             "L2": ["group_assignment_visual","view_team_orders","create_internal_work_order",
                    "approve_work_order_request","view_team_orders"]
                 },
