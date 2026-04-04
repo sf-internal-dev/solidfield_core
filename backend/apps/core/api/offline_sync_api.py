@@ -1,8 +1,16 @@
 import hashlib
 
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from backend.apps.apis.spectacular_public import (
+    TAG_OFFLINE,
+    schema_error_401,
+    schema_error_422,
+)
 
 from backend.apps.core.services.offline_sync_service import (
     enqueue_offline_sync_item,
@@ -35,6 +43,38 @@ def _error_response(request, messages, technician_operating, manager_account_ope
     return Response({"codes": messages, "correlation_id": correlation}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
+@extend_schema(
+    tags=[TAG_OFFLINE],
+    operation_id="publicV1OfflineSyncEnqueue",
+    summary="Enfileira mutação offline (payload + client_mutation_id opcional)",
+    request={
+        "application/json": {
+            "type": "object",
+            "required": ["payload"],
+            "properties": {
+                "payload": {
+                    "type": "object",
+                    "description": "Deve incluir action e body; ver OFFLINE_SYNC_QUEUE.md",
+                },
+                "client_mutation_id": {"type": "string", "nullable": True, "maxLength": 64},
+                "queue_owner_technician_id": {"type": "integer", "nullable": True},
+            },
+        }
+    },
+    responses={
+        201: {
+            "type": "object",
+            "properties": {
+                "success": {"type": "string"},
+                "queue_id": {"type": "string"},
+                "status": {"type": "string"},
+                "client_mutation_id": {"type": "string", "nullable": True},
+            },
+        },
+        401: schema_error_401(),
+        422: schema_error_422(),
+    },
+)
 @api_view(["POST"])
 def enqueue_offline_sync_api(request):
     data = request.data or {}
@@ -88,6 +128,28 @@ def enqueue_offline_sync_api(request):
     )
 
 
+@extend_schema(
+    tags=[TAG_OFFLINE],
+    operation_id="publicV1OfflineSyncList",
+    summary="Lista itens da fila offline do técnico autenticado",
+    parameters=[
+        OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY, description="pending|conflict|success"),
+        OpenApiParameter("limit", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("offset", OpenApiTypes.INT, OpenApiParameter.QUERY),
+    ],
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "success": {"type": "string"},
+                "items": {"type": "array", "items": {"type": "object"}},
+                "count": {"type": "integer"},
+            },
+        },
+        401: schema_error_401(),
+        422: schema_error_422(),
+    },
+)
 @api_view(["GET"])
 def list_offline_sync_api(request):
     technician_operating = getattr(request, "technician_operating", None)
@@ -129,6 +191,24 @@ def list_offline_sync_api(request):
     return Response({"success": "ok", "items": data, "count": len(data)}, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=[TAG_OFFLINE],
+    operation_id="publicV1OfflineSyncProcess",
+    summary="Processa um item da fila (aplica checklist_batch_answers ou checklist_submit)",
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "success": {"type": "string"},
+                "queue_id": {"type": "string"},
+                "status": {"type": "string"},
+            },
+        },
+        401: schema_error_401(),
+        404: schema_error_401(),
+        422: schema_error_422(),
+    },
+)
 @api_view(["POST"])
 def process_offline_sync_api(request, queue_id):
     technician_operating = getattr(request, "technician_operating", None)

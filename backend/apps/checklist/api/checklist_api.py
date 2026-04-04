@@ -9,6 +9,8 @@ from backend.apps.checklist.services.checklist_service import (
     get_checklist_progress,
 )
 from backend.apps.checklist.services.checklist_export_service import export_checklist_answers_csv
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.types import OpenApiTypes
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -20,7 +22,28 @@ from backend.apps.core.models.technician import Technician
 from backend.apps.checklist.models import Checklist, ChecklistItemTemplate, ChecklistTemplate
 from backend.apps.orders.models import WorkOrder
 from backend.apps.checklist.api.serializers.checklist_serializers import ChecklistSerializer, ChecklistDetailSerializer
+from backend.apps.apis.spectacular_public import TAG_CHECKLIST, schema_error_401, schema_error_422
 
+_JSON_OBJECT = {"type": "object", "additionalProperties": True}
+
+
+@extend_schema(
+    tags=[TAG_CHECKLIST],
+    operation_id="publicV1ChecklistCreate",
+    summary="Cria instância de checklist (viagem opcional via work_order)",
+    request={
+        "application/json": {
+            "type": "object",
+            "required": ["template"],
+            "properties": {
+                "template": {"type": "integer"},
+                "work_order": {"type": "integer", "nullable": True},
+                "filled_by": {"type": "integer", "nullable": True},
+            },
+        }
+    },
+    responses={201: _JSON_OBJECT, 401: schema_error_401(), 422: schema_error_422()},
+)
 @api_view(["POST"])
 def create_checklist_api(request):
     data = request.data or {}
@@ -131,6 +154,24 @@ def create_checklist_api(request):
     }, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    tags=[TAG_CHECKLIST],
+    operation_id="publicV1ChecklistBulkAnswers",
+    summary="Salva respostas em lote (checklist + lista answers)",
+    request={
+        "application/json": {
+            "type": "object",
+            "properties": {
+                "checklist": {"type": "integer"},
+                "answers": {
+                    "type": "array",
+                    "items": {"type": "object", "additionalProperties": True},
+                },
+            },
+        }
+    },
+    responses={201: _JSON_OBJECT, 422: schema_error_422()},
+)
 @api_view(["POST"])
 def create_checklist_item_answer_api(request):
     data = request.data or {}
@@ -207,6 +248,20 @@ def create_checklist_item_answer_api(request):
     )
 
 
+@extend_schema(
+    tags=[TAG_CHECKLIST],
+    operation_id="publicV1ChecklistList",
+    summary="Lista checklists com filtros opcionais",
+    parameters=[
+        OpenApiParameter("technician_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("template_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("work_order_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
+        OpenApiParameter("limit", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("offset", OpenApiTypes.INT, OpenApiParameter.QUERY),
+    ],
+    responses={200: _JSON_OBJECT, 422: schema_error_422()},
+)
 @api_view(["GET"])
 def list_checklists_api(request):
     technician_operating = getattr(request, "technician_operating", None)
@@ -274,6 +329,12 @@ def list_checklists_api(request):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=[TAG_CHECKLIST],
+    operation_id="publicV1ChecklistGet",
+    summary="Detalhe do checklist com respostas",
+    responses={200: _JSON_OBJECT, 422: schema_error_422()},
+)
 @api_view(["GET"])
 def get_checklist_api(request, checklist_id):
     technician_operating = getattr(request, "technician_operating", None)
@@ -320,6 +381,12 @@ def get_checklist_api(request, checklist_id):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=[TAG_CHECKLIST],
+    operation_id="publicV1ChecklistSubmit",
+    summary="Submete checklist (valida obrigatórios)",
+    responses={200: _JSON_OBJECT, 422: schema_error_422()},
+)
 @api_view(["POST"])
 def submit_checklist_api(request, checklist_id):
     technician_operating = getattr(request, "technician_operating", None)
@@ -363,6 +430,12 @@ def submit_checklist_api(request, checklist_id):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=[TAG_CHECKLIST],
+    operation_id="publicV1ChecklistProgress",
+    summary="Progresso e respostas agregadas",
+    responses={200: _JSON_OBJECT, 422: schema_error_422()},
+)
 @api_view(["GET"])
 def get_checklist_progress_api(request, checklist_id):
     technician_operating = getattr(request, "technician_operating", None)
@@ -406,6 +479,12 @@ def get_checklist_progress_api(request, checklist_id):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=[TAG_CHECKLIST],
+    operation_id="publicV1ChecklistRemoveAnswer",
+    summary="Remove uma resposta (checklist + item_template)",
+    responses={200: _JSON_OBJECT, 404: schema_error_401(), 422: schema_error_422()},
+)
 @api_view(["DELETE"])
 def remove_checklist_answer_api(request, checklist_id, item_template_id):
     technician_operating = getattr(request, "technician_operating", None)
@@ -467,6 +546,17 @@ def remove_checklist_answer_api(request, checklist_id, item_template_id):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=[TAG_CHECKLIST],
+    operation_id="publicV1ChecklistExportCsv",
+    summary="Export CSV de respostas para BI",
+    parameters=[
+        OpenApiParameter("work_order_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        OpenApiParameter("service_type", OpenApiTypes.STR, OpenApiParameter.QUERY),
+        OpenApiParameter("template_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
+    ],
+    responses={200: OpenApiTypes.BINARY},
+)
 @api_view(["GET"])
 def export_checklist_answers_csv_api(request):
     technician_operating = getattr(request, "technician_operating", None)
