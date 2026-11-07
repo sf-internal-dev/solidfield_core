@@ -1,56 +1,56 @@
-# Esquematização: gravação local → enqueue → process
+# Schema: local write → enqueue → process
 
-Este documento define um **padrão de referência** para o **cliente** (app mobile / PWA) trabalhar **100% offline** no preenchimento e, ao reconectar, alinhar com a fila já existente no backend (`OfflineSyncQueue`).
+This document defines a **reference pattern** for the **client** (mobile app / PWA) to work **fully offline** while filling data and, on reconnect, align with the queue that already exists on the backend (`OfflineSyncQueue`).
 
-Stack **Vue 3 + Ionic + Capacitor:** ver **`CAPACITOR_VUE_IONIC_OFFLINE_SYNC.md`** (pastas sugeridas, plugins, composable, eventos de rede/app).
+**Vue 3 + Ionic + Capacitor** stack: see **`CAPACITOR_VUE_IONIC_OFFLINE_SYNC.md`** (suggested folders, plugins, composable, network/app events).
 
-O Django **não grava no dispositivo**; ele apenas expõe as APIs descritas em `OFFLINE_SYNC_QUEUE.md`. Toda a camada “local” abaixo é **responsabilidade do app**.
-
----
-
-## 1. Princípios
-
-| Princípio | Significado |
-|-----------|-------------|
-| **Um `client_mutation_id` por intenção** | UUID v4 gerado **no dispositivo** no momento da ação do usuário (ex.: “salvar turno”). Nunca reutilizar. |
-| **Append-only local até confirmar** | Preferir **novo registro** local por tentativa lógica; evitar sobrescrever silenciosamente. |
-| **Servidor é fonte da verdade para `queue_id`** | O `id` numérico de `OfflineSyncQueue` só existe após `enqueue` bem-sucedido. |
-| **Process idempotente no servidor** | Após `success`, repetir `process` no mesmo item não reaplica mutação (ver serviço). |
+Django **does not write to the device**; it only exposes the APIs described in `OFFLINE_SYNC_QUEUE.md`. The entire “local” layer below is the **app’s responsibility**.
 
 ---
 
-## 2. Modelo mental de dados no dispositivo
+## 1. Principles
 
-Cada **mutação pendente** é uma linha (ou documento) com campos mínimos sugeridos:
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `local_id` | string (UUID) | PK local; pode ser igual ao `client_mutation_id` ou separado. |
-| `client_mutation_id` | string (UUID) | **Igual** ao enviado no `enqueue`; usado para idempotência no servidor. |
-| `status` | enum | Ver seção 3. |
-| `payload` | objeto JSON | Mesmo contrato do backend: `schema_version`, `action`, `body`. |
-| `server_queue_id` | int \| null | Preenchido após `enqueue` 201. |
-| `last_error_codes` | string[] \| null | Cópia de `codes` da última resposta HTTP ou de `payload.sync_error_codes` após `process` em conflito. |
-| `created_at` | ISO datetime | Quando o usuário “confirmou” offline. |
-| `updated_at` | ISO datetime | Última tentativa de sync. |
-
-**Onde gravar:** SQLite (React Native / Flutter), IndexedDB (PWA), CoreData, etc. “Arquivo JSON” serve para protótipo, não é ideal para concorrência e busca.
+| Principle | Meaning |
+|-----------|---------|
+| **One `client_mutation_id` per intent** | UUID v4 generated **on the device** at the moment of the user action (for example “save shift”). Never reuse it. |
+| **Local append-only until confirmation** | Prefer a **new local record** per logical attempt; avoid silent overwrites. |
+| **The server is the source of truth for `queue_id`** | The numeric `id` of `OfflineSyncQueue` exists only after a successful `enqueue`. |
+| **Idempotent process on the server** | After `success`, repeating `process` on the same item does not reapply the mutation (see the service). |
 
 ---
 
-## 3. Máquina de estados (lado cliente)
+## 2. Mental data model on the device
+
+Each **pending mutation** is a row (or document) with these suggested minimum fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `local_id` | string (UUID) | Local PK; may equal `client_mutation_id` or be separate. |
+| `client_mutation_id` | string (UUID) | **Same** value sent on `enqueue`; used for server idempotency. |
+| `status` | enum | See section 3. |
+| `payload` | JSON object | Same backend contract: `schema_version`, `action`, `body`. |
+| `server_queue_id` | int \| null | Set after `enqueue` 201. |
+| `last_error_codes` | string[] \| null | Copy of `codes` from the last HTTP response, or of `payload.sync_error_codes` after `process` hits a conflict. |
+| `created_at` | ISO datetime | When the user “confirmed” offline. |
+| `updated_at` | ISO datetime | Last sync attempt. |
+
+**Where to store it:** SQLite (React Native / Flutter), IndexedDB (PWA), CoreData, and so on. A “JSON file” is fine for a prototype; it is a poor fit for concurrency and lookup.
+
+---
+
+## 3. State machine (client side)
 
 ```text
                     ┌─────────────────┐
-                    │  local_only     │  mutação criada offline, ainda não enviada
+                    │  local_only     │  mutation created offline, not sent yet
                     └────────┬────────┘
                              │ HTTP: POST enqueue_offline_sync_api
               ┌──────────────┼──────────────┐
               ▼              ▼              ▼
-        (falha rede)   (201 + queue_id)  (422: ex. permissão)
+        (network failure) (201 + queue_id) (422: e.g. permission)
               │              │              │
               ▼              ▼              ▼
-     continua local_only   enqueued      local_failed (*)
+     stays local_only     enqueued      local_failed (*)
               │              │
               │              │ HTTP: POST process_offline_sync_api/<id>
               │     ┌────────┴────────┐
@@ -61,24 +61,24 @@ Cada **mutação pendente** é uma linha (ou documento) com campos mínimos suge
               │  synced          needs_retry (**)
 ```
 
-- (*) `local_failed`: operador pode corrigir payload ou permissões; opcionalmente `status=dead` após N tentativas.
-- (**) `needs_retry`: manter `server_queue_id`, chamar `process` de novo (o backend re-tenta `conflict` → `pending` internamente). Inspecionar `payload.sync_error_codes` retornado em `list` ou após 422.
+- (*) `local_failed`: the operator can fix the payload or permissions; optionally `status=dead` after N attempts.
+- (**) `needs_retry`: keep `server_queue_id` and call `process` again (the backend retries `conflict` → `pending` internally). Inspect `payload.sync_error_codes` returned by `list` or after 422.
 
 ---
 
-## 4. Sequência recomendada (diagrama)
+## 4. Recommended sequence (diagram)
 
 ```mermaid
 sequenceDiagram
-    participant U as Usuário
-    participant App as App (storage local)
+    participant U as User
+    participant App as App (local storage)
     participant API as SolidField API
 
-    U->>App: Confirma leituras (diesel/gelo/°C)
-    App->>App: Gera client_mutation_id (UUID)
+    U->>App: Confirms readings (diesel/ice/°C)
+    App->>App: Generates client_mutation_id (UUID)
     App->>App: INSERT status=local_only, payload
 
-    Note over App: Sem rede — nada chama API
+    Note over App: Offline — nothing calls the API
 
     App->>API: POST enqueue (payload, client_mutation_id)
     API-->>App: 201 queue_id
@@ -89,13 +89,13 @@ sequenceDiagram
     App->>App: UPDATE status=synced
 ```
 
-**Variação:** se houver rede e você quiser menos uma ida, pode chamar as APIs **diretas** de checklist (`create_checklist_item_answer_api`, etc.) **sem** passar pela fila; a fila é útil para **rastreio**, **retry unificado** e **mesmo contrato** para várias ações.
+**Variation:** if the network is up and you want one fewer round trip, you can call the checklist APIs **directly** (`create_checklist_item_answer_api`, and so on) **without** going through the queue; the queue is useful for **tracking**, **unified retry**, and the **same contract** across several actions.
 
 ---
 
-## 5. Contrato de `payload` (igual ao servidor)
+## 5. `payload` contract (same as the server)
 
-O objeto salvo localmente deve ser o **mesmo** que será enviado em `enqueue.payload`:
+The object stored locally must be the **same** object sent in `enqueue.payload`:
 
 ```json
 {
@@ -110,7 +110,7 @@ O objeto salvo localmente deve ser o **mesmo** que será enviado em `enqueue.pay
 }
 ```
 
-Para fechar o turno no servidor após os lotes:
+To close the shift on the server after the batches:
 
 ```json
 {
@@ -120,50 +120,50 @@ Para fechar o turno no servidor após os lotes:
 }
 ```
 
-Ordem sugerida no sync: **primeiro** todos os `checklist_batch_answers` pendentes daquele checklist, **depois** um único `checklist_submit`.
+Suggested sync order: **first** every pending `checklist_batch_answers` for that checklist, **then** a single `checklist_submit`.
 
 ---
 
-## 6. Política de sync (pseudo-algoritmo)
+## 6. Sync policy (pseudo-algorithm)
 
 ```text
-função sincronizar():
-  para cada registro onde status em (local_only, enqueued, needs_retry):
-    se status == local_only OU server_queue_id is null:
-      resposta = POST enqueue(payload, client_mutation_id)
-      se sucesso: gravar server_queue_id, status = enqueued
-      se 422 com conflict_retry_use_process: buscar queue_id existente (list API ou guardado) e status = enqueued
-      se falha rede: break (tentar depois)
+function synchronize():
+  for each record where status in (local_only, enqueued, needs_retry):
+    if status == local_only OR server_queue_id is null:
+      response = POST enqueue(payload, client_mutation_id)
+      if success: store server_queue_id, status = enqueued
+      if 422 with conflict_retry_use_process: look up the existing queue_id (list API or stored) and status = enqueued
+      if network failure: break (try later)
 
-    se server_queue_id presente e status != synced:
-      resposta = POST process(server_queue_id)
-      se 200 e status success no JSON: status = synced
-      se 422: copiar codes em last_error_codes; status = needs_retry
+    if server_queue_id is present and status != synced:
+      response = POST process(server_queue_id)
+      if 200 and status success in the JSON: status = synced
+      if 422: copy codes into last_error_codes; status = needs_retry
 ```
 
-Use **backoff exponencial** entre tentativas (ex.: 30s, 2m, 10m) para não derrubar a API.
+Use **exponential backoff** between attempts (for example 30s, 2m, 10m) so the API is not overwhelmed.
 
 ---
 
-## 7. Relação com checklist / viagem
+## 7. Relationship to checklist / voyage
 
-1. **Criar checklist** (template + `work_order`) idealmente **com rede uma vez** (porto), para existir `checklist_id` estável.
-2. Offline: o app só acumula **respostas** (`checklist_batch_answers`) + eventual **submit** usando esse `checklist_id` fixo no `payload`.
-3. Se no futuro existir ação `checklist_create` na fila offline no servidor, o fluxo local seria o mesmo: `local_only` → enqueue → process.
-
----
-
-## 8. Checklist de implementação no app
-
-- [ ] Escolher storage (SQLite / IndexedDB).
-- [ ] Gerar e persistir `client_mutation_id` por ação de usuário.
-- [ ] Worker de sync disparado por `online` event + timer.
-- [ ] Mapear erros HTTP → `last_error_codes` e UI para técnico.
-- [ ] Teste: modo avião → N mutações → rede → todas `synced`.
+1. **Create the checklist** (template + `work_order`) ideally **once, online** (at port), so a stable `checklist_id` exists.
+2. Offline: the app only accumulates **answers** (`checklist_batch_answers`) plus an eventual **submit**, using that fixed `checklist_id` in the `payload`.
+3. If a `checklist_create` action is added to the server offline queue later, the local flow stays the same: `local_only` → enqueue → process.
 
 ---
 
-## 9. Documentos relacionados
+## 8. App implementation checklist
 
-- `OFFLINE_SYNC_QUEUE.md` — modelo, permissões e rotas HTTP no backend.
-- `offline_sync_service.py` — regras de idempotência e ações suportadas no `process`.
+- [ ] Choose storage (SQLite / IndexedDB).
+- [ ] Generate and persist a `client_mutation_id` per user action.
+- [ ] Sync worker triggered by the `online` event plus a timer.
+- [ ] Map HTTP errors to `last_error_codes` and a technician UI.
+- [ ] Test: airplane mode → N mutations → network → all `synced`.
+
+---
+
+## 9. Related documents
+
+- `OFFLINE_SYNC_QUEUE.md` — model, permissions, and HTTP routes on the backend.
+- `offline_sync_service.py` — idempotency rules and actions supported by `process`.

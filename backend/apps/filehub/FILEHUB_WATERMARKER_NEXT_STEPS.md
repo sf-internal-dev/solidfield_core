@@ -1,147 +1,147 @@
-# Guia — próximos passos para conectar Filehub e **sf-watermarker-worker-go**
+# Guide — next steps to connect Filehub and **sf-watermarker-worker-go**
 
-Documento operacional para equipas **Django (solidfield_core)** e **Go / DevOps**. Complementa `FILEHUB_SF_WATERMARKER_ANALISE_INTEGRACAO.md` e `SF_WATERMARKER_INTEGRACAO_SOLIDFIELD.md` (raiz do repo).
-
----
-
-## Pré-requisito de leitura
-
-- Contrato HTTP do microsserviço: `POST /image_watermark_service_webhook`, header **`X-Tenant-ID`**, resposta **`202`** + `job_id` (+ `tenant_id`). Processamento **assíncrono** (NATS). O fecho do ciclo até ao Filehub segue a **decisão (A)** abaixo (object storage + webhook).
+Operational document for the **Django (solidfield_core)** and **Go / DevOps** teams. Complements `FILEHUB_SF_WATERMARKER_INTEGRATION_ANALYSIS.md` and `SF_WATERMARKER_SOLIDFIELD_INTEGRATION.md` (repository root).
 
 ---
 
-## Decisão registada — entrega do JPEG final (**opção A**)
+## Reading prerequisite
 
-**Escolha do produto / arquitetura (solidfield_core + sf-watermarker-worker-go):**
-
-1. O **worker** envia o JPEG processado para **object storage** compatível com **S3 API** (AWS S3, MinIO, etc.).
-2. O worker (ou um componente colado ao pipeline) chama um **webhook no Django** com, no mínimo: **`job_id`**, identificação do registo (`work_order_photo_id` ou equivalente acordado), e **localização do objeto** (**URL assinada** e/ou **bucket + key**).
-3. O Django valida o pedido (autenticação mútua a definir na linha **0.2**), actualiza **`WorkOrderPhoto`** (e campos `watermark_status` / ficheiro final conforme modelo) de forma **idempotente**.
-
-> **Nota:** até esta extensão existir no Go, o worker continua a gravar só em `OUTPUT_DIR`; a decisão (A) define o **alvo** de implementação, não o estado actual do binário.
+- Microservice HTTP contract: `POST /image_watermark_service_webhook`, header **`X-Tenant-ID`**, response **`202`** + `job_id` (+ `tenant_id`). Processing is **asynchronous** (NATS). Closing the loop back to Filehub follows **decision (A)** below (object storage + webhook).
 
 ---
 
-## Fase 0 — Acordo cross-equipa (restante)
+## Recorded decision — delivery of the final JPEG (**option A**)
 
-| # | Decisão | Estado | Notas |
-|---|---------|--------|-------|
-| 0.1 | **Entrega do JPEG final** | **✓ (A)** Object storage (S3/MinIO) + **webhook** Django (`job_id`, URL ou key) | Ver secção anterior. Opções (B) poll e (C) volume **não** são o caminho oficial. |
-| 0.2 | **Segurança** Django ↔ Go (+ webhook de conclusão) | Aberto | API key, HMAC, mTLS, rede privada; proteger também o endpoint de callback. |
-| 0.3 | **`X-Tenant-ID`** | Aberto | Ex.: `str(CompanyTenant.pk)` ou `tenant_code` — alinhar com payload do callback. |
+**Product / architecture choice (solidfield_core + sf-watermarker-worker-go):**
 
----
+1. The **worker** sends the processed JPEG to **object storage** compatible with the **S3 API** (AWS S3, MinIO, and so on).
+2. The worker (or a component attached to the pipeline) calls a **webhook on Django** with, at minimum: **`job_id`**, identification of the record (`work_order_photo_id` or an agreed equivalent), and the **object location** (**signed URL** and/or **bucket + key**).
+3. Django validates the request (mutual authentication to be defined on line **0.2**) and updates **`WorkOrderPhoto`** (and `watermark_status` / final file fields as the model defines) in an **idempotent** way.
 
-## Fase 1 — Imagem original acessível ao worker (URL / storage)
-
-O Go faz **GET** em `image_url` com **anti-SSRF** (IPs privados bloqueados por defeito).
-
-| # | Tarefa | Detalhe |
-|---|--------|--------|
-| 1.1 | Definir **storage** em prod | Local `MEDIA_*` vs **S3** (`django-storages` ou equivalente). |
-| 1.2 | Garantir URL que o **container Go consegue ler** | Preferir **URL assinada** (TTL curto) para o objeto; evitar depender de IP privado do Django sem política clara. Alternativa: **`image_base64`** no webhook (mais pesado). |
-| 1.3 | Documentar uso de `ALLOW_PRIVATE_IPS` no Go | Só **desenvolvimento**; nunca como solução de prod. |
+> **Note:** until this extension exists in Go, the worker still writes only to `OUTPUT_DIR`; decision (A) defines the implementation **target**, not the current state of the binary.
 
 ---
 
-## Fase 2 — Modelo Django `WorkOrderPhoto`
+## Phase 0 — Cross-team agreement (remaining)
 
-| # | Tarefa | Campos sugeridos (ajustar a cada produto) |
-|---|--------|---------------------------------------------|
-| 2.1 | Migração | `watermark_job_id` (UUID/string, nullable até primeiro enqueue) |
-| 2.2 | | `watermark_status`: ex. `none`, `pending`, `processing`, `completed`, `failed` |
-| 2.3 | | `watermark_error` (texto curto, opcional) |
-| 2.4 | Decisão de produto | **Uma** imagem (substituir `image` após watermark) vs **duas** (`image` original + `image_watermarked` ou URL no storage) |
-
-Ficheiro actual: `backend/apps/filehub/models/os_photo.py`.
+| # | Decision | State | Notes |
+|---|----------|-------|-------|
+| 0.1 | **Final JPEG delivery** | **✓ (A)** Object storage (S3/MinIO) + Django **webhook** (`job_id`, URL or key) | See the previous section. Options (B) poll and (C) volume are **not** the official path. |
+| 0.2 | **Security** Django ↔ Go (+ completion webhook) | Open | API key, HMAC, mTLS, private network; also protect the callback endpoint. |
+| 0.3 | **`X-Tenant-ID`** | Open | For example `str(CompanyTenant.pk)` or `tenant_code` — align with the callback payload. |
 
 ---
 
-## Fase 3 — Cliente HTTP Django → sf-watermarker-worker-go
+## Phase 1 — Original image reachable by the worker (URL / storage)
 
-| # | Tarefa | Detalhe |
-|---|--------|--------|
-| 3.1 | Settings | `WATERMARKER_BASE_URL`, timeouts, política de retry |
-| 3.2 | Montar `WebhookPayload` a partir do modelo | `work_reference` ← `WorkOrder.identifier`; `uploaded_by` ← técnico (nome ou id); `photo_taken_at`, GPS, `device_info`, `add_watermark`, `watermark_has_company_logo`; `company_logo_url` ← URL pública do `CompanyTenant.logo` se existir |
-| 3.3 | Header `X-Tenant-ID` | Valor acordado na fase 0.3 |
-| 3.4 | Mapear **`photo_type`** | Choices Django (`before`, `after`, `issue`, `proof`, `custom`) vs whitelist Go — alinhar ou tabela de mapeamento |
-| 3.5 | Após `202` | Gravar `watermark_job_id` e `watermark_status=pending` (ou `processing`) |
+Go issues a **GET** on `image_url` with **anti-SSRF** (private IPs blocked by default).
 
-Implementação recomendada: módulo dedicado, ex. `backend/apps/filehub/services/watermark_client.py` (nome à escolha da equipa).
+| # | Task | Detail |
+|---|------|--------|
+| 1.1 | Define **storage** in prod | Local `MEDIA_*` vs. **S3** (`django-storages` or equivalent). |
+| 1.2 | Guarantee a URL the **Go container can read** | Prefer a **signed URL** (short TTL) for the object; avoid depending on the Django private IP without a clear policy. Alternative: **`image_base64`** on the webhook (heavier). |
+| 1.3 | Document use of `ALLOW_PRIVATE_IPS` in Go | **Development only**; never as a production solution. |
 
 ---
 
-## Fase 4 — Quando disparar o watermarker
+## Phase 2 — Django model `WorkOrderPhoto`
 
-| # | Tarefa | Detalhe |
-|---|--------|--------|
-| 4.1 | **`transaction.on_commit`** | Chamar o cliente HTTP **depois** do commit que persiste `WorkOrderPhoto` e o ficheiro — evita jobs se a transação falhar |
-| 4.2 | Flag `add_watermark` | Se `False`, não enviar ao Go (ou só pipeline de “normalização JPEG”, se acordado com o time Go) |
-| 4.3 | Falhas de rede | Retry idempotente: definir se o mesmo `job_id` pode ser reutilizado ou se se cria nova linha/registo |
+| # | Task | Suggested fields (adjust per product) |
+|---|------|---------------------------------------|
+| 2.1 | Migration | `watermark_job_id` (UUID/string, nullable until the first enqueue) |
+| 2.2 | | `watermark_status`: for example `none`, `pending`, `processing`, `completed`, `failed` |
+| 2.3 | | `watermark_error` (short text, optional) |
+| 2.4 | Product decision | **One** image (replace `image` after watermark) vs. **two** (`image` original + `image_watermarked` or a storage URL) |
 
----
-
-## Fase 5 — Endpoint de conclusão no Django (quando fase 0.1 = callback)
-
-| # | Tarefa | Detalhe |
-|---|--------|--------|
-| 5.1 | Rota interna | Ex. `POST /internal/watermark-complete/` (não expor à internet sem protecção) |
-| 5.2 | Corpo | `job_id`, estado, URL final do JPEG ou conteúdo referenciado por key em S3 |
-| 5.3 | Actualizar `WorkOrderPhoto` | Preencher campo(s) de imagem final + `watermark_status=completed` ou `failed` |
-| 5.4 | **Idempotência** | O mesmo `job_id` pode ser notificado mais de uma vez |
+Current file: `backend/apps/filehub/models/os_photo.py`.
 
 ---
 
-## Fase 6 — API pública Filehub (app de campo)
+## Phase 3 — Django HTTP client → sf-watermarker-worker-go
 
-| # | Tarefa | Detalhe |
-|---|--------|--------|
-| 6.1 | `POST` (multipart) | Criar `WorkOrderPhoto` para uma `work_order_id`; validar tenant e técnico |
-| 6.2 | `GET` | Listar / detalhar fotos da OS |
-| 6.3 | OpenAPI | `@extend_schema` com `operation_id` estáveis (Public v1), alinhado a `API_PUBLIC_CONTRACT.md` |
-| 6.4 | Registo | Incluir rotas em `backend/apps/apis/urls.py` |
+| # | Task | Detail |
+|---|------|--------|
+| 3.1 | Settings | `WATERMARKER_BASE_URL`, timeouts, retry policy |
+| 3.2 | Build `WebhookPayload` from the model | `work_reference` ← `WorkOrder.identifier`; `uploaded_by` ← technician (name or id); `photo_taken_at`, GPS, `device_info`, `add_watermark`, `watermark_has_company_logo`; `company_logo_url` ← public URL of `CompanyTenant.logo` if it exists |
+| 3.3 | `X-Tenant-ID` header | Value agreed in phase 0.3 |
+| 3.4 | Map **`photo_type`** | Django choices (`before`, `after`, `issue`, `proof`, `custom`) vs. the Go whitelist — align or use a mapping table |
+| 3.5 | After `202` | Store `watermark_job_id` and `watermark_status=pending` (or `processing`) |
 
----
-
-## Fase 7 — Limpezas recomendadas (paralelas)
-
-| # | Tarefa | Onde |
-|---|--------|------|
-| 7.1 | Corrigir uso de `work_order.from_user` | `backend/apps/core/services/audition_log_service.py` — `WorkOrder` tem `created_by`, não `from_user` |
-| 7.2 | Corrigir testes | `backend/apps/filehub/tests/test_photo.py` — usar `work_order`, `photo_taken_at`; `test_signature.py` — import `WorkOrderSignature` |
+Recommended implementation: a dedicated module, for example `backend/apps/filehub/services/watermark_client.py` (name chosen by the team).
 
 ---
 
-## Fase 8 — Depois do MVP (não bloqueia o primeiro fio)
+## Phase 4 — When to trigger the watermarker
 
-| # | Tarefa | Detalhe |
-|---|--------|--------|
-| 8.1 | FK opcional checklist / item | `WorkOrderPhoto` → `Checklist` / `ChecklistItemTemplate` (pesca MVP) |
-| 8.2 | `OfflineSyncQueue` | Nova acção para upload de foto offline — quotas, tamanho máximo, retry |
-
----
-
-## Ordem sugerida num sprint
-
-1. **Fase 0** — `0.1` **fechado** (S3/MinIO + webhook); fechar **`0.2`** segurança e **`0.3`** `X-Tenant-ID` + formato do callback.  
-2. **Fase 1** + **Fase 2** em paralelo (DevOps + Django).  
-3. **Fase 3** + **Fase 4** (disparo assíncrono funcionando com `202`).  
-4. **Fase 5** assim que o Go (ou orquestrador) entregue o fecho (callback/storage).  
-5. **Fase 6** para o app.  
-6. **Fase 7** quando possível.  
-7. **Fase 8** conforme roadmap pesca.
+| # | Task | Detail |
+|---|------|--------|
+| 4.1 | **`transaction.on_commit`** | Call the HTTP client **after** the commit that persists `WorkOrderPhoto` and the file — avoids jobs if the transaction fails |
+| 4.2 | `add_watermark` flag | If `False`, do not send to Go (or send only a “JPEG normalization” pipeline, if agreed with the Go team) |
+| 4.3 | Network failures | Idempotent retry: decide whether the same `job_id` can be reused or a new row/record is created |
 
 ---
 
-## Documentos relacionados
+## Phase 5 — Completion endpoint on Django (when phase 0.1 = callback)
 
-| Ficheiro | Conteúdo |
-|----------|----------|
-| `FILEHUB_SF_WATERMARKER_ANALISE_INTEGRACAO.md` | Análise estado actual vs gaps |
-| `BRIEFING_PARA_FILEHUB_PESCA_MVP.md` | Produto pesca + extensão checklist |
-| `SF_WATERMARKER_INTEGRACAO_SOLIDFIELD.md` | Contrato técnico do microsserviço Go |
-| `DOCUMENTACAO_PESCA_INDUSTRIAL_LARGA_ESCALA.md` | Vista macro do vertical |
+| # | Task | Detail |
+|---|------|--------|
+| 5.1 | Internal route | For example `POST /internal/watermark-complete/` (do not expose it to the internet without protection) |
+| 5.2 | Body | `job_id`, state, final JPEG URL or content referenced by an S3 key |
+| 5.3 | Update `WorkOrderPhoto` | Fill the final-image field(s) + `watermark_status=completed` or `failed` |
+| 5.4 | **Idempotency** | The same `job_id` may be notified more than once |
 
 ---
 
-*Guia de trabalho — actualizar quando o callback/storage e as rotas internas estiverem definidos no código.*
+## Phase 6 — Public Filehub API (field app)
+
+| # | Task | Detail |
+|---|------|--------|
+| 6.1 | `POST` (multipart) | Create a `WorkOrderPhoto` for a `work_order_id`; validate tenant and technician |
+| 6.2 | `GET` | List / detail photos for the work order |
+| 6.3 | OpenAPI | `@extend_schema` with stable `operation_id` values (Public v1), aligned with `API_PUBLIC_CONTRACT.md` |
+| 6.4 | Registration | Include routes in `backend/apps/apis/urls.py` |
+
+---
+
+## Phase 7 — Recommended cleanups (parallel)
+
+| # | Task | Where |
+|---|------|-------|
+| 7.1 | Fix use of `work_order.from_user` | `backend/apps/core/services/audition_log_service.py` — `WorkOrder` has `created_by`, not `from_user` |
+| 7.2 | Fix tests | `backend/apps/filehub/tests/test_photo.py` — use `work_order`, `photo_taken_at`; `test_signature.py` — import `WorkOrderSignature` |
+
+---
+
+## Phase 8 — After the MVP (does not block the first thread)
+
+| # | Task | Detail |
+|---|------|--------|
+| 8.1 | Optional checklist / item FK | `WorkOrderPhoto` → `Checklist` / `ChecklistItemTemplate` (fishing MVP) |
+| 8.2 | `OfflineSyncQueue` | New action for offline photo upload — quotas, maximum size, retry |
+
+---
+
+## Suggested order in a sprint
+
+1. **Phase 0** — `0.1` **closed** (S3/MinIO + webhook); close **`0.2`** security and **`0.3`** `X-Tenant-ID` + callback format.
+2. **Phase 1** + **Phase 2** in parallel (DevOps + Django).
+3. **Phase 3** + **Phase 4** (asynchronous trigger working with `202`).
+4. **Phase 5** as soon as Go (or the orchestrator) delivers the close-out (callback/storage).
+5. **Phase 6** for the app.
+6. **Phase 7** when possible.
+7. **Phase 8** according to the fishing roadmap.
+
+---
+
+## Related documents
+
+| File | Contents |
+|------|----------|
+| `FILEHUB_SF_WATERMARKER_INTEGRATION_ANALYSIS.md` | Current-state analysis vs. gaps |
+| `FILEHUB_FISHING_MVP_BRIEFING.md` | Fishing product + checklist extension |
+| `SF_WATERMARKER_SOLIDFIELD_INTEGRATION.md` | Technical contract of the Go microservice |
+| `LARGE_SCALE_INDUSTRIAL_FISHING_DOCUMENTATION.md` | Macro view of the vertical |
+
+---
+
+*Working guide — update it when the callback/storage and internal routes are defined in code.*

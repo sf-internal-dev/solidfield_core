@@ -1,43 +1,43 @@
-# Histórico de implementação — Checklist + MVP Pesca industrial (SolidField)
+# Implementation history — Checklist + industrial-fishing MVP (SolidField)
 
-Este documento resume **o que foi feito antes** (documentação, seed, estratégia) e **o que foi feito na continuação** (vínculo com viagem, status, export CSV, correções de API/serviço), no contexto do SolidField como SaaS de operações em campo.
-
----
-
-## 1. Contexto
-
-Objetivo de produto: usar o app **`checklist`** como base para um MVP de **diário operacional** (diesel, gelo, temperatura da câmara) para **pesca industrial**, com baixa dependência de UI e dados prontos para análise (BI/planilha).
-
-O backend já tinha modelos e serviços de checklist; faltavam padronização documental, template de domínio, amarração explícita à **ordem de serviço / viagem** (`WorkOrder`) e uma saída tabular simples.
+This document summarizes **what was done earlier** (documentation, seed, strategy) and **what was done in the continuation** (voyage link, status, CSV export, API/service fixes), in the context of SolidField as a field-operations SaaS.
 
 ---
 
-## 2. Trabalho feito anteriormente
+## 1. Context
 
-### 2.1 Auditoria e produto (documentos na raiz do repositório)
+Product goal: use the **`checklist`** app as the base for an **operational daily log** MVP (diesel, ice, cold-room temperature) for **industrial fishing**, with low UI dependency and data ready for analysis (BI/spreadsheet).
 
-- **`MICROSAAS_HEADLESS_AUDIT.md`** — Auditoria técnica dos motores reaproveitáveis do SolidField (work orders, RBAC de técnicos, sync offline, checklist, evidência geo, reporting), com visão de Micro-SaaS / APIs headless.
+The backend already had checklist models and services; what was missing was documentation standards, a domain template, an explicit binding to the **work order / voyage** (`WorkOrder`), and a simple tabular export.
 
-### 2.2 Estratégia pesca industrial (Itajaí)
+---
 
-- **`MICROSAAS_PESCA_INDUSTRIAL_ITAJAI.md`** — Mapeamento das dores do setor (diesel, gelo, mapa de bordo, quinhão) para módulos existentes; recomendação de MVP em ~30 dias; evolução do doc com seção de **implementação** (seed, API, export).
+## 2. Work done earlier
 
-### 2.3 Esquematização do domínio `checklist/`
+### 2.1 Audit and product (documents at the repository root)
 
-- **`backend/apps/checklist/CHECKLIST_SCHEMA.md`** — Visão declarativa: entidades, fluxo template → execução → submit, contratos de `answer_type`, APIs, invariantes.
-- Inclusão de regras de **qualidade semântica** para geração/preenchimento de itens (não misturar **aquisição** e **contratação**; observações ligadas ao objeto do item; fluidez textual).
+- **`MICROSAAS_HEADLESS_AUDIT.md`** — Technical audit of SolidField’s reusable engines (work orders, technician RBAC, offline sync, checklist, geo evidence, reporting), with a Micro-SaaS / headless API view.
 
-### 2.3.1 Formulários versionados + tipos numéricos (diesel, gelo, temperatura, turno)
+### 2.2 Industrial-fishing strategy (Itajaí)
 
-- **`backend/apps/checklist/CHECKLIST_FORMULARIOS_NUMERICOS_E_PESCA.md`** — Documenta a parte que estava resumida na tabela de produto: como `ChecklistTemplate` / `ChecklistItemTemplate` versionam o formulário, como `volume_l`, `weight_kg`, `temperature` se conectam a `NUMERIC_CODECS` e `answer_number`, e a tabela dos 7 itens do diário pesca (registro por turno/dia).
+- **`MICROSAAS_INDUSTRIAL_FISHING_ITAJAI.md`** — Mapping of sector pains (diesel, ice, official vessel log, catch share) onto existing modules; MVP recommendation in ~30 days; later evolution of the doc with an **implementation** section (seed, API, export).
 
-### 2.4 Template “Diário operacional — pesca” (seed)
+### 2.3 Schema of the `checklist/` domain
 
-- **`backend/apps/checklist/defaults/pesca_diario_operacional.py`** — Constantes `TEMPLATE_NAME`, `SERVICE_TYPE` (`pesca_industrial_diario`) e lista **`ITEM_SPECS`** com 7 itens: turno (texto), consumo/abastecimento/remanescente de diesel (litros), gelo (kg), temperatura da câmara (°C), observações no escopo operacional.
-- Função **`ensure_pesca_diario_operacional_template`**: cria a **versão 1** do template por tenant de forma **idempotente** (se já existir, não duplica).
-- **`backend/apps/checklist/management/commands/seed_pesca_diario_operacional.py`** — Comando Django para aplicar o seed (`--tenant-id`, `--technician-id`, `--dry-run`).
+- **`backend/apps/checklist/CHECKLIST_SCHEMA.md`** — Declarative view: entities, template → execution → submit flow, `answer_type` contracts, APIs, invariants.
+- Inclusion of **semantic quality** rules for item generation/completion (do not mix **acquisition** and **contracting**; notes tied to the item’s object; textual flow).
 
-Comando típico:
+### 2.3.1 Versioned forms + numeric types (diesel, ice, temperature, shift)
+
+- **`backend/apps/checklist/CHECKLIST_NUMERIC_FORMS_AND_FISHING.md`** — Documents the part that was summarized in the product table: how `ChecklistTemplate` / `ChecklistItemTemplate` version the form, how `volume_l`, `weight_kg`, and `temperature` connect to `NUMERIC_CODECS` and `answer_number`, and the table of the 7 fishing daily-log items (per-shift/per-day record).
+
+### 2.4 “Operational daily log — fishing” template (seed)
+
+- **`backend/apps/checklist/defaults/pesca_diario_operacional.py`** — Constants `TEMPLATE_NAME`, `SERVICE_TYPE` (`pesca_industrial_diario`), and the **`ITEM_SPECS`** list with 7 items: shift (text), diesel consumption/refueling/remainder (liters), ice (kg), cold-room temperature (°C), notes in the operational scope.
+- Function **`ensure_pesca_diario_operacional_template`**: creates template **version 1** per tenant in an **idempotent** way (if it already exists, it does not duplicate).
+- **`backend/apps/checklist/management/commands/seed_pesca_diario_operacional.py`** — Django command to apply the seed (`--tenant-id`, `--technician-id`, `--dry-run`).
+
+Typical command:
 
 ```bash
 python manage.py seed_pesca_diario_operacional --tenant-id 1 --technician-id 1
@@ -45,88 +45,88 @@ python manage.py seed_pesca_diario_operacional --tenant-id 1 --technician-id 1
 
 ---
 
-## 3. Trabalho feito na continuação (após “sim, pode continuar”)
+## 3. Work done in the continuation (after “yes, you can continue”)
 
-### 3.1 Vínculo checklist ↔ viagem (`WorkOrder`)
+### 3.1 Checklist ↔ voyage link (`WorkOrder`)
 
-- **`create_checklist`** (`checklist_service.py`) passou a aceitar **`work_order` opcional** e **`filled_by` opcional** (se `filled_by` não vier, usa o `technician_operating`).
-- Validação de **tenant**: template, `work_order` e técnico preenchedor devem pertencer ao mesmo tenant do operador.
-- **`create_checklist_api`**: resolve `template` e `work_order` com filtro por `tenant_id`; body pode incluir `filled_by`; retorna erros explícitos (`template_not_found`, `work_order_not_found`, etc.).
+- **`create_checklist`** (`checklist_service.py`) now accepts an optional **`work_order`** and an optional **`filled_by`** (if `filled_by` is omitted, it uses `technician_operating`).
+- **Tenant** validation: template, `work_order`, and the filling technician must belong to the same tenant as the operator.
+- **`create_checklist_api`**: resolves `template` and `work_order` filtered by `tenant_id`; the body may include `filled_by`; returns explicit errors (`template_not_found`, `work_order_not_found`, and so on).
 
-### 3.2 Ciclo de vida `draft` / `submitted`
+### 3.2 `draft` / `submitted` lifecycle
 
-- Campo **`Checklist.status`** (`draft` | `submitted`) adicionado ao modelo + migration **`0004_checklist_status`**.
-- **`submit_checklist`**: ao submeter com sucesso, define `status=submitted` e **`incomplete=False`**.
-- Serializers passam a expor também **`incomplete`** junto com `status`.
+- **`Checklist.status`** field (`draft` | `submitted`) added to the model + migration **`0004_checklist_status`**.
+- **`submit_checklist`**: on successful submit, sets `status=submitted` and **`incomplete=False`**.
+- Serializers now also expose **`incomplete`** alongside `status`.
 
-### 3.3 Correções de bugs e consistência
+### 3.3 Bug fixes and consistency
 
-- **`create_checklist`**: corrigido uso de `errors` antes de declarar na falha de permissão.
-- **`bulk_save_answers`**: passa **`technician_operating`** para **`save_answer`** (antes chamava sem operador e quebrava validação de permissão).
-- **`remove_answer`**: em falha de permissão retorna **`False`** (antes retornava `None` de forma inconsistente com a assinatura).
-- **`Checklist.__str__`**: não assume mais `work_order` sempre preenchido.
-- **`ChecklistDetailSerializer`**: uso correto da relação **`answers`** (em vez de `checklistitemanswer_set`).
-- **`checklist_template_api`**: import de **`next_order_for_template`** ajustado para **`checklist_template_util`** (antes importava incorretamente do service).
+- **`create_checklist`**: fixed use of `errors` before it was declared on the permission-failure path.
+- **`bulk_save_answers`**: passes **`technician_operating`** into **`save_answer`** (previously it called without an operator and permission validation broke).
+- **`remove_answer`**: on permission failure returns **`False`** (previously it returned `None`, inconsistent with the signature).
+- **`Checklist.__str__`**: no longer assumes `work_order` is always set.
+- **`ChecklistDetailSerializer`**: correct use of the **`answers`** relation (instead of `checklistitemanswer_set`).
+- **`checklist_template_api`**: import of **`next_order_for_template`** adjusted to **`checklist_template_util`** (previously imported incorrectly from the service).
 
-### 3.4 Export CSV para BI / Excel
+### 3.4 CSV export for BI / Excel
 
-- Novo módulo **`backend/apps/checklist/services/checklist_export_service.py`**: monta CSV com uma linha por resposta (e linha “vazia” de item quando o checklist não tem respostas), incluindo identificadores de viagem, template, técnico e colunas de resposta.
-- Novo endpoint **`GET /export_checklist_answers_csv_api/`** (registrado em **`backend/apps/apis/urls.py`**), com filtros opcionais na query:
+- New module **`backend/apps/checklist/services/checklist_export_service.py`**: builds a CSV with one row per answer (and an “empty” item row when the checklist has no answers), including voyage, template, and technician identifiers plus answer columns.
+- New endpoint **`GET /export_checklist_answers_csv_api/`** (registered in **`backend/apps/apis/urls.py`**), with optional query filters:
   - `work_order_id`
-  - `service_type` (ex.: `pesca_industrial_diario`)
-  - `template_id`  
-  Arquivo em UTF-8 com **BOM** para abrir bem no Excel.
+  - `service_type` (for example `pesca_industrial_diario`)
+  - `template_id`
+  UTF-8 file with **BOM** so it opens cleanly in Excel.
 
-### 3.5 Documentação atualizada
+### 3.5 Documentation updated
 
-- **`CHECKLIST_SCHEMA.md`** — Seção de atenções atualizada (itens resolvidos + gaps remanescentes); inclusão da rota de export.
-- **`MICROSAAS_PESCA_INDUSTRIAL_ITAJAI.md`** — Seção 7.3 descrevendo vínculo com `WorkOrder` e export CSV; 7.4 com próximos passos opcionais.
+- **`CHECKLIST_SCHEMA.md`** — Attention section updated (resolved items + remaining gaps); export route included.
+- **`MICROSAAS_INDUSTRIAL_FISHING_ITAJAI.md`** — Section 7.3 describing the `WorkOrder` link and CSV export; 7.4 with optional next steps.
 
-### 3.6 Limpeza
+### 3.6 Cleanup
 
-- Removido arquivo solto **`command.txt`** dentro de `management/commands/` (comandos de exemplo duplicavam o que já está no doc de pesca).
+- Removed the stray **`command.txt`** file inside `management/commands/` (example commands duplicated what is already in the fishing doc).
 
-### 3.7 Fila offline (`OfflineSyncQueue`)
+### 3.7 Offline queue (`OfflineSyncQueue`)
 
-- Modelo **`OfflineSyncQueue`**: campo **`client_mutation_id`** + *unique* parcial por técnico (idempotência); `related_name` **`offline_sync_items`**.
+- **`OfflineSyncQueue`** model: **`client_mutation_id`** field + partial *unique* per technician (idempotency); `related_name` **`offline_sync_items`**.
 - Migration **`core/0004_offlinesyncqueue_client_mutation.py`**.
-- Permissões **`enqueue_offline_sync`** e **`process_offline_sync`** em **`permission_schemas.py`** (L1 + herança L2/L3).
-- Serviço **`core/services/offline_sync_service.py`**: enfileirar, listar fila do técnico, processar item com *lock* (`select_for_update`); ações **`checklist_batch_answers`** e **`checklist_submit`**; reprocessamento de **`conflict`**; **`success`** idempotente no processamento.
-- APIs: **`enqueue_offline_sync_api`**, **`list_offline_sync_api`**, **`process_offline_sync_api/<queue_id>/`** em **`core/api/offline_sync_api.py`**, rotas em **`apis/urls.py`**.
-- Doc **`backend/apps/core/OFFLINE_SYNC_QUEUE.md`**; testes básicos em **`core/tests/test_offline_sync_service.py`**.
+- Permissions **`enqueue_offline_sync`** and **`process_offline_sync`** in **`permission_schemas.py`** (L1 + L2/L3 inheritance).
+- Service **`core/services/offline_sync_service.py`**: enqueue, list the technician’s queue, process an item with a *lock* (`select_for_update`); actions **`checklist_batch_answers`** and **`checklist_submit`**; reprocessing of **`conflict`**; **`success`** is idempotent on process.
+- APIs: **`enqueue_offline_sync_api`**, **`list_offline_sync_api`**, **`process_offline_sync_api/<queue_id>/`** in **`core/api/offline_sync_api.py`**, routes in **`apis/urls.py`**.
+- Doc **`backend/apps/core/OFFLINE_SYNC_QUEUE.md`**; basic tests in **`core/tests/test_offline_sync_service.py`**.
 
 ---
 
-## 4. Ordem recomendada de uso (operacional)
+## 4. Recommended operational order
 
-1. Rodar migrações: `python manage.py migrate` (app `checklist` para o campo `status`).
-2. Seed do template de pesca por tenant: `seed_pesca_diario_operacional`.
-3. Criar ou usar uma **`WorkOrder`** da viagem (mesmo tenant).
-4. **`POST create_checklist_api/`** com `template` + `work_order`.
-5. **`POST create_checklist_item_answer_api/`** para salvar respostas.
-6. **`GET export_checklist_answers_csv_api/`** com filtros desejados para análise externa.
-
----
-
-## 5. Arquivos principais (referência rápida)
-
-| Área | Arquivos |
-|------|-----------|
-| Estratégia / auditoria | `MICROSAAS_HEADLESS_AUDIT.md`, `MICROSAAS_PESCA_INDUSTRIAL_ITAJAI.md` |
-| Schema checklist | `backend/apps/checklist/CHECKLIST_SCHEMA.md` |
-| Seed pesca | `backend/apps/checklist/defaults/pesca_diario_operacional.py`, `.../management/commands/seed_pesca_diario_operacional.py` |
-| Serviço + API checklist | `backend/apps/checklist/services/checklist_service.py`, `.../api/checklist_api.py` |
-| Export CSV | `backend/apps/checklist/services/checklist_export_service.py` |
-| Modelo + migration status | `backend/apps/checklist/models/checklist.py`, `.../migrations/0004_checklist_status.py` |
-| Fila offline | `backend/apps/core/models/sync.py`, `core/migrations/0004_offlinesyncqueue_client_mutation.py`, `core/services/offline_sync_service.py`, `core/api/offline_sync_api.py`, `OFFLINE_SYNC_QUEUE.md` |
-| Rotas | `backend/apps/apis/urls.py` |
+1. Run migrations: `python manage.py migrate` (`checklist` app for the `status` field).
+2. Seed the fishing template per tenant: `seed_pesca_diario_operacional`.
+3. Create or use a voyage **`WorkOrder`** (same tenant).
+4. **`POST create_checklist_api/`** with `template` + `work_order`.
+5. **`POST create_checklist_item_answer_api/`** to save answers.
+6. **`GET export_checklist_answers_csv_api/`** with the desired filters for external analysis.
 
 ---
 
-## 6. O que ainda não foi feito (fora deste histórico)
+## 5. Main files (quick reference)
 
-- Integração automática com **`filehub`** (foto de medidor/termômetro) por item.
-- Motor de **quinhão** ou mapa de bordo **legal** completo (PDF regulatório específico).
-- Telas frontend dedicadas; o MVP assume APIs + CSV + cliente HTTP/planilha.
+| Area | Files |
+|------|-------|
+| Strategy / audit | `MICROSAAS_HEADLESS_AUDIT.md`, `MICROSAAS_INDUSTRIAL_FISHING_ITAJAI.md` |
+| Checklist schema | `backend/apps/checklist/CHECKLIST_SCHEMA.md` |
+| Fishing seed | `backend/apps/checklist/defaults/pesca_diario_operacional.py`, `.../management/commands/seed_pesca_diario_operacional.py` |
+| Checklist service + API | `backend/apps/checklist/services/checklist_service.py`, `.../api/checklist_api.py` |
+| CSV export | `backend/apps/checklist/services/checklist_export_service.py` |
+| Status model + migration | `backend/apps/checklist/models/checklist.py`, `.../migrations/0004_checklist_status.py` |
+| Offline queue | `backend/apps/core/models/sync.py`, `core/migrations/0004_offlinesyncqueue_client_mutation.py`, `core/services/offline_sync_service.py`, `core/api/offline_sync_api.py`, `OFFLINE_SYNC_QUEUE.md` |
+| Routes | `backend/apps/apis/urls.py` |
 
-Este arquivo é apenas **memória de implementação**; regras de negócio e compliance devem ser validadas com especialistas e órgãos competentes antes de uso em produção regulada.
+---
+
+## 6. What has not been done yet (outside this history)
+
+- Automatic integration with **`filehub`** (meter/thermometer photo) per item.
+- A **catch-share** engine or a complete **legal** official vessel log (a specific regulatory PDF).
+- Dedicated frontend screens; the MVP assumes APIs + CSV + an HTTP/spreadsheet client.
+
+This file is **implementation memory** only; business and compliance rules must be validated with specialists and the competent authorities before use in regulated production.
