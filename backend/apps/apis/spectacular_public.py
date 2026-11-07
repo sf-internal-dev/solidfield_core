@@ -1,7 +1,7 @@
 """
-Tags e fragmentos de schema reutilizáveis para o pacote **Public API v1 — Field operations**.
+Reusable schema tags and fragments for the **Public API v1 — Field operations** package.
 
-Ver também: `API_PUBLIC_CONTRACT.md` na raiz do repositório (política de estabilidade e lista de endpoints).
+See also: `API_PUBLIC_CONTRACT.md` at the repository root (stability policy and endpoint list).
 """
 
 TAG_OFFLINE = "Public v1 — Offline sync"

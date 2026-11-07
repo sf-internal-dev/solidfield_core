@@ -19,20 +19,20 @@ def _http_publish(body: bytes, timeout: float = 2.0):
 
 def get_client_ip(request):
     """
-    Tenta extrair o IP real do client considerando proxies reversos.
-    Atenção: upstream proxies devem setar X-Forwarded-For corretamente.
+    Tries to extract the real client IP, taking reverse proxies into account.
+    Warning: upstream proxies must set X-Forwarded-For correctly.
     """
     xff = request.META.get("HTTP_X_FORWARDED_FOR")
     if xff:
-        # X-Forwarded-For pode conter uma lista de IPs: client, proxy1, proxy2
+        # X-Forwarded-For may contain a list of IPs: client, proxy1, proxy2
         ip = xff.split(",")[0].strip()
         return ip
     # fallback
     return request.META.get("REMOTE_ADDR")
 
 
-""" publish_ui_messages foi ajustada com objetivo de poder servir ao escopo de sessão
-    quando não houver dados claros de quem é o tenant e technician"""
+""" publish_ui_messages was adjusted so it can serve session scope
+    when there is no clear data about who the tenant and technician are"""
 def publish_ui_messages(
     payloads: list[dict],
     *,

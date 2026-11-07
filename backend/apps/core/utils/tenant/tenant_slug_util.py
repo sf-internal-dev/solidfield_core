@@ -68,9 +68,9 @@ if __name__ == "__main__":
 
     for name in company_names:
         suggestions = suggest_company_slug(name)
-        print(f"\nSlug gerado para: {name}")
+        print(f"\nSlug generated for: {name}")
         if suggestions:
             for s in suggestions:
                 print(f"- {s}")
         else:
-            print("- [nenhuma sugestão válida]")
+            print("- [no valid suggestion]")

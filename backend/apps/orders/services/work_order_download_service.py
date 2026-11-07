@@ -14,7 +14,7 @@ def calculate_defined_download_link_life_time(work_order_download_link: WorkOrde
     timestamp = work_order_download_link.expires_at = expires_at
     return timestamp
 
-# Função deve retornar valores com propósito de enviar-los para leitura pelo corex
+# Function should return values meant to be sent for corex to read
 def get_purpose_rules_for_work_order_download_link(work_order_download_link: WorkOrderDownloadLink):
     purpose = work_order_download_link.purpose
     purpose_rules = get_purpose_rules(purpose)

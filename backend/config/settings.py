@@ -16,7 +16,7 @@ import structlog
 # settings.py
 import sys
 
-# Importe e aplique o patch antes de qualquer coisa
+# Import and apply the patch before anything else
 sys.path.append(str(Path(__file__).resolve().parent))
 
 
@@ -104,9 +104,9 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'TITLE': 'SolidField API',
     'DESCRIPTION': (
-        'API HTTP do SolidField. O subconjunto documentado com a tag **Public v1** é o contrato estável '
-        'para app de campo (Capacitor), checklist/viagem e fila offline, conforme `API_PUBLIC_CONTRACT.md`. '
-        'Demais rotas podem evoluir; quebras devem ser comunicadas ou versionadas em `/api/v2/` no futuro.'
+        'SolidField HTTP API. The subset documented with the **Public v1** tag is the stable contract '
+        'for the field app (Capacitor), checklist/trip, and the offline queue, as described in `API_PUBLIC_CONTRACT.md`. '
+        'Other routes may evolve; breaking changes must be communicated or versioned under `/api/v2/` in the future.'
     ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
@@ -202,14 +202,14 @@ USE_TZ = True
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Caminhos onde o Django vai procurar arquivos estáticos
+# Paths where Django looks for static files
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
 
 
-# URL pública para acessar os arquivos estáticos
+# Public URL used to access static files
 STATIC_URL = "/static/"
 
 # Default primary key field type

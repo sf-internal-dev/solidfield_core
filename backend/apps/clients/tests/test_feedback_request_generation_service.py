@@ -21,7 +21,7 @@ from backend.apps.clients.services.feedback_request_generation_service import (
 
 class BaseSetupMixin(TestCase):
     def setUp(self):
-        print("→ setUp: criando tenant, técnico e ordem de serviço")
+        print("→ setUp: creating tenant, technician, and work order")
         self.tenant = CompanyTenant.objects.create(name="T1", slug="t1", tenant_code="T1AA")
         self.tech = Technician.objects.create(
             tenant=self.tenant,
@@ -43,28 +43,28 @@ class BaseSetupMixin(TestCase):
             document_id="123456789",
         )
 
-        # WorkOrder mínimo (ajuste campos se o seu modelo exigir outros)
+        # Minimal WorkOrder (adjust fields if your model requires others)
         self.wo = WorkOrder.objects.create(
-            tenant=self.tenant,            # TenantOwnedModel exige
+            tenant=self.tenant,            # TenantOwnedModel requires it
             identifier="WO-001",
             created_by=self.tech,
-            assigned_to=self.tech,          # obrigatório
-            work_start=now,                 # obrigatório
-            work_end=now,                   # obrigatório (se quiser simular em aberto, pode pôr = now)
-            status="open",                  # obrigatório (qualquer string válida no seu domínio)
-            client=self.client,             # opcional
-            client_name=self.client.name,   # opcional
-            client_email=self.client.email, # opcional
-            client_phone=self.client.phone, # opcional
-            # first_access / has_remaining_work têm default
-            # status_history tem default list
+            assigned_to=self.tech,          # required
+            work_start=now,                 # required
+            work_end=now,                   # required (to simulate still open, it can stay = now)
+            status="open",                  # required (any string valid in your domain)
+            client=self.client,             # optional
+            client_name=self.client.name,   # optional
+            client_email=self.client.email, # optional
+            client_phone=self.client.phone, # optional
+            # first_access / has_remaining_work have defaults
+            # status_history defaults to a list
         )
 
 
 class CreateFeedbackLinkServiceTest(BaseSetupMixin):
     @patch("backend.apps.clients.services.feedback_request_generation_service.has_permission", return_value=(False, ["no_perm"]))
     def test_permission_denied(self, _perm):
-        print("✓ create_feedback_link: sem permissão → None + ['no_perm']")
+        print("✓ create_feedback_link: no permission → None + ['no_perm']")
         link, errors = create_feedback_link(
             technician_operating=self.tech,
             work_order=self.wo,
@@ -75,7 +75,7 @@ class CreateFeedbackLinkServiceTest(BaseSetupMixin):
     @patch("backend.apps.clients.services.feedback_request_generation_service.has_permission", return_value=(True, []))
     @patch("backend.apps.clients.services.feedback_request_generation_service.generate_feedback_request_key", return_value="KEYOK")
     def test_success_first_try(self, _gen, _perm):
-        print("✓ create_feedback_link: sucesso na 1ª tentativa")
+        print("✓ create_feedback_link: success on the 1st attempt")
         link, errors = create_feedback_link(
             technician_operating=self.tech,
             work_order=self.wo,
@@ -90,22 +90,22 @@ class CreateFeedbackLinkServiceTest(BaseSetupMixin):
 
     @patch("backend.apps.clients.services.feedback_request_generation_service.has_permission", return_value=(True, []))
     def test_retry_on_integrity_error_then_success(self, _perm):
-        print("✓ create_feedback_link: 1ª chamada levanta IntegrityError (mock) → retry → sucesso")
+        print("✓ create_feedback_link: 1st call raises IntegrityError (mock) → retry → success")
         call_count = {"n": 0}
 
         def create_side_effect(*args, **kwargs):
             if call_count["n"] == 0:
                 call_count["n"] += 1
                 raise IntegrityError("simulated duplicate key")
-            # 2ª chamada: criação real
+            # 2nd call: real creation
             return orig_create(*args, **kwargs)
 
-        # alterna a key de DUP1 para OK2 (apenas para cobrir o caminho de geração)
+        # switches the key from DUP1 to OK2 (only to cover the generation path)
         with patch(
             "backend.apps.clients.services.feedback_request_generation_service.generate_feedback_request_key",
             side_effect=["DUP1", "OK2"]
         ):
-            # guardamos o create real e simulamos erro só na primeira
+            # keep the real create and simulate an error only on the first call
             orig_create = FeedbackLink.objects.create
             with patch.object(FeedbackLink.objects, "create", side_effect=create_side_effect):
                 link, errors = create_feedback_link(
@@ -119,15 +119,15 @@ class CreateFeedbackLinkServiceTest(BaseSetupMixin):
 
     @patch("backend.apps.clients.services.feedback_request_generation_service.has_permission", return_value=(True, []))
     def test_fails_after_five_collisions(self, _perm):
-        print("✓ create_feedback_link: 5 colisões → 'key_generation_failed'")
+        print("✓ create_feedback_link: 5 collisions → 'key_generation_failed'")
         with patch(
             "backend.apps.clients.services.feedback_request_generation_service.generate_feedback_request_key",
             return_value="COLLIDE"
         ):
-            # cria previamente com a mesma key para causar IntegrityError
+            # create one ahead of time with the same key to cause IntegrityError
             FeedbackLink.objects.create(work_order=self.wo, key="COLLIDE")
 
-            # Monkeypatchar o create para levantar IntegrityError sempre
+            # Monkeypatch create so it always raises IntegrityError
             orig_create = FeedbackLink.objects.create
 
             def always_integrity_error(*args, **kwargs):
@@ -144,7 +144,7 @@ class CreateFeedbackLinkServiceTest(BaseSetupMixin):
 
 class ReturnFeedbackPreviewServiceTest(BaseSetupMixin):
     def test_return_feedback_preview_bug_passa_objeto_em_vez_de_str(self):
-        print("✓ return_feedback_preview: BUG documentado — passa objeto para feedback_preview (espera str) → AttributeError")
+        print("✓ return_feedback_preview: documented BUG — passes an object to feedback_preview (expects str) → AttributeError")
         fb = ClientFeedback.objects.create(
             work_order=self.wo,
             client=self.client,
@@ -153,8 +153,8 @@ class ReturnFeedbackPreviewServiceTest(BaseSetupMixin):
             stars=5,
             strengths="speed",
         )
-        # A implementação atual faz: feedback_preview(feedback)  # feedback é objeto
-        # feedback_preview espera uma string e chama .strip(), gerando AttributeError
+        # The current implementation does: feedback_preview(feedback)  # feedback is an object
+        # feedback_preview expects a string and calls .strip(), raising AttributeError
         with self.assertRaises(AttributeError):
             return_feedback_preview(fb)
 
@@ -162,7 +162,7 @@ class ReturnFeedbackPreviewServiceTest(BaseSetupMixin):
 class CreateClientFeedbackServiceTest(BaseSetupMixin):
     @patch("backend.apps.clients.services.feedback_request_generation_service.has_permission", return_value=(False, ["no_perm"]))
     def test_permission_denied(self, _perm):
-        print("✓ create_client_feedback: sem permissão → None + ['no_perm']")
+        print("✓ create_client_feedback: no permission → None + ['no_perm']")
         fb, errors = create_client_feedback(
             technician_operating=self.tech,
             work_order=self.wo,
@@ -170,7 +170,7 @@ class CreateClientFeedbackServiceTest(BaseSetupMixin):
             client_name="Alice",
             client_email="alice@example.com",
             stars=5,
-            comment="ótimo atendimento",
+            comment="great service",
             strengths="speed",
         )
         self.assertIsNone(fb)
@@ -178,8 +178,8 @@ class CreateClientFeedbackServiceTest(BaseSetupMixin):
 
     @patch("backend.apps.clients.services.feedback_request_generation_service.has_permission", return_value=(True, []))
     def test_comment_too_long(self, _perm):
-        print("✓ create_client_feedback: comentário longo demais → 'comment_too_long'")
-        long_comment = "x" * 151  # limite padrão = 150
+        print("✓ create_client_feedback: comment too long → 'comment_too_long'")
+        long_comment = "x" * 151  # default limit = 150
         fb, errors = create_client_feedback(
             technician_operating=self.tech,
             work_order=self.wo,
@@ -198,8 +198,8 @@ class CreateClientFeedbackServiceTest(BaseSetupMixin):
     @patch("backend.apps.clients.services.feedback_request_generation_service.log_work_order_feedback_received")
     @patch("backend.apps.clients.services.feedback_request_generation_service.has_permission", return_value=(True, []))
     def test_success_with_client_documents_bug_doubles_insert_and_raises_integrity(self, _perm, _log):
-        print("✓ create_client_feedback: COM client → tentativa de 2 inserts → IntegrityError (bug documentado)")
-        # Isola a exceção num savepoint; quando a 2ª criação falha, TUDO dentro do savepoint é revertido.
+        print("✓ create_client_feedback: WITH client → attempts 2 inserts → IntegrityError (documented bug)")
+        # Isolates the exception in a savepoint; when the 2nd creation fails, EVERYTHING inside the savepoint is rolled back.
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 _ = create_client_feedback(
@@ -209,20 +209,20 @@ class CreateClientFeedbackServiceTest(BaseSetupMixin):
                     client_name="Alice",
                     client_email="alice+ignored@example.com",
                     stars=5,
-                    comment="muito bom",
+                    comment="very good",
                     strengths="speed,quality",
                 )
 
-        # Como o erro ocorreu dentro do mesmo atomic, a primeira criação também foi revertida.
+        # Because the error happened inside the same atomic block, the first creation was rolled back too.
         self.assertEqual(ClientFeedback.objects.filter(work_order=self.wo).count(), 0)
 
-        # O log é chamado antes da tentativa de criar os registros; como está fora do DB, ele ocorreu.
+        # The log is called before the attempt to create the records; because it is outside the DB, it did run.
         _log.assert_called_once()
 
     @patch("backend.apps.clients.services.feedback_request_generation_service.log_work_order_feedback_received")
     @patch("backend.apps.clients.services.feedback_request_generation_service.has_permission", return_value=(True, []))
     def test_success_without_client_one_creation_and_return_type_bug(self, _perm, _log):
-        print("✓ create_client_feedback: SEM client → cria 1 registro; retorno ainda é só objeto (BUG)")
+        print("✓ create_client_feedback: WITHOUT client → creates 1 record; return value is still only the object (BUG)")
         fb_return = create_client_feedback(
             technician_operating=self.tech,
             work_order=self.wo,
@@ -230,10 +230,10 @@ class CreateClientFeedbackServiceTest(BaseSetupMixin):
             client_name="Bob",
             client_email="bob@example.com",
             stars=4,
-            comment="bom",
+            comment="good",
             strengths="politeness",
         )
-        self.assertIsInstance(fb_return, ClientFeedback)  # retorno não é tuple
+        self.assertIsInstance(fb_return, ClientFeedback)  # return value is not a tuple
         self.assertEqual(ClientFeedback.objects.count(), 1)
         rec = ClientFeedback.objects.first()
         self.assertIsNone(rec.client_id)

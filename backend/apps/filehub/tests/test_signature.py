@@ -8,7 +8,7 @@ from backend.apps.filehub.models import ServiceOrderSignature
 
 class ServiceOrderSignatureTest(TestCase):
     def setUp(self):
-        print("→ setUp: Criando tenant, técnico, cliente e ordem para teste de assinatura...")
+        print("→ setUp: Creating tenant, technician, client, and order for the signature test...")
         self.tenant = CompanyTenant.objects.create(name="TenantSignature", slug="tenant-signature")
 
         self.tech = Technician.objects.create(
@@ -20,7 +20,7 @@ class ServiceOrderSignatureTest(TestCase):
 
         self.client = Client.objects.create(
             tenant=self.tenant,
-            name="Cliente Assinatura",
+            name="Signature Client",
             person_type="company",
             document_id="55555555555"
         )
@@ -34,25 +34,25 @@ class ServiceOrderSignatureTest(TestCase):
         )
 
         self.fake_signature = SimpleUploadedFile(
-            "assinatura.png",
+            "signature.png",
             b"filecontent",
             content_type="image/png"
         )
 
     def test_create_signature_minimum_fields(self):
-        print("✓ test_create_signature_minimum_fields: Criando assinatura com campos mínimos")
+        print("✓ test_create_signature_minimum_fields: Creating a signature with minimum fields")
         signature = ServiceOrderSignature.objects.create(
             service_order=self.order,
             ordered_by=self.tech,
-            signed_by="Cliente X",
+            signed_by="Client X",
             image=self.fake_signature
         )
-        self.assertEqual(signature.signed_by, "Cliente X")
+        self.assertEqual(signature.signed_by, "Client X")
         self.assertEqual(signature.ordered_by, self.tech)
         self.assertTrue(signature.image.name.startswith("signatures/"))
 
     def test_str_representation(self):
-        print("✓ test_str_representation: __str__ deve conter identificador, nome e técnico")
+        print("✓ test_str_representation: __str__ should contain identifier, name, and technician")
         signature = ServiceOrderSignature.objects.create(
             service_order=self.order,
             ordered_by=self.tech,
@@ -63,11 +63,11 @@ class ServiceOrderSignatureTest(TestCase):
         self.assertEqual(str(signature), expected_str)
 
     def test_optional_fields(self):
-        print("✓ test_optional_fields: Deve aceitar latitude, longitude e IP opcionalmente")
+        print("✓ test_optional_fields: Should optionally accept latitude, longitude, and IP")
         signature = ServiceOrderSignature.objects.create(
             service_order=self.order,
             ordered_by=self.tech,
-            signed_by="Cliente Geo",
+            signed_by="Geo Client",
             image=self.fake_signature,
             latitude=-22.9068,
             longitude=-43.1729,
@@ -77,11 +77,11 @@ class ServiceOrderSignatureTest(TestCase):
         self.assertEqual(signature.ip_address, "192.168.0.1")
 
     def test_signed_at_auto_set(self):
-        print("✓ test_signed_at_auto_set: signed_at deve ser preenchido automaticamente")
+        print("✓ test_signed_at_auto_set: signed_at should be filled in automatically")
         signature = ServiceOrderSignature.objects.create(
             service_order=self.order,
             ordered_by=self.tech,
-            signed_by="Automático",
+            signed_by="Automatic",
             image=self.fake_signature
         )
         self.assertLessEqual(signature.signed_at, timezone.now())

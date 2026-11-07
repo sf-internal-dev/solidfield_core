@@ -1,8 +1,8 @@
 """
-Template padrão: diário operacional para pesca industrial (diesel, gelo, temperatura).
+Default template: daily operational log for industrial fishing (diesel, ice, temperature).
 
-Tipos numéricos usados aqui precisam existir em `backend.common.number_codecs.NUMERIC_CODECS`
-para validação consistente em `save_answer` (tipos `volume_l`, `weight_kg`, `temperature`).
+Numeric types used here must exist in `backend.common.number_codecs.NUMERIC_CODECS`
+for consistent validation in `save_answer` (types `volume_l`, `weight_kg`, `temperature`).
 """
 
 from __future__ import annotations
@@ -23,56 +23,56 @@ class PescaDiarioItemSpec(TypedDict):
     choice_options: str
 
 
-TEMPLATE_NAME = "Diário Operacional — Pesca Industrial"
+TEMPLATE_NAME = "Daily Operational Log — Industrial Fishing"
 SERVICE_TYPE = "pesca_industrial_diario"
 
-# Ordem fixa: turno → diesel (consumo/abastecimento/remanescente) → gelo → câmara → observações
+# Fixed order: shift → diesel (consumption/refueling/remaining) → ice → cold room → notes
 ITEM_SPECS: List[PescaDiarioItemSpec] = [
     {
         "order": 1,
-        "question": "Identificação do turno (data e período, ex.: 2026-04-03 — manhã)",
+        "question": "Shift identification (date and period, e.g. 2026-04-03 — morning)",
         "answer_type": "text",
         "required": True,
         "choice_options": "",
     },
     {
         "order": 2,
-        "question": "Consumo de diesel no período (litros)",
+        "question": "Diesel consumption for the period (liters)",
         "answer_type": "volume_l",
         "required": True,
         "choice_options": "",
     },
     {
         "order": 3,
-        "question": "Abastecimento de diesel no período (litros); informe 0 se não houve",
+        "question": "Diesel refueling for the period (liters); enter 0 if there was none",
         "answer_type": "volume_l",
         "required": True,
         "choice_options": "",
     },
     {
         "order": 4,
-        "question": "Estimativa de diesel total em bordo após o período (litros)",
+        "question": "Estimated total diesel on board after the period (liters)",
         "answer_type": "volume_l",
         "required": False,
         "choice_options": "",
     },
     {
         "order": 5,
-        "question": "Gelo em bordo — peso estimado (kg)",
+        "question": "Ice on board — estimated weight (kg)",
         "answer_type": "weight_kg",
         "required": True,
         "choice_options": "",
     },
     {
         "order": 6,
-        "question": "Temperatura da câmara fria / poço (°C)",
+        "question": "Cold room / hold temperature (°C)",
         "answer_type": "temperature",
         "required": True,
         "choice_options": "",
     },
     {
         "order": 7,
-        "question": "Observações operacionais (somente diesel, gelo ou câmara)",
+        "question": "Operational notes (diesel, ice, or cold room only)",
         "answer_type": "text",
         "required": False,
         "choice_options": "",
@@ -89,14 +89,14 @@ def ensure_pesca_diario_operacional_template(
     dry_run: bool = False,
 ) -> Tuple[Optional[ChecklistTemplate], EnsureStatus]:
     """
-    Cria o template v1 com itens de diesel/gelo/temperatura, se ainda não existir
-    (mesmo tenant + nome + versão 1).
+    Creates the v1 template with diesel/ice/temperature items if it does not exist yet
+    (same tenant + name + version 1).
 
     Returns:
-        (template, status) — template é None em dry_run quando seria criado.
+        (template, status) — template is None on dry_run when it would be created.
     """
     if created_by.tenant_id != tenant.id:
-        raise ValueError("O técnico criador deve pertencer ao mesmo tenant.")
+        raise ValueError("The creating technician must belong to the same tenant.")
 
     exists = ChecklistTemplate.objects.filter(
         tenant=tenant,

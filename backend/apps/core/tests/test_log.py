@@ -4,7 +4,7 @@ from backend.apps.core.models import CompanyTenant, Technician, AuditLog
 
 class AuditLogModelTest(TestCase):
     def setUp(self):
-        print("→ setUp: Criando tenant e técnico para testes de auditoria...")
+        print("→ setUp: Creating tenant and technician for audit tests...")
         self.tenant = CompanyTenant.objects.create(name="Tenant Logs", slug="tenant-logs")
         self.tech = Technician.objects.create(
             tenant=self.tenant,
@@ -19,7 +19,7 @@ class AuditLogModelTest(TestCase):
         }
 
     def test_create_log_entry(self):
-        print("✓ test_create_log_entry: Criando entrada básica de auditoria")
+        print("✓ test_create_log_entry: Creating a basic audit entry")
         log = AuditLog.objects.create(
             tenant=self.tenant,
             technician=self.tech,
@@ -33,7 +33,7 @@ class AuditLogModelTest(TestCase):
         self.assertEqual(log.data["to"], "in_progress")
 
     def test_created_at_auto(self):
-        print("✓ test_created_at_auto: Campo created_at deve ser preenchido automaticamente")
+        print("✓ test_created_at_auto: Field created_at should be filled in automatically")
         log = AuditLog.objects.create(
             tenant=self.tenant,
             technician=self.tech,
@@ -44,7 +44,7 @@ class AuditLogModelTest(TestCase):
         self.assertLessEqual(log.created_at, timezone.now())
 
     def test_str_representation(self):
-        print("✓ test_str_representation: __str__ deve conter data, técnico e ação")
+        print("✓ test_str_representation: __str__ should contain date, technician, and action")
         log = AuditLog.objects.create(
             tenant=self.tenant,
             technician=self.tech,
@@ -58,7 +58,7 @@ class AuditLogModelTest(TestCase):
         self.assertIn("CHK002", str_repr)
 
     def test_technician_can_be_null(self):
-        print("✓ test_technician_can_be_null: Deve permitir técnico nulo em caso de deleção")
+        print("✓ test_technician_can_be_null: Should allow a null technician in case of deletion")
         log = AuditLog.objects.create(
             tenant=self.tenant,
             technician=self.tech,

@@ -60,7 +60,7 @@ def create_checklist_template_api(request):
         "success": "Checklist Template registered",
         "checklist_template_id":  str(checklist_template.id),
         "messages": messages,
-        # talvez eu faça as funções register retornar um payload dos dados
+        # maybe I'll make the register functions return a data payload
     }, status=status.HTTP_201_CREATED)
 
     
@@ -122,7 +122,7 @@ def create_checklist_item_template_api(request):
         "success": "Checklist Item Template registered",
         "checklist_item_template_id":  str(checklist_item_template.id),
         "messages": messages,
-        # talvez eu faça as funções register retornar um payload dos dados
+        # maybe I'll make the register functions return a data payload
     }, status=status.HTTP_201_CREATED)
 
 

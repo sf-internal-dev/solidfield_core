@@ -9,7 +9,7 @@ STOPWORDS_DE = {
 }
 
 GENERIC_KEYWORDS_EN = [
-    # Qualidade do trabalho
+    # Work quality
     "well done",
     "excellent service",
     "great quality",
@@ -21,21 +21,21 @@ GENERIC_KEYWORDS_EN = [
     "thorough job",
     "reliable service",
     
-    # Velocidade
+    # Speed
     "quick response",
     "fast service",
     "prompt arrival",
     "on time",
     "rapid fix",
 
-    # Atendimento
+    # Customer service
     "friendly staff",
     "helpful",
     "clear communication",
     "good explanation",
     "polite technician",
 
-    # Resultado
+    # Result
     "issue resolved",
     "problem fixed",
     "system working",

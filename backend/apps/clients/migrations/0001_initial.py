@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('label', models.CharField(help_text='Ex: Matriz, Filial Zona Norte, Residência', max_length=100)),
+                ('label', models.CharField(help_text='E.g.: Headquarters, North Zone branch, Residence', max_length=100)),
                 ('street', models.CharField(max_length=200)),
                 ('number', models.CharField(max_length=20)),
                 ('complement', models.CharField(blank=True, max_length=100)),

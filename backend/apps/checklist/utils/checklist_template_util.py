@@ -29,13 +29,13 @@ def unit_for_type(answer_type: str) -> Optional[str]:
     return codec.canon_unit if codec else None
 
 def parse_number_for_type(answer_type: str, raw_value: Any) -> float:
-    """Usado na entrada do form → normaliza para a unidade canônica e retorna float."""
+    """Used on form input → normalizes to the canonical unit and returns a float."""
     codec = NUMERIC_CODECS.get(answer_type)
     if not codec: raise ValueError("not a numeric type")
     return codec.parse(raw_value)
 
 def format_number_for_type(answer_type: str, value_canon: float) -> str:
-    """Usado na saída (exibição) → string formatada a partir do valor canônico."""
+    """Used on output (display) → formatted string from the canonical value."""
     codec = NUMERIC_CODECS.get(answer_type)
     if not codec: raise ValueError("not a numeric type")
     return codec.fmt(value_canon)

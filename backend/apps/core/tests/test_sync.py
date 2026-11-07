@@ -6,7 +6,7 @@ from backend.apps.core.models import CompanyTenant, Technician, OfflineSyncQueue
 
 class OfflineSyncQueueModelTest(TestCase):
     def setUp(self):
-        print("→ setUp: Criando tenant e técnico para fila de sincronização offline...")
+        print("→ setUp: Creating tenant and technician for the offline sync queue...")
         self.tenant = CompanyTenant.objects.create(name="Tenant Sync", slug="tenant-sync")
         self.technician = Technician.objects.create(
             tenant=self.tenant,
@@ -20,7 +20,7 @@ class OfflineSyncQueueModelTest(TestCase):
         }
 
     def test_create_pending_sync_entry(self):
-        print("✓ test_create_pending_sync_entry: Criando item de sincronização com status 'pending'")
+        print("✓ test_create_pending_sync_entry: Creating a sync item with status 'pending'")
         sync_entry = OfflineSyncQueue.objects.create(
             technician=self.technician,
             status="pending",
@@ -31,7 +31,7 @@ class OfflineSyncQueueModelTest(TestCase):
         self.assertIsNone(sync_entry.synced_at)
 
     def test_default_created_at(self):
-        print("✓ test_default_created_at: created_at deve ser preenchido automaticamente")
+        print("✓ test_default_created_at: created_at should be filled in automatically")
         sync_entry = OfflineSyncQueue.objects.create(
             technician=self.technician,
             status="pending",
@@ -41,7 +41,7 @@ class OfflineSyncQueueModelTest(TestCase):
         self.assertLessEqual(sync_entry.created_at, now)
 
     def test_str_representation(self):
-        print("✓ test_str_representation: __str__ deve conter técnico, status e data formatada")
+        print("✓ test_str_representation: __str__ should contain technician, status, and formatted date")
         sync_entry = OfflineSyncQueue.objects.create(
             technician=self.technician,
             status="success",
@@ -53,7 +53,7 @@ class OfflineSyncQueueModelTest(TestCase):
         self.assertIn(str(sync_entry.created_at.strftime("%Y-%m-%d %H:%M")), str_repr)
 
     def test_conflict_status(self):
-        print("✓ test_conflict_status: Deve permitir salvar status 'conflict'")
+        print("✓ test_conflict_status: Should allow saving status 'conflict'")
         sync_entry = OfflineSyncQueue.objects.create(
             technician=self.technician,
             status="conflict",
@@ -62,7 +62,7 @@ class OfflineSyncQueueModelTest(TestCase):
         self.assertEqual(sync_entry.status, "conflict")
 
     def test_synced_at_can_be_set(self):
-        print("✓ test_synced_at_can_be_set: Deve permitir preencher 'synced_at' manualmente")
+        print("✓ test_synced_at_can_be_set: Should allow setting 'synced_at' manually")
         timestamp = timezone.now() - timedelta(minutes=5)
         sync_entry = OfflineSyncQueue.objects.create(
             technician=self.technician,

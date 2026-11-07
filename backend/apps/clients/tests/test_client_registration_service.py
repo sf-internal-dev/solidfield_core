@@ -15,7 +15,7 @@ from backend.apps.clients.services.client_registration_service import (
 
 class CreateOrUpdateClientServiceTest(TestCase):
     def setUp(self):
-        print("→ setUp: criando tenant e técnico")
+        print("→ setUp: creating tenant and technician")
         self.tenant = CompanyTenant.objects.create(name="T1", slug="t1", tenant_code="T1AA")
         self.tech = Technician.objects.create(
             tenant=self.tenant,
@@ -27,7 +27,7 @@ class CreateOrUpdateClientServiceTest(TestCase):
 
     @patch("backend.apps.clients.services.client_registration_service.has_permission", return_value=(False, ["no_perm"]))
     def test_permission_denied_returns_none_and_errors(self, _perm):
-        print("✓ create_or_update_client: sem permissão → None + 'no_perm'")
+        print("✓ create_or_update_client: no permission → None + 'no_perm'")
         client, errors = create_or_update_client(
             technician_operating=self.tech,
             name="Acme",
@@ -44,7 +44,7 @@ class CreateOrUpdateClientServiceTest(TestCase):
     @patch("backend.apps.clients.services.client_registration_service.validate_contact_name", return_value=(True, []))
     @patch("backend.apps.clients.services.client_registration_service.validate_name", return_value=(True, []))
     def test_create_new_client_success(self, _vname, _vcontact, _vdoc, _vphone, _vemail, _perm):
-        print("✓ create_or_update_client: cria cliente quando todas validações passam")
+        print("✓ create_or_update_client: creates a client when every validation passes")
         client, errors = create_or_update_client(
             technician_operating=self.tech,
             person_type="company",
@@ -74,10 +74,10 @@ class CreateOrUpdateClientServiceTest(TestCase):
     @patch("backend.apps.clients.services.client_registration_service.validate_contact_name", return_value=(False, ["invalid_contact_name"]))
     @patch("backend.apps.clients.services.client_registration_service.validate_name", return_value=(False, ["invalid_name"]))
     def test_create_new_client_accumulates_errors_and_does_not_save(self, _vname, _vcontact, _vdoc, _vphone, _vemail, _perm):
-        print("✓ create_or_update_client: acumula erros; não persiste se houver erros")
+        print("✓ create_or_update_client: accumulates errors; does not persist if there are errors")
         client, errors = create_or_update_client(
             technician_operating=self.tech,
-            person_type="invalid",  # gera invalid_person_type
+            person_type="invalid",  # produces invalid_person_type
             name="@@",              # invalid_name
             document_id="bad",
             contact_name="",
@@ -85,7 +85,7 @@ class CreateOrUpdateClientServiceTest(TestCase):
             email="bad",
             country="US",
         )
-        # retorna instância criada (não salva)
+        # returns the created instance (not saved)
         self.assertIsInstance(client, Client)
         self.assertIn("invalid_person_type", errors)
         self.assertIn("invalid_name", errors)
@@ -101,7 +101,7 @@ class CreateOrUpdateClientServiceTest(TestCase):
     @patch("backend.apps.clients.services.client_registration_service.validate_contact_name", return_value=(True, []))
     @patch("backend.apps.clients.services.client_registration_service.validate_name", return_value=(True, []))
     def test_update_existing_client_partial_with_errors_does_not_save(self, _vname, _vcontact, _vdoc, _vphone, _vemail, _perm):
-        print("✓ create_or_update_client: update parcial com erro → não salva alterações")
+        print("✓ create_or_update_client: partial update with an error → does not save changes")
         existing = Client.objects.create(
             tenant=self.tenant,
             person_type="company",
@@ -115,7 +115,7 @@ class CreateOrUpdateClientServiceTest(TestCase):
             technician_operating=self.tech,
             client=existing,
             name="New Name",
-            email="invalid-email",  # inválido
+            email="invalid-email",  # invalid
             country="US",
         )
         self.assertIsInstance(client, Client)
@@ -131,7 +131,7 @@ class CreateOrUpdateClientServiceTest(TestCase):
     @patch("backend.apps.clients.services.client_registration_service.validate_contact_name", return_value=(True, []))
     @patch("backend.apps.clients.services.client_registration_service.validate_name", return_value=(True, []))
     def test_update_existing_client_success_saves(self, _vname, _vcontact, _vdoc, _vphone, _vemail, _perm):
-        print("✓ create_or_update_client: update sem erros → salva")
+        print("✓ create_or_update_client: update with no errors → saves")
         existing = Client.objects.create(
             tenant=self.tenant,
             person_type="company",
@@ -156,7 +156,7 @@ class CreateOrUpdateClientServiceTest(TestCase):
 
 class RegisterClientAddressServiceTest(TestCase):
     def setUp(self):
-        print("→ setUp address: criando tenant, técnico e cliente")
+        print("→ setUp address: creating tenant, technician, and client")
         self.tenant = CompanyTenant.objects.create(name="T2", slug="t2", tenant_code="T2AA")
         self.tech = Technician.objects.create(
             tenant=self.tenant,
@@ -173,7 +173,7 @@ class RegisterClientAddressServiceTest(TestCase):
 
     @patch("backend.apps.clients.services.client_registration_service.has_permission", return_value=(False, "no_perm"))
     def test_permission_denied(self, _perm):
-        print("✓ register_client_address: sem permissão → None + 'no_perm'")
+        print("✓ register_client_address: no permission → None + 'no_perm'")
         addr, errors = register_client_address(
             technician_operating=self.tech,
             client=self.client,
@@ -193,7 +193,7 @@ class RegisterClientAddressServiceTest(TestCase):
     @patch("backend.apps.clients.services.client_registration_service.validate_region_code", return_value=False)
     @patch("backend.apps.clients.services.client_registration_service.validate_postal_code", return_value=False)
     def test_validation_errors_accumulate(self, _vzip, _vstate, _vcoords, _perm):
-        print("✓ register_client_address: acumula erros de código, região e coordenadas")
+        print("✓ register_client_address: accumulates postal code, region, and coordinate errors")
         addr, errors = register_client_address(
             technician_operating=self.tech,
             client=self.client,
@@ -216,7 +216,7 @@ class RegisterClientAddressServiceTest(TestCase):
     @patch("backend.apps.clients.services.client_registration_service.validate_region_code", return_value=True)
     @patch("backend.apps.clients.services.client_registration_service.validate_postal_code", return_value=True)
     def test_success_creates_address(self, _vzip, _vstate, _vcoords, _perm):
-        print("✓ register_client_address: sucesso → cria endereço e retorna '' em errors")
+        print("✓ register_client_address: success → creates the address and returns '' in errors")
         addr, errors = register_client_address(
             technician_operating=self.tech,
             client=self.client,

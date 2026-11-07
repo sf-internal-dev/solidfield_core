@@ -4,14 +4,14 @@ from backend.apps.core.models import CompanyTenant, TenantWorkflow, AccountHolde
 import datetime
 
 class CompanyTenantModelTest(TestCase):
-    print("→ setUp: Criando tenant com todos os campos preenchidos...")
+    print("→ setUp: Creating a tenant with every field filled in...")
     def setUp(self):
         self.owner = AccountHolderUser.objects.create_user(email="owner@test.com", full_name="Owner User")
         self.tenant = CompanyTenant.objects.create(
-            name="Empresa X",
-            slug="empresa-x",
-            primary_contact_name="Contato",
-            primary_contact_email="contato@empresa.com",
+            name="Company X",
+            slug="company-x",
+            primary_contact_name="Contact",
+            primary_contact_email="contact@company.com",
             primary_contact_phone="(11) 99999-9999",
             owner=self.owner,
             locale="pt-BR",
@@ -20,14 +20,14 @@ class CompanyTenantModelTest(TestCase):
         )
 
     def test_string_representation(self):
-        print("✓ test_string_representation: __str__ deve retornar o nome da empresa")
-        """__str__ deve retornar o nome da empresa"""
-        self.assertEqual(str(self.tenant), "Empresa X")
+        print("✓ test_string_representation: __str__ should return the company name")
+        """__str__ should return the company name"""
+        self.assertEqual(str(self.tenant), "Company X")
 
     def test_defaults(self):
-        """Testa valores padrão ao criar um tenant"""
-        print("✓ test_defaults: Verificando valores padrão de is_active, locale, timezone e color_primary")
-        tenant = CompanyTenant.objects.create(name="Padrao", slug="padrao")
+        """Tests default values when creating a tenant"""
+        print("✓ test_defaults: Checking default values of is_active, locale, timezone, and color_primary")
+        tenant = CompanyTenant.objects.create(name="Default", slug="default")
         self.assertTrue(tenant.is_active)
         self.assertEqual(tenant.locale, "en-US")
         self.assertEqual(tenant.timezone, "America/Los_Angeles")
@@ -36,15 +36,15 @@ class CompanyTenantModelTest(TestCase):
         # self.assertIsNone(tenant.logo)
 
     def test_timestamps_are_set(self):
-        """created_at e updated_at devem ser preenchidos automaticamente"""
-        print("✓ test_timestamps_are_set: Verificando se created_at e updated_at foram gerados")
+        """created_at and updated_at should be filled in automatically"""
+        print("✓ test_timestamps_are_set: Checking that created_at and updated_at were generated")
         self.assertIsNotNone(self.tenant.created_at)
         self.assertIsNotNone(self.tenant.updated_at)
         self.assertAlmostEqual(self.tenant.created_at.date(), timezone.now().date())
 
     def test_owner_relationship(self):
-        """Deve associar corretamente o dono à empresa"""
-        print("✓ test_owner_relationship: Verificando relacionamento one-to-one com AccountHolderUser")
+        """Should correctly associate the owner with the company"""
+        print("✓ test_owner_relationship: Checking the one-to-one relationship with AccountHolderUser")
         self.assertEqual(self.tenant.owner, self.owner)
         self.assertEqual(self.owner.owned_tenant, self.tenant)
 
@@ -55,7 +55,7 @@ import datetime
 
 class TenantWorkflowModelTest(TestCase):
     def setUp(self):
-        print("→ setUp: Criando tenant e workflow JSON")
+        print("→ setUp: Creating tenant and workflow JSON")
         self.tenant = CompanyTenant.objects.create(name="Workflow Tenant", slug="workflow-tenant")
         self.workflow_data = {
             "states": ["open", "in_progress", "done"],
@@ -67,20 +67,20 @@ class TenantWorkflowModelTest(TestCase):
         )
 
     def test_string_representation(self):
-        """__str__ deve exibir nome e data do tenant"""
-        print("✓ test_string_representation: __str__ deve conter o nome do tenant e a data de atualização")
+        """__str__ should show the tenant name and date"""
+        print("✓ test_string_representation: __str__ should contain the tenant name and the update date")
         self.assertIn("Workflow Tenant", str(self.workflow))
         self.assertIn(str(self.workflow.updated_at.date()), str(self.workflow))
 
     def test_workflow_json_content(self):
-        """Deve armazenar corretamente o conteúdo do JSON"""
-        print("✓ test_workflow_json_content: Validando conteúdo armazenado no campo JSONField")
+        """Should correctly store the JSON content"""
+        print("✓ test_workflow_json_content: Validating the content stored in the JSONField")
         self.assertIn("states", self.workflow.workflow_json)
         self.assertEqual(self.workflow.workflow_json["states"], ["open", "in_progress", "done"])
 
     def test_updated_at_auto_updates(self):
-        """updated_at deve ser atualizado automaticamente"""
-        print("✓ test_updated_at_auto_updates: Verificando se updated_at é atualizado após modificação")
+        """updated_at should be updated automatically"""
+        print("✓ test_updated_at_auto_updates: Checking that updated_at is updated after a modification")
         old_updated = self.workflow.updated_at
         self.workflow.workflow_json["states"].append("archived")
         self.workflow.save()
