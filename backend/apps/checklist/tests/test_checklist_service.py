@@ -11,20 +11,20 @@ from backend.apps.checklist.models import (
     Checklist,
     ChecklistItemAnswer,
 )
-# ajuste este import pro caminho real do módulo que contém as funções abaixo
+# adjust this import to the real path of the module that contains the functions below
 from backend.apps.checklist.services import checklist_service as svc
 
 
 class ChecklistServiceTestCase(TestCase):
     def setUp(self):
-        print("→ setUp: Criando tenant, técnico(s), template e checklist base")
+        print("→ setUp: Creating tenant, technician(s), template, and base checklist")
         self.tenant = CompanyTenant.objects.create(name="TenantCS", slug="tenant-cs")
 
         self.tech_op = Technician.objects.create(
-            tenant=self.tenant, username="op", social_name="Operador", technician_permission="L1"
+            tenant=self.tenant, username="op", social_name="Operator", technician_permission="L1"
         )
         self.tech_filled = Technician.objects.create(
-            tenant=self.tenant, username="filled", social_name="Preenchedor", technician_permission="L1"
+            tenant=self.tenant, username="filled", social_name="Filler", technician_permission="L1"
         )
 
         self.tpl = ChecklistTemplate.objects.create(
@@ -32,12 +32,12 @@ class ChecklistServiceTestCase(TestCase):
             name="Template SV",
             version=1,
             created_by=self.tech_op,
-            service_type="Serviço",
+            service_type="Service",
             is_active=True,
             is_global=True,
         )
 
-        # checklist simples (vai ser usado em vários testes)
+        # simple checklist (used in several tests)
         self.checklist = Checklist.objects.create(
             template=self.tpl,
             filled_by=self.tech_filled,
@@ -50,7 +50,7 @@ class ChecklistServiceTestCase(TestCase):
     # -----------------------------
     @patch("backend.apps.checklist.services.checklist_service.has_permission", return_value=(True, []))
     def test_create_checklist_success(self, _mock_perm):
-        print("✓ create_checklist: cria com permissões ok")
+        print("✓ create_checklist: creates with permissions ok")
         cl, errs = svc.create_checklist(
             technician_operating=self.tech_op, template=self.tpl, filled_by=self.tech_filled
         )
@@ -64,9 +64,9 @@ class ChecklistServiceTestCase(TestCase):
     # -----------------------------
     @patch("backend.apps.checklist.services.checklist_service.has_permission", return_value=(True, []))
     def test_save_answer_bool_ok(self, _mock_perm):
-        print("✓ save_answer: bool required com True/False explícito")
+        print("✓ save_answer: required bool with explicit True/False")
         it = ChecklistItemTemplate.objects.create(
-            template=self.tpl, order=1, question="Funciona?", answer_type="bool", required=True
+            template=self.tpl, order=1, question="Does it work?", answer_type="bool", required=True
         )
         ans, errs = svc.save_answer(
             technician_operating=self.tech_op, checklist=self.checklist, item_template=it, value=True
@@ -80,9 +80,9 @@ class ChecklistServiceTestCase(TestCase):
 
     @patch("backend.apps.checklist.services.checklist_service.has_permission", return_value=(True, []))
     def test_save_answer_required_missing_text(self, _mock_perm):
-        print("✓ save_answer: required text vazio → required_value_missing")
+        print("✓ save_answer: empty required text → required_value_missing")
         it = ChecklistItemTemplate.objects.create(
-            template=self.tpl, order=2, question="Descreva", answer_type="text", required=True
+            template=self.tpl, order=2, question="Describe", answer_type="text", required=True
         )
         ans, errs = svc.save_answer(
             technician_operating=self.tech_op, checklist=self.checklist, item_template=it, value="   "
@@ -92,11 +92,11 @@ class ChecklistServiceTestCase(TestCase):
 
     @patch("backend.apps.checklist.services.checklist_service.has_permission", return_value=(True, []))
     def test_save_answer_choice_not_in_options(self, _mock_perm):
-        print("✓ save_answer: choice fora das opções → choice_not_in_options")
+        print("✓ save_answer: choice outside the options → choice_not_in_options")
         it = ChecklistItemTemplate.objects.create(
             template=self.tpl,
             order=3,
-            question="Escolha",
+            question="Choose",
             answer_type="choice",
             required=True,
             choice_options="A,B,C",
@@ -112,18 +112,18 @@ class ChecklistServiceTestCase(TestCase):
     # -----------------------------
     @patch("backend.apps.checklist.services.checklist_service.has_permission", return_value=(True, []))
     def test_remove_answer_ok_and_not_found(self, _mock_perm):
-        print("✓ remove_answer: remove existente e lida com inexistente")
+        print("✓ remove_answer: removes an existing one and handles a missing one")
         it = ChecklistItemTemplate.objects.create(
-            template=self.tpl, order=4, question="Remover?", answer_type="bool", required=False
+            template=self.tpl, order=4, question="Remove?", answer_type="bool", required=False
         )
-        # cria uma resposta para remover
+        # create an answer to remove
         a = ChecklistItemAnswer.objects.create(checklist=self.checklist, item_template=it, answer_bool=False)
         ok, errs = svc.remove_answer(
             technician_operating=self.tech_op, checklist=self.checklist, item_template=it
         )
         self.assertTrue(ok)
         self.assertEqual(errs, [])
-        # tentar remover de novo → not found
+        # try to remove again → not found
         ok2, errs2 = svc.remove_answer(
             technician_operating=self.tech_op, checklist=self.checklist, item_template=it
         )
@@ -134,7 +134,7 @@ class ChecklistServiceTestCase(TestCase):
     # list_missing_required_answers
     # -----------------------------
     def test_list_missing_required_answers_basic(self):
-        print("✓ list_missing_required_answers: identifica itens obrigatórios sem resposta")
+        print("✓ list_missing_required_answers: identifies required items without an answer")
         it_bool = ChecklistItemTemplate.objects.create(
             template=self.tpl, order=5, question="B?", answer_type="bool", required=True
         )
@@ -142,14 +142,14 @@ class ChecklistServiceTestCase(TestCase):
             template=self.tpl, order=6, question="T?", answer_type="text", required=True
         )
         it_opt = ChecklistItemTemplate.objects.create(
-            template=self.tpl, order=7, question="Opcional", answer_type="text", required=False
+            template=self.tpl, order=7, question="Optional", answer_type="text", required=False
         )
-        # responde só o bool
+        # answer only the bool
         ChecklistItemAnswer.objects.create(checklist=self.checklist, item_template=it_bool, answer_bool=False)
 
         missing, errs = svc.list_missing_required_answers(checklist=self.checklist)
         self.assertEqual(errs, [])
-        # deve faltar o de texto (obrigatório) e não listar o opcional
+        # the text one (required) should be missing, and the optional one should not be listed
         self.assertIn(it_text.id, missing)
         self.assertNotIn(it_bool.id, missing)
         self.assertNotIn(it_opt.id, missing)
@@ -159,9 +159,9 @@ class ChecklistServiceTestCase(TestCase):
     # -----------------------------
     @patch("backend.apps.checklist.services.checklist_service.has_permission", return_value=(True, []))
     def test_bulk_save_answers_ok_not_found_and_error_bubbling(self, _mock_perm):
-        print("✓ bulk_save_answers: salva vários, acumula erros e ignora inexistentes")
+        print("✓ bulk_save_answers: saves several, accumulates errors, and ignores missing ones")
 
-        # itens de template
+        # template items
         it1 = ChecklistItemTemplate.objects.create(
             template=self.tpl, order=10, question="Q1", answer_type="bool", required=True
         )
@@ -179,10 +179,10 @@ class ChecklistServiceTestCase(TestCase):
             ],
         )
 
-        # verificações
+        # checks
         self.assertTrue(any(isinstance(a, ChecklistItemAnswer) for a in saved))
-        # deve ter erro por item_template_not_found e choice_not_in_options
+        # should have errors for item_template_not_found and choice_not_in_options
         self.assertIn("item_template_not_found", errs)
         self.assertIn("choice_not_in_options", errs)
-        # garantia de que salvou o primeiro
+        # guarantee that the first one was saved
         self.assertTrue(ChecklistItemAnswer.objects.filter(checklist=self.checklist, item_template=it1).exists())

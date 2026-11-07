@@ -30,7 +30,7 @@ _JSON_OBJECT = {"type": "object", "additionalProperties": True}
 @extend_schema(
     tags=[TAG_CHECKLIST],
     operation_id="publicV1ChecklistCreate",
-    summary="Cria instância de checklist (viagem opcional via work_order)",
+    summary="Creates a checklist instance (optional trip via work_order)",
     request={
         "application/json": {
             "type": "object",
@@ -150,14 +150,14 @@ def create_checklist_api(request):
         "success": "Checklist registered",
         "checklist_id":  str(checklist.id),
         "messages": messages,
-        # talvez eu faça as funções register retornar um payload dos dados
+        # maybe I'll make the register functions return a data payload
     }, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(
     tags=[TAG_CHECKLIST],
     operation_id="publicV1ChecklistBulkAnswers",
-    summary="Salva respostas em lote (checklist + lista answers)",
+    summary="Saves answers in bulk (checklist + answers list)",
     request={
         "application/json": {
             "type": "object",
@@ -177,7 +177,7 @@ def create_checklist_item_answer_api(request):
     data = request.data or {}
     technician_operating = getattr(request, "technician_operating", None)
     manager_account_operating = getattr(request, "manager_account_operating", None)
-    answers = data.get("answers", [])  # espera lista de dicts
+    answers = data.get("answers", [])  # expects a list of dicts
     checklist_id = data.get("checklist")
 
     checklist = None
@@ -190,7 +190,7 @@ def create_checklist_item_answer_api(request):
         item_template = ans.get("item_template")
         note = ans.get("note") if "note" in ans else None
 
-        # detecta o campo de valor presente (prioridade na ordem possível)
+        # detects the value field that is present (priority follows the possible order)
         value = None
         for field in possible_fields:
             if field in ans:
@@ -251,7 +251,7 @@ def create_checklist_item_answer_api(request):
 @extend_schema(
     tags=[TAG_CHECKLIST],
     operation_id="publicV1ChecklistList",
-    summary="Lista checklists com filtros opcionais",
+    summary="Lists checklists with optional filters",
     parameters=[
         OpenApiParameter("technician_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
         OpenApiParameter("template_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
@@ -332,7 +332,7 @@ def list_checklists_api(request):
 @extend_schema(
     tags=[TAG_CHECKLIST],
     operation_id="publicV1ChecklistGet",
-    summary="Detalhe do checklist com respostas",
+    summary="Checklist detail with answers",
     responses={200: _JSON_OBJECT, 422: schema_error_422()},
 )
 @api_view(["GET"])
@@ -384,7 +384,7 @@ def get_checklist_api(request, checklist_id):
 @extend_schema(
     tags=[TAG_CHECKLIST],
     operation_id="publicV1ChecklistSubmit",
-    summary="Submete checklist (valida obrigatórios)",
+    summary="Submits checklist (validates required items)",
     responses={200: _JSON_OBJECT, 422: schema_error_422()},
 )
 @api_view(["POST"])
@@ -433,7 +433,7 @@ def submit_checklist_api(request, checklist_id):
 @extend_schema(
     tags=[TAG_CHECKLIST],
     operation_id="publicV1ChecklistProgress",
-    summary="Progresso e respostas agregadas",
+    summary="Progress and aggregated answers",
     responses={200: _JSON_OBJECT, 422: schema_error_422()},
 )
 @api_view(["GET"])
@@ -482,7 +482,7 @@ def get_checklist_progress_api(request, checklist_id):
 @extend_schema(
     tags=[TAG_CHECKLIST],
     operation_id="publicV1ChecklistRemoveAnswer",
-    summary="Remove uma resposta (checklist + item_template)",
+    summary="Removes an answer (checklist + item_template)",
     responses={200: _JSON_OBJECT, 404: schema_error_401(), 422: schema_error_422()},
 )
 @api_view(["DELETE"])
@@ -549,7 +549,7 @@ def remove_checklist_answer_api(request, checklist_id, item_template_id):
 @extend_schema(
     tags=[TAG_CHECKLIST],
     operation_id="publicV1ChecklistExportCsv",
-    summary="Export CSV de respostas para BI",
+    summary="Export answers CSV for BI",
     parameters=[
         OpenApiParameter("work_order_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
         OpenApiParameter("service_type", OpenApiTypes.STR, OpenApiParameter.QUERY),

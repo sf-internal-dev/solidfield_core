@@ -93,16 +93,16 @@ def register_tenant(name: str, slug: str, tenant_code: str,
 
 
 
-# Lê bytes (ex.: io.BytesIO)
+# Reads bytes (e.g. io.BytesIO)
 BinaryReadable = IO[bytes]
 
 ImageInput = Union[
-    UploadedFile,     # vindo da request/form
+    UploadedFile,     # coming from the request/form
     File, ContentFile, 
-    ImageFieldFile,   # vindo de um model já salvo
+    ImageFieldFile,   # coming from an already saved model
     BinaryReadable,   # ex.: BytesIO
-    bytes,            # bytes prontos
-    str, Path,        # caminho no disco
+    bytes,            # raw bytes
+    str, Path,        # path on disk
 ]
 
 def register_tenant_branding(tenant: CompanyTenant, color_primary: str, logo: ImageInput | None = None):
@@ -116,7 +116,7 @@ def register_tenant_branding(tenant: CompanyTenant, color_primary: str, logo: Im
     
     tenant.color_primary = color_primary
 
-    # precisa validar logo!
+    # must validate the logo!
     # if not validate_logo(value=logo):
     #     errors.append("invalid_logo)
     tenant.logo = logo

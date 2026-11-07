@@ -1,13 +1,13 @@
 """
-Serviço da fila offline: enfileirar mutações no dispositivo e processar quando há conectividade.
+Offline queue service: enqueue mutations on the device and process them when there is connectivity.
 
-Contrato de `payload` (mínimo):
-- `schema_version`: int (ex.: 1)
+`payload` contract (minimum):
+- `schema_version`: int (e.g. 1)
 - `action`: str
-- `body`: dict específico da ação
+- `body`: dict specific to the action
 
-Ações suportadas:
-- `checklist_batch_answers` — body: `checklist_id`, `answers` (lista compatível com bulk_save_answers)
+Supported actions:
+- `checklist_batch_answers` — body: `checklist_id`, `answers` (list compatible with bulk_save_answers)
 - `checklist_submit` — body: `checklist_id`
 """
 

@@ -5,53 +5,53 @@ from backend.apps.clients.models import Client, ClientAddress
 
 class ClientModelTest(TestCase):
     def setUp(self):
-        print("→ setUp: Criando tenant e cliente para testes...")
-        self.tenant = CompanyTenant.objects.create(name="TenantCliente", slug="tenant-cliente")
+        print("→ setUp: Creating tenant and client for tests...")
+        self.tenant = CompanyTenant.objects.create(name="Client Tenant", slug="tenant-client")
         self.client = Client.objects.create(
             tenant=self.tenant,
             person_type="company",
-            name="Empresa XPTO",
+            name="Company XPTO",
             document_id="1234567890001",
             contact_name="Fulano",
             phone="(11) 99999-9999",
-            email="contato@empresa.com"
+            email="contact@company.com"
         )
 
     def test_client_str(self):
-        print("✓ test_client_str: __str__ deve retornar o nome do cliente")
-        self.assertEqual(str(self.client), "Empresa XPTO")
+        print("✓ test_client_str: __str__ should return the client name")
+        self.assertEqual(str(self.client), "Company XPTO")
 
     def test_unique_document_per_tenant(self):
-        print("✓ test_unique_document_per_tenant: Deve falhar se document_id repetir no mesmo tenant")
+        print("✓ test_unique_document_per_tenant: Should fail if document_id repeats in the same tenant")
         with self.assertRaises(IntegrityError):
             Client.objects.create(
                 tenant=self.tenant,
                 person_type="company",
-                name="Empresa Clone",
-                document_id="1234567890001",  # mesmo documento
+                name="Clone Company",
+                document_id="1234567890001",  # same document
                 contact_name="Ciclano",
                 phone="(11) 88888-8888",
-                email="outro@empresa.com"
+                email="other@company.com"
             )
 
     def test_same_document_different_tenants(self):
-        print("✓ test_same_document_different_tenants: Mesmo document_id permitido em tenants diferentes")
+        print("✓ test_same_document_different_tenants: Same document_id allowed in different tenants")
         another_tenant = CompanyTenant.objects.create(name="Tenant B", slug="tenant-b")
         client_b = Client.objects.create(
             tenant=another_tenant,
             person_type="company",
-            name="Empresa B",
-            document_id="1234567890001",  # mesmo doc
+            name="Company B",
+            document_id="1234567890001",  # same document
             contact_name="Beltrano",
             phone="(21) 99999-0000",
-            email="b@empresa.com"
+            email="b@company.com"
         )
         self.assertEqual(client_b.document_id, "1234567890001")
 
 class ClientAddressModelTest(TestCase):
     def setUp(self):
-        print("→ setUp: Criando cliente e endereço para testes...")
-        self.tenant = CompanyTenant.objects.create(name="Tenant Endereço", slug="tenant-end")
+        print("→ setUp: Creating client and address for tests...")
+        self.tenant = CompanyTenant.objects.create(name="Address Tenant", slug="tenant-end")
         self.client = Client.objects.create(
             tenant=self.tenant,
             person_type="individual",
@@ -63,11 +63,11 @@ class ClientAddressModelTest(TestCase):
         )
         self.address = ClientAddress.objects.create(
             client=self.client,
-            label="Residência",
-            street="Rua A",
+            label="Residence",
+            street="Street A",
             number="123",
-            complement="Casa 1",
-            neighborhood="Centro",
+            complement="House 1",
+            neighborhood="Downtown",
             city="Belo Horizonte",
             state="MG",
             zip_code="30100-000",
@@ -76,9 +76,9 @@ class ClientAddressModelTest(TestCase):
         )
 
     def test_address_str(self):
-        print("✓ test_address_str: __str__ deve retornar 'label - city'")
-        self.assertEqual(str(self.address), "Residência - Belo Horizonte")
+        print("✓ test_address_str: __str__ should return 'label - city'")
+        self.assertEqual(str(self.address), "Residence - Belo Horizonte")
 
     def test_address_relationship(self):
-        print("✓ test_address_relationship: Cliente deve acessar seus endereços pelo related_name")
+        print("✓ test_address_relationship: Client should access its addresses through the related_name")
         self.assertIn(self.address, self.client.addresses.all())

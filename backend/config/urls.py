@@ -24,7 +24,7 @@ urlpatterns = [
     
     path('_nested_admin/', include('nested_admin.urls')),
     path('token_api/',include("backend.apps.core.routes.tokens_urls")),
-    # OpenAPI — mais específico que o prefixo api/ include
+    # OpenAPI — more specific than the api/ include prefix
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/', include('backend.apps.apis.urls')),

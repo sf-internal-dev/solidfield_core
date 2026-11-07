@@ -290,7 +290,7 @@ Resolved / updated in codebase:
 
 Remaining gaps (optional follow-ups):
 
-- `create_checklist_template_api` pode não alinhar todos os parâmetros exigidos por `create_checklist_template` (ex.: `technician` criador, `is_global`); revisar ao evoluir o app.
+- `create_checklist_template_api` may not align every parameter required by `create_checklist_template` (for example the creator `technician`, `is_global`); review this when the app evolves.
 
 ---
 
@@ -313,51 +313,51 @@ Remaining gaps (optional follow-ups):
 
 ---
 
-## 11) Regras de qualidade para geracao de objeto (Checklist Item)
+## 11) Quality rules for object generation (Checklist Item)
 
-Esta secao define guardrails para evitar erros semanticos na geracao de objetos, descricoes ou observacoes por item.
+This section defines guardrails to avoid semantic errors when generating objects, descriptions, or notes per item.
 
-### 11.1 Separacao obrigatoria de dominio
+### 11.1 Mandatory domain separation
 
-- **Nao misturar `aquisicao` com `contratacao`**.
-- `aquisicao`: compra/entrada de material, item fisico, estoque, recebimento, consumo.
-- `contratacao`: servico, mao de obra, fornecedor contratado, escopo contratual.
-- Se o item for de aquisicao, toda a descricao, validacao e observacao devem permanecer no contexto de aquisicao.
-- Se o item for de contratacao, toda a descricao, validacao e observacao devem permanecer no contexto de contratacao.
+- **Do not mix `aquisicao` with `contratacao`**.
+- `aquisicao`: purchase/inbound material, physical item, stock, receiving, consumption.
+- `contratacao`: service, labor, contracted supplier, contractual scope.
+- If the item is `aquisicao`, every description, validation, and note must stay in the `aquisicao` context.
+- If the item is `contratacao`, every description, validation, and note must stay in the `contratacao` context.
 
-### 11.2 Regra de contexto por item
+### 11.2 Per-item context rule
 
-- Toda observacao deve referenciar diretamente o item atual (objeto, atributo ou condicao do proprio item).
-- E proibido adicionar observacao generica ou paralela sem relacao com o item.
-- Exemplo de erro: item sobre "aquisicao de seringa" com observacao sobre processo de contratacao.
-- Exemplo correto: item sobre "aquisicao de seringa" com observacao sobre quantidade, lote, validade, fornecedor do material ou conformidade de recebimento.
+- Every note must refer directly to the current item (the item's own object, attribute, or condition).
+- Adding a generic or parallel note with no relation to the item is forbidden.
+- Error example: an item about "syringe acquisition" with a note about the contracting process.
+- Correct example: an item about "syringe acquisition" with a note about quantity, lot, expiry, material supplier, or receiving compliance.
 
-### 11.3 Fluidez e coerencia textual
+### 11.3 Textual flow and coherence
 
-- Estrutura recomendada por item:
-  1) objeto
-  2) acao/verificacao
-  3) criterio esperado
-  4) observacao contextual (quando aplicavel)
-- Evitar mudanca de assunto dentro da mesma frase.
-- Evitar termos vagos ("coisas fora do padrao") sem declarar qual padrao foi violado.
+- Recommended structure per item:
+  1) object
+  2) action/verification
+  3) expected criterion
+  4) contextual note (when applicable)
+- Avoid changing the subject within the same sentence.
+- Avoid vague terms ("things out of standard") without stating which standard was violated.
 
-### 11.4 Checklist de validacao semantica (antes de salvar/emitir)
+### 11.4 Semantic validation checklist (before save/emit)
 
-- O item pertence a `aquisicao` ou `contratacao`?
-- Existe qualquer termo do outro dominio misturado no texto?
-- A observacao cita o mesmo objeto do item?
-- O criterio de conformidade esta claro e mensuravel?
-- O texto final esta fluido (sem quebra de contexto)?
+- Does the item belong to `aquisicao` or `contratacao`?
+- Is any term from the other domain mixed into the text?
+- Does the note cite the same object as the item?
+- Is the compliance criterion clear and measurable?
+- Is the final text fluid (no context break)?
 
-### 11.5 Recomendacao tecnica de implementacao
+### 11.5 Technical implementation recommendation
 
-- Incluir um campo explicito de classificacao no item/template, por exemplo:
+- Include an explicit classification field on the item/template, for example:
   - `domain_scope`: `aquisicao` | `contratacao`
-- Aplicar validacao de consistencia semantica:
-  - bloquear termos conflitantes entre escopos
-  - exigir observacao contextual por regra (`item_keyword overlap`)
-- Em fluxos com IA/geracao de texto, usar prompt guardrails:
-  - "nao misture aquisicao e contratacao"
-  - "observacao obrigatoriamente ligada ao objeto do item"
+- Apply semantic consistency validation:
+  - block conflicting terms across scopes
+  - require a contextual note by rule (`item_keyword overlap`)
+- In AI/text-generation flows, use prompt guardrails:
+  - "do not mix aquisicao and contratacao"
+  - "the note must be tied to the item's object"
 

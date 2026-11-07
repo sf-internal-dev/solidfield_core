@@ -6,22 +6,22 @@ from backend.apps.core.utils.tenant.tenant_identifier_code_util import generate_
 
 class GenerateTenantIdentifierCodeTests(TestCase):
     def setUp(self):
-        print("→ setUp: Preparando ambiente para testes de geração de tenant_code...")
+        print("→ setUp: Preparing the environment for tenant_code generation tests...")
 
     def test_generates_code_without_conflict(self):
-        print("✓ test_generates_code_without_conflict: Geração de código simples sem conflito.")
+        print("✓ test_generates_code_without_conflict: Simple code generation with no conflict.")
         code = generate_tenant_code_attempts("solidfield")
         self.assertEqual(code, "SOLI")
         self.assertFalse(CompanyTenant.objects.filter(tenant_code=code).exists())
 
     def test_adds_suffix_if_conflict_exists(self):
-        print("✓ test_adds_suffix_if_conflict_exists: Adição de sufixo em caso de conflito.")
+        print("✓ test_adds_suffix_if_conflict_exists: Adds a suffix when there is a conflict.")
         CompanyTenant.objects.create(tenant_code="SOLI", slug="solidfield")
         code = generate_tenant_code_attempts("solidfield")
         self.assertEqual(code, "SOLI1")
 
     def test_increments_suffix_until_available(self):
-        print("✓ test_increments_suffix_until_available: Incrementa sufixos até tenant_code estar disponível.")
+        print("✓ test_increments_suffix_until_available: Increments suffixes until tenant_code is available.")
         for i in range(4):
             suffix = "" if i == 0 else str(i)
             CompanyTenant.objects.create(tenant_code=f"SOLI{suffix}",slug=f"solid-{i}")
@@ -30,23 +30,23 @@ class GenerateTenantIdentifierCodeTests(TestCase):
         self.assertEqual(code, "SOLI4")
 
     def test_handles_special_characters_in_slug(self):
-        print("✓ test_handles_special_characters_in_slug: Lida com caractéres especiais.")
+        print("✓ test_handles_special_characters_in_slug: Handles special characters.")
         code = generate_tenant_code_attempts("sóli-d.f!eld")
         self.assertEqual(code, "SOLI")
 
     def test_short_slug_is_preserved(self):
-        print("✓ test_short_slug_is_preserved: Verifica a preservação de slugs curtas.")
+        print("✓ test_short_slug_is_preserved: Checks that short slugs are preserved.")
         code = generate_tenant_code_attempts("ab")
         self.assertEqual(code, "AB")
 
     def test_empty_slug_falls_back_to_COMP(self):
-        print("✓ test_empty_slug_falls_back_to_COMP: Verifica se slug vazia tem fallback <COMP>.")
+        print("✓ test_empty_slug_falls_back_to_COMP: Checks that an empty slug falls back to <COMP>.")
         code = generate_tenant_code_attempts("")
         self.assertTrue(code.startswith("COMP"))
         self.assertTrue(len(code) >= 4)
 
     def test_fallback_when_max_tries_reached(self):
-        print("✓ test_fallback_when_max_tries_reached: Verifica fallback quando atinge máximo de tentativas.")
+        print("✓ test_fallback_when_max_tries_reached: Checks the fallback when the maximum number of attempts is reached.")
         for i in range(30):
             suffix = "" if i == 0 else str(i)
             CompanyTenant.objects.create(tenant_code=f"TEST{suffix}",slug=f"test-{i}")
@@ -56,32 +56,32 @@ class GenerateTenantIdentifierCodeTests(TestCase):
             self.assertEqual(code, "TESTAB")
 
     def test_slug_with_accents_and_cedilla(self):
-        print("✓ test_slug_with_accents_and_cedilla: Normalização de slug com cedilha e acentos.")
-        # "çódê-company!" → normaliza para "codecompany" → "CODE"
+        print("✓ test_slug_with_accents_and_cedilla: Slug normalization with a cedilla and accents.")
+        # "çódê-company!" → normalizes to "codecompany" → "CODE"
         code = generate_tenant_code_attempts("çódê-company!")
         self.assertEqual(code, "CODE")
 
     def test_slug_with_multiple_accents(self):
-        print("✓ test_slug_with_multiple_accents: Normalização de slug com vários acentos.")
+        print("✓ test_slug_with_multiple_accents: Slug normalization with several accents.")
         # "ação incrível" → "acao incrivel" → "ACAO"
         code = generate_tenant_code_attempts("ação incrível")
         self.assertEqual(code, "ACAO")
 
     def test_slug_with_circunflex_and_tilde(self):
-        print("✓ test_slug_with_circunflex_and_tilde: Normalização de slug com circunflexo e til/tilde.")
+        print("✓ test_slug_with_circunflex_and_tilde: Slug normalization with circumflex and tilde.")
 
         # "tênis-manhã" → "tenismanha" → "TENI"
         code = generate_tenant_code_attempts("tênis-manhã")
         self.assertEqual(code, "TENI")
 
     def test_slug_with_only_special_chars_and_accents(self):
-        print("✓ test_slug_with_only_special_chars_and_accents: Normalização de slug apenas com caracteres especiais e acentos.")
+        print("✓ test_slug_with_only_special_chars_and_accents: Slug normalization with only special characters and accents.")
         # "!çãõêé" → "caoee" → "CAOE"
         code = generate_tenant_code_attempts("!çãõêé")
         self.assertEqual(code, "CAOE")
 
     def test_slug_that_generates_comp_due_to_no_valid_chars(self):
-        print("✓ test_slug_with_only_special_chars_and_accents: Fallback para COMP após erros com caracteres invalidos.")
+        print("✓ test_slug_with_only_special_chars_and_accents: Falls back to COMP after errors with invalid characters.")
         # All symbols → fallback default "COMP"
         code = generate_tenant_code_attempts("!!!$$$@@@")
         self.assertTrue(code.startswith("COMP"))

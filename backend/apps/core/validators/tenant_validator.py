@@ -33,7 +33,7 @@ def validate_hex_color(value: Optional[str]) -> Tuple[bool, List[str]]:
 def validate_optional_email(email: Optional[str]) -> Tuple[bool, List[str]]:
     if not email:
         return True, []
-    # DRF EmailValidator seria melhor; aqui simples:
+    # DRF EmailValidator would be better; simple check here:
     if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email.strip()):
         return False, ["invalid_primary_contact_email"]
     return True, []

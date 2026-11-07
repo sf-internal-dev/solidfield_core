@@ -12,7 +12,7 @@ from backend.apps.orders.services.work_order_identifier_service import create_wo
 
 class CreateWorkOrderWithIdentifierTest(TestCase):
     def setUp(self):
-        print("→ setUp: criando tenants e técnicos básicos")
+        print("→ setUp: creating basic tenants and technicians")
         self.tenant1 = CompanyTenant.objects.create(name="Tenant A", slug="tena", tenant_code="TENA")
         self.tenant2 = CompanyTenant.objects.create(name="Tenant B", slug="tenb", tenant_code="TENB")
 
@@ -28,7 +28,7 @@ class CreateWorkOrderWithIdentifierTest(TestCase):
     @patch("backend.apps.orders.services.work_order_identifier_service.log_work_order_creation")
     @patch("backend.apps.orders.services.work_order_identifier_service.generate_work_order_identifier", return_value="TENA0001")
     def test_first_identifier_starts_at_0001(self, gen_mock, log_mock):
-        print("✓ create_work_order_with_identifier: sem ordens prévias → usa last_number=0 e gera 0001")
+        print("✓ create_work_order_with_identifier: no previous orders → uses last_number=0 and generates 0001")
         wo = create_work_order_with_identifier(
             self.tenant1,
             created_by=self.tech_a,
@@ -51,7 +51,7 @@ class CreateWorkOrderWithIdentifierTest(TestCase):
     @patch("backend.apps.orders.services.work_order_identifier_service.log_work_order_creation")
     @patch("backend.apps.orders.services.work_order_identifier_service.generate_work_order_identifier", return_value="TENA0013")
     def test_increments_from_last_identifier_same_tenant(self, gen_mock, _log_mock):
-        print("✓ create_work_order_with_identifier: incrementa a partir do último ID do MESMO tenant")
+        print("✓ create_work_order_with_identifier: increments from the last ID of the SAME tenant")
         WorkOrder.objects.create(
             tenant=self.tenant1,
             identifier="TENA0012",
@@ -88,7 +88,7 @@ class CreateWorkOrderWithIdentifierTest(TestCase):
     @patch("backend.apps.orders.services.work_order_identifier_service.log_work_order_creation")
     @patch("backend.apps.orders.services.work_order_identifier_service.generate_work_order_identifier", return_value="TENA0001")
     def test_malformed_last_identifier_fallsback_to_zero(self, gen_mock, _log_mock):
-        print("✓ create_work_order_with_identifier: último ID malformado → considera last_number=0")
+        print("✓ create_work_order_with_identifier: malformed last ID → treats last_number as 0")
         WorkOrder.objects.create(
             tenant=self.tenant1,
             identifier="TENA-ABC",
@@ -115,7 +115,7 @@ class CreateWorkOrderWithIdentifierTest(TestCase):
     @patch("backend.apps.orders.services.work_order_identifier_service.log_work_order_creation")
     @patch("backend.apps.orders.services.work_order_identifier_service.generate_work_order_identifier")
     def test_scoped_per_tenant_does_not_mix_sequences(self, gen_mock, _log_mock):
-        print("✓ create_work_order_with_identifier: sequência isolada por tenant_code")
+        print("✓ create_work_order_with_identifier: sequence isolated by tenant_code")
         WorkOrder.objects.create(
             tenant=self.tenant1,
             identifier="TENA0009",
@@ -167,7 +167,7 @@ class CreateWorkOrderWithIdentifierTest(TestCase):
     @patch("backend.apps.orders.services.work_order_identifier_service.generate_work_order_identifier", return_value="TENB0001")
     @patch("backend.apps.orders.services.work_order_identifier_service.log_work_order_creation")
     def test_returns_work_order_instance_and_logs(self, _log_mock, _gen_mock):
-        print("✓ create_work_order_with_identifier: retorna WorkOrder e executa log")
+        print("✓ create_work_order_with_identifier: returns a WorkOrder and writes the log")
         wo = create_work_order_with_identifier(
             self.tenant2,
             created_by=self.tech_b,

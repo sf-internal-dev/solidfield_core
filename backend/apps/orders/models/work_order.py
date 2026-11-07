@@ -32,7 +32,7 @@ class WorkOrder(TenantOwnedModel):
     #-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     status = models.CharField(max_length=50)
     client = models.ForeignKey("clients.Client", null=True, blank=True, on_delete=models.SET_NULL)
-    client_name = models.CharField(max_length=200, blank=True)  # Nome livre preenchido na hora
+    client_name = models.CharField(max_length=200, blank=True)  # Free-form name filled in at the time
     client_email = models.EmailField(blank=True)
     client_phone = models.CharField(max_length=30, blank=True)
 

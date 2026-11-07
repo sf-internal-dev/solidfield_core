@@ -1,45 +1,45 @@
-# Public API v1 — contrato e estabilidade
+# Public API v1 — contract and stability
 
-Este documento descreve a política do pacote **Public v1 — Field operations** documentado no OpenAPI (`SPECTACULAR_SETTINGS.VERSION` = `1.0.0`).
+This document describes the policy for the **Public v1 — Field operations** package documented in OpenAPI (`SPECTACULAR_SETTINGS.VERSION` = `1.0.0`).
 
-## Onde ver o schema
+## Where to view the schema
 
-- **Swagger UI:** `GET /api/docs/` (servidor Django em execução).
-- **OpenAPI JSON/YAML:** `GET /api/schema/` (formato negociável pelo header `Accept`).
+- **Swagger UI:** `GET /api/docs/` (Django server running).
+- **OpenAPI JSON/YAML:** `GET /api/schema/` (format negotiated via the `Accept` header).
 
-## Exportar o schema localmente
+## Export the schema locally
 
-Na raiz do repositório (`solidfield_core/`), com o ambiente Python do projeto ativo:
+From the repository root (`solidfield_core/`), with the project Python environment active:
 
 ```bash
 python manage.py spectacular --file openapi.yaml
 python manage.py spectacular --validate
 ```
 
-## Versionamento
+## Versioning
 
-- Alterações **compatíveis** (campos opcionais novos, códigos de erro adicionais documentados) podem ocorrer em `1.0.x`.
-- Alterações **incompatíveis** (remoção de campos, mudança de semântica de códigos HTTP, renomeação de `operation_id`) exigem incremento de versão major (ex.: `2.0.0`) e migração para clientes.
+- **Compatible** changes (new optional fields, additional documented error codes) may ship in `1.0.x`.
+- **Incompatible** changes (removing fields, changing HTTP status-code semantics, renaming an `operation_id`) require a major version increment (for example `2.0.0`) and a client migration.
 
-## Autenticação
+## Authentication
 
-Os endpoints públicos v1 seguem a mesma política de autenticação do restante da API DRF do projeto (ex.: JWT / sessão, conforme `REST_FRAMEWORK` em `backend/config/settings.py`). Consulte o schema gerado para security schemes efetivos.
+Public v1 endpoints follow the same authentication policy as the rest of the project's DRF API (for example JWT / session, as set in `REST_FRAMEWORK` in `backend/config/settings.py`). See the generated schema for the effective security schemes.
 
-## Endpoints estáveis (tags Public v1)
+## Stable endpoints (Public v1 tags)
 
-Rotas são montadas sob o prefixo **`/api/`** conforme `backend/apps/apis/urls.py`. Lista resumida:
+Routes are mounted under the **`/api/`** prefix as defined in `backend/apps/apis/urls.py`. Summary:
 
-| Área | Exemplos de rotas |
-|------|-------------------|
+| Area | Route examples |
+|------|----------------|
 | Work orders | `create_work_order_api/`, `list_work_orders_api/`, `get_work_order_api/<id>/`, `update_work_order_api/<id>/`, `assign_work_order_api/<id>/`, `get_work_order_status_history_api/<id>/` |
-| Checklist | rotas em `checklist_api` (criar, respostas em lote, listagem, submit, progresso, export CSV, etc.) |
-| Offline sync | rotas em `offline_sync_api` (enqueue, list, process) |
+| Checklist | routes in `checklist_api` (create, batch answers, listing, submit, progress, CSV export, and so on) |
+| Offline sync | routes in `offline_sync_api` (enqueue, list, process) |
 
-Os nomes de operação estáveis para geradores de cliente são os **`operation_id`** no OpenAPI (prefixo `publicV1…`).
+The stable operation names for client generators are the **`operation_id`** values in OpenAPI (prefix `publicV1…`).
 
-## Erros comuns documentados
+## Documented common errors
 
-- **422:** corpo com `codes` (lista de strings de domínio) e opcionalmente `correlation_id` (publicação de mensagens UI).
-- **400:** validação simples em alguns POST (ex.: campo obrigatório ausente).
+- **422:** body with `codes` (a list of domain strings) and optionally `correlation_id` (UI message publishing).
+- **400:** simple validation on some POST requests (for example a missing required field).
 
-Para detalhes exatos por rota, use o arquivo OpenAPI exportado ou `/api/docs/`.
+For exact per-route details, use the exported OpenAPI file or `/api/docs/`.

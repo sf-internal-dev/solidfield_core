@@ -16,7 +16,7 @@ def _is_positive_int(v: Any) -> bool:
     return False
 
 def _only_printable_no_ctrl(s: str) -> bool:
-    # bloqueia caracteres de controle (mantém whitespace normal)
+    # blocks control characters (keeps normal whitespace)
     return not re.search(r"[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]", s)
 
 def _split_choice_options(raw: Optional[str]) -> List[str]:

@@ -133,7 +133,7 @@ def register_client_adress_api(request):
         "success": "Client adress registered",
         "client_adress_id":  str(client_adress.id),
         "messages": messages,
-        # talvez eu faça as funções register retornar um payload dos dados
+        # I might make the register functions return a payload of the data
     }, status=status.HTTP_201_CREATED)
 
 

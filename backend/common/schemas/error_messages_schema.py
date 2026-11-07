@@ -348,24 +348,24 @@ def get_error_payload(code: str) -> dict:
     If the code has dynamic arguments (ex.: 'invalid_action:delete'),
     they will be interpolated into the message.
     """
-    # Verifica se tem argumentos no código
+    # Check whether the code has arguments
     if ":" in code:
         base_key, arg_part = code.split(":", 1)
 
-        # Procurar uma chave no dicionário que comece com base_key + ":"
+        # Look for a dictionary key that starts with base_key + ":"
         for template_key, payload in ERROR_MESSAGES.items():
             if template_key.startswith(base_key + ":"):
                 message_template = payload["message"]
 
-                # Extrair placeholders do template da chave
-                # Ex.: "invalid_action:{action}" -> ["action"]
+                # Extract placeholders from the key template
+                # E.g.: "invalid_action:{action}" -> ["action"]
                 import re
                 placeholders = re.findall(r"{(\w+)}", template_key)
 
-                # Se houver múltiplos placeholders, tentar separar por delimitadores
+                # If there are multiple placeholders, try to split on delimiters
                 values = arg_part.split("->") if "->" in template_key else arg_part.split(":")
 
-                # Montar dicionário {placeholder: valor}
+                # Build a {placeholder: value} dictionary
                 mapping = dict(zip(placeholders, values))
 
                 return {
@@ -373,11 +373,11 @@ def get_error_payload(code: str) -> dict:
                     "type": payload["type"]
                 }
 
-    # Caso seja um erro fixo
+    # Fixed error (no arguments)
     if code in ERROR_MESSAGES:
         return ERROR_MESSAGES[code]
 
-    # Retorno padrão se não achar
+    # Default return when nothing matches
     return {
         "message": f"Unknown error code: {code}",
         "type": "negative"

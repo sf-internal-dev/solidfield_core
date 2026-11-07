@@ -36,7 +36,7 @@ _UPDATE_BODY = {
 @extend_schema(
     tags=[TAG_WORK_ORDER],
     operation_id="publicV1WorkOrderCreate",
-    summary="Cria work order (viagem / OS)",
+    summary="Creates a work order (trip / service order)",
     request={
         "application/json": {
             "type": "object",
@@ -89,7 +89,7 @@ def create_work_order_api(request):
         "success": "Work Order registered",
         "work_order_id":  str(work_order.id),
         "messages": messages,
-        # talvez eu faça as funções register retornar um payload dos dados
+        # I might make the register functions return a payload of the data
     }, status=status.HTTP_201_CREATED)
 
 
@@ -143,14 +143,14 @@ def create_work_order_download_link_api(request):
         "success": "Work Order Download Link registered",
         "work_order_download_link_id":  str(work_order_download_link.id),
         "messages": messages,
-        # talvez eu faça as funções register retornar um payload dos dados
+        # I might make the register functions return a payload of the data
     }, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(
     tags=[TAG_WORK_ORDER],
     operation_id="publicV1WorkOrderList",
-    summary="Lista work orders",
+    summary="Lists work orders",
     parameters=[
         OpenApiParameter("technician_id", OpenApiTypes.INT, OpenApiParameter.QUERY),
         OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
@@ -227,7 +227,7 @@ def list_work_orders_api(request):
 @extend_schema(
     tags=[TAG_WORK_ORDER],
     operation_id="publicV1WorkOrderRetrieve",
-    summary="Obtém uma work order por id",
+    summary="Retrieves a work order by id",
     parameters=[_WO_PATH_ID],
     responses={200: _WO_JSON, 422: schema_error_422()},
 )
@@ -280,7 +280,7 @@ def get_work_order_api(request, work_order_id):
 @extend_schema(
     tags=[TAG_WORK_ORDER],
     operation_id="publicV1WorkOrderUpdate",
-    summary="Atualiza work order",
+    summary="Updates a work order",
     parameters=[_WO_PATH_ID],
     request=_UPDATE_BODY,
     responses={200: _WO_JSON, 422: schema_error_422()},
@@ -352,7 +352,7 @@ def update_work_order_api(request, work_order_id):
 @extend_schema(
     tags=[TAG_WORK_ORDER],
     operation_id="publicV1WorkOrderAssign",
-    summary="Atribui work order a um técnico",
+    summary="Assigns a work order to a technician",
     parameters=[_WO_PATH_ID],
     request={
         "application/json": {
@@ -420,7 +420,7 @@ def assign_work_order_api(request, work_order_id):
 @extend_schema(
     tags=[TAG_WORK_ORDER],
     operation_id="publicV1WorkOrderStatusHistory",
-    summary="Histórico de status da work order",
+    summary="Work order status history",
     parameters=[_WO_PATH_ID],
     responses={200: _WO_JSON, 422: schema_error_422()},
 )
