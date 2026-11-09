@@ -12,9 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
-import structlog
-# settings.py
 import sys
+
+import environ
+import structlog
 
 # Import and apply the patch before anything else
 sys.path.append(str(Path(__file__).resolve().parent))
@@ -22,18 +23,19 @@ sys.path.append(str(Path(__file__).resolve().parent))
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-
+env = environ.Env(
+    DEBUG=(bool, True),
+)
+environ.Env.read_env(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'REDACTED'
+SECRET_KEY = env("DJANGO_SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 
 # Application definition
@@ -148,11 +150,6 @@ APPLICATION = 'backend.config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-import environ
-
-env = environ.Env()
-environ.Env.read_env(BASE_DIR / ".env")
 
 DATABASES = {
     'default': {

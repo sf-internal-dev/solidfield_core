@@ -61,9 +61,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create `.env` in the repository root. `backend/config/settings.py` reads it through `django-environ`:
+Create `.env` in the repository root (never commit this file). `backend/config/settings.py` reads it through `django-environ`. Copy `.env.example` and generate a unique `DJANGO_SECRET_KEY`:
 
 ```
+DJANGO_SECRET_KEY=replace-with-a-long-random-string
+DEBUG=True
+ALLOWED_HOSTS=
 POSTGRES_DB=solidfield
 POSTGRES_USER=solidfield
 POSTGRES_PASSWORD=solidfield
@@ -151,4 +154,4 @@ Set both in Django settings before using this in anything other than local devel
 
 ## Development notes
 
-`DEBUG` is on and `SECRET_KEY` in `backend/config/settings.py` is a development placeholder. Do not deploy this settings module as-is. `CORS_ALLOW_ALL_ORIGINS` is `True`. `ALLOWED_HOSTS` is empty, which is fine for `runserver` on localhost and wrong for a public host.
+`DJANGO_SECRET_KEY` must come from the environment. Do not put secrets in the repository. `CORS_ALLOW_ALL_ORIGINS` is `True` in this settings module; do not deploy it as-is.
