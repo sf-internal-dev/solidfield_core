@@ -40,5 +40,5 @@ def validate_is_active(value: Any) -> Tuple[bool, List[str]]:
     if isinstance(value, bool):
         return True, []
     if isinstance(value, str) and value.strip().lower() in ("true", "false", "1", "0"):
-        return True, []  # tipagem/conversão pode ser feita no serializer
+        return True, []  # typing/conversion can be done in the serializer
     return False, ["invalid_is_active_type"]

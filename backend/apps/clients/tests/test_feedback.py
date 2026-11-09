@@ -7,7 +7,7 @@ from backend.apps.clients.models import ClientFeedback, FeedbackLink
 
 class ClientFeedbackAndLinkTest(TestCase):
     def setUp(self):
-        print("→ setUp: Criando tenant, técnico, cliente e ordem de serviço...")
+        print("→ setUp: Creating tenant, technician, client, and work order...")
         self.tenant = CompanyTenant.objects.create(name="TenantFeedback", slug="tenant-feedback")
         self.tech = Technician.objects.create(
             tenant=self.tenant,
@@ -17,7 +17,7 @@ class ClientFeedbackAndLinkTest(TestCase):
         )
         self.client = Client.objects.create(
             tenant=self.tenant,
-            name="Cliente Teste",
+            name="Test Client",
             person_type="individual",
             document_id="00011122233"
         )
@@ -30,34 +30,34 @@ class ClientFeedbackAndLinkTest(TestCase):
         )
 
     def test_create_feedback_with_client(self):
-        print("✓ test_create_feedback_with_client: Criando feedback com cliente vinculado")
+        print("✓ test_create_feedback_with_client: Creating feedback with a linked client")
         feedback = ClientFeedback.objects.create(
             service_order=self.order,
             client=self.client,
-            client_name="Nome do Cliente",
-            client_email="cliente@teste.com",
+            client_name="Client Name",
+            client_email="client@test.com",
             stars=5,
-            comment="Ótimo atendimento",
-            strengths="Agilidade, cordialidade"
+            comment="Great service",
+            strengths="Promptness, courtesy"
         )
         self.assertEqual(feedback.stars, 5)
         self.assertEqual(feedback.client, self.client)
-        self.assertIn("Ótimo", feedback.comment)
+        self.assertIn("Great", feedback.comment)
         self.assertIsNotNone(feedback.submitted_at)
 
     def test_create_feedback_without_client(self):
-        print("✓ test_create_feedback_without_client: Criando feedback sem cliente vinculado")
+        print("✓ test_create_feedback_without_client: Creating feedback without a linked client")
         feedback = ClientFeedback.objects.create(
             service_order=self.order,
             stars=3,
-            client_name="Anônimo",
-            comment="Bom, mas pode melhorar"
+            client_name="Anonymous",
+            comment="Good, but it can improve"
         )
         self.assertEqual(feedback.client, None)
-        self.assertEqual(feedback.client_name, "Anônimo")
+        self.assertEqual(feedback.client_name, "Anonymous")
 
     def test_feedback_submitted_at_auto(self):
-        print("✓ test_feedback_submitted_at_auto: Campo submitted_at deve ser preenchido automaticamente")
+        print("✓ test_feedback_submitted_at_auto: Field submitted_at should be filled in automatically")
         feedback = ClientFeedback.objects.create(
             service_order=self.order,
             stars=4
@@ -66,20 +66,20 @@ class ClientFeedbackAndLinkTest(TestCase):
         self.assertLessEqual(feedback.submitted_at, timezone.now())
 
     def test_feedback_link_key_autogeneration(self):
-        print("✓ test_feedback_link_key_autogeneration: Deve gerar chave automaticamente ao salvar")
+        print("✓ test_feedback_link_key_autogeneration: Should generate a key automatically on save")
         link = FeedbackLink.objects.create(service_order=self.order)
         self.assertTrue(link.key)
         self.assertTrue(16 <= len(link.key) <= 20)
 
 
     def test_feedback_link_uniqueness(self):
-        print("✓ test_feedback_link_uniqueness: Chave deve ser única")
+        print("✓ test_feedback_link_uniqueness: Key should be unique")
         link1 = FeedbackLink.objects.create(service_order=self.order)
         with self.assertRaises(Exception):
             FeedbackLink.objects.create(service_order=self.order)
 
     def test_feedback_link_used_flag(self):
-        print("✓ test_feedback_link_used_flag: Campo 'used' deve ser False por padrão e mutável")
+        print("✓ test_feedback_link_used_flag: Field 'used' should be False by default and mutable")
         link = FeedbackLink.objects.create(service_order=self.order)
         self.assertFalse(link.used)
         link.used = True
@@ -87,6 +87,6 @@ class ClientFeedbackAndLinkTest(TestCase):
         self.assertTrue(link.used)
 
     def test_feedback_link_created_at_auto(self):
-        print("✓ test_feedback_link_created_at_auto: created_at deve ser preenchido automaticamente")
+        print("✓ test_feedback_link_created_at_auto: created_at should be filled in automatically")
         link = FeedbackLink.objects.create(service_order=self.order)
         self.assertIsNotNone(link.created_at)

@@ -1,59 +1,59 @@
-# Vue 3 + Ionic + Capacitor — offline (outbox) + fila SolidField
+# Vue 3 + Ionic + Capacitor — offline (outbox) + SolidField queue
 
-Complementa **`CLIENT_OFFLINE_LOCAL_SYNC_ESQUEMA.md`** (estados e contrato) e **`OFFLINE_SYNC_QUEUE.md`** (APIs Django).
-
----
-
-## 1. Dependências sugeridas
-
-| Pacote | Uso |
-|--------|-----|
-| `@capacitor/network` | `Network.addListener('networkStatusChange', …)` e `Network.getStatus()` antes do sync |
-| `@capacitor/app` | `App.addListener('resume', …)` para sync ao voltar do background |
-| SQLite Capacitor | Ex.: **@capawesome-team/capacitor-sqlite** (bom suporte a Vue/Ionic) ou **@capacitor-community/sqlite** — uma tabela `pending_mutations` |
-| `axios` ou `ofetch` | Cliente HTTP com `baseURL` da API SolidField |
-| **Pinia** (opcional mas recomendado) | Contador de pendentes, último erro de sync, fila “visível” na UI |
+Complements **`CLIENT_OFFLINE_LOCAL_SYNC_SCHEMA.md`** (states and contract) and **`OFFLINE_SYNC_QUEUE.md`** (Django APIs).
 
 ---
 
-## 2. Estrutura de pastas (no app Ionic, não no Django)
+## 1. Suggested dependencies
+
+| Package | Use |
+|---------|-----|
+| `@capacitor/network` | `Network.addListener('networkStatusChange', …)` and `Network.getStatus()` before sync |
+| `@capacitor/app` | `App.addListener('resume', …)` to sync when returning from the background |
+| Capacitor SQLite | For example **@capawesome-team/capacitor-sqlite** (good Vue/Ionic support) or **@capacitor-community/sqlite** — one `pending_mutations` table |
+| `axios` or `ofetch` | HTTP client with the SolidField API `baseURL` |
+| **Pinia** (optional but recommended) | Pending counter, last sync error, queue “visible” in the UI |
+
+---
+
+## 2. Folder layout (in the Ionic app, not in Django)
 
 ```text
 src/
   db/
-    schema.ts              -- tipos + SQL CREATE TABLE
-    mutation-repository.ts -- insert/list/update por status
+    schema.ts              -- types + SQL CREATE TABLE
+    mutation-repository.ts -- insert/list/update by status
   services/
     api-client.ts          -- axios instance + interceptors (token / tenant)
-    solidfield-sync.ts     -- enqueue(), process(), listRemoteQueue() opcional
-    sync-worker.ts         -- syncPending(): orquestra repo + API + Network
+    solidfield-sync.ts     -- enqueue(), process(), listRemoteQueue() optional
+    sync-worker.ts         -- syncPending(): orchestrates repo + API + Network
   composables/
-    useOfflineSync.ts      -- expõe runSync(), pendingCount, isOnline
+    useOfflineSync.ts      -- exposes runSync(), pendingCount, isOnline
   views/...
 ```
 
-Mantenha **`payload`** e **`client_mutation_id`** como no esquema genérico; o `mutation-repository` só persiste JSON.
+Keep **`payload`** and **`client_mutation_id`** as in the generic schema; `mutation-repository` only persists JSON.
 
 ---
 
-## 3. Fluxo no Ionic + Vue
+## 3. Flow in Ionic + Vue
 
-1. **Tela de checklist (offline OK):** ao salvar turno → `mutationRepository.insert({ client_mutation_id: crypto.randomUUID(), status: 'local_only', payload })`.
-2. **`useOfflineSync` / `sync-worker`:**  
-   - Chamar **`runSync()`** quando: `networkStatusChange` → connected, `App` resume, e no **`onIonViewWillEnter`** da home / dashboard operacional.
-3. **`runSync()`:** para cada linha `local_only` | `enqueued` | `needs_retry` (ver esquema):  
-   - sem `server_queue_id` → `POST enqueue_offline_sync_api`  
-   - com `server_queue_id` → `POST process_offline_sync_api/<id>/`  
-4. **UI:** badge “N pendentes” a partir de `SELECT COUNT(*) WHERE status != 'synced'` (ou Pinia atualizado após cada passo).
+1. **Checklist screen (offline OK):** on shift save → `mutationRepository.insert({ client_mutation_id: crypto.randomUUID(), status: 'local_only', payload })`.
+2. **`useOfflineSync` / `sync-worker`:**
+   - Call **`runSync()`** when: `networkStatusChange` → connected, `App` resume, and on **`onIonViewWillEnter`** of the home / operations dashboard.
+3. **`runSync()`:** for each row in `local_only` | `enqueued` | `needs_retry` (see the schema):
+   - no `server_queue_id` → `POST enqueue_offline_sync_api`
+   - with `server_queue_id` → `POST process_offline_sync_api/<id>/`
+4. **UI:** an “N pending” badge from `SELECT COUNT(*) WHERE status != 'synced'` (or Pinia updated after each step).
 
-Use **debounce** (ex. 2–5 s) após evento de rede para evitar rajadas com Wi‑Fi oscilante.
+Use **debounce** (for example 2–5 s) after a network event to avoid bursts on flaky Wi‑Fi.
 
 ---
 
-## 4. Exemplo mínimo de composable (ideia, não copiar como única fonte)
+## 4. Minimal composable example (a sketch, not the only source of truth)
 
 ```ts
-// composables/useOfflineSync.ts — esqueleto
+// composables/useOfflineSync.ts — skeleton
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Network } from '@capacitor/network'
 import { App } from '@capacitor/app'
@@ -87,27 +87,27 @@ export function useOfflineSync() {
 
 ---
 
-## 5. Integração com rotas Ionic
+## 5. Integration with Ionic routes
 
-- Em **`/operacoes`** ou home pós-login: `onIonViewWillEnter(() => runSync())`.
-- Opcional: **toast** só em falha persistente (`needs_retry` + `last_error_codes`), não a cada retry.
-
----
-
-## 6. Autenticação
-
-O mesmo `Authorization` / cookie / header que o Django já exige para `technician_operating` deve ir no **`api-client`**. Sem sessão válida, `enqueue`/`process` retornam 401/422 — tratar como “sync bloqueado” e manter mutações em `local_only`.
+- On **`/operations`** or the post-login home: `onIonViewWillEnter(() => runSync())`.
+- Optional: a **toast** only on persistent failure (`needs_retry` + `last_error_codes`), not on every retry.
 
 ---
 
-## 7. Resumo
+## 6. Authentication
 
-| Camada | Vue + Ionic + Capacitor |
-|--------|-------------------------|
-| Persistência | SQLite + repositório |
-| Rede | `@capacitor/network` + `@capacitor/app` |
-| Orquestração | `sync-worker.ts` + composable |
-| Estado global | Pinia (opcional) |
-| Servidor | `enqueue` → `process` (SolidField) |
+The same `Authorization` / cookie / header that Django already requires for `technician_operating` must go on the **`api-client`**. Without a valid session, `enqueue`/`process` return 401/422 — treat that as “sync blocked” and keep mutations in `local_only`.
 
-O Django permanece só como **API**; toda a lógica “sem rede” é **neste app**.
+---
+
+## 7. Summary
+
+| Layer | Vue + Ionic + Capacitor |
+|-------|-------------------------|
+| Persistence | SQLite + repository |
+| Network | `@capacitor/network` + `@capacitor/app` |
+| Orchestration | `sync-worker.ts` + composable |
+| Global state | Pinia (optional) |
+| Server | `enqueue` → `process` (SolidField) |
+
+Django stays an **API** only; all “offline” logic lives **in this app**.

@@ -80,9 +80,9 @@ def can_access_state(workflow: dict, role: str, state: str) -> bool:
     """
     return state in workflow.get("permissions", {}).get(role, [])
 
-# Teste
+# Test
 if __name__ == "__main__":
     labels = generate_labels_for_workflow(DEFAULT_STATUS_WORKFLOW)
-    print("Labels gerados:")
+    print("Generated labels:")
     for key, label in labels.items():
         print(f"{key} → {label}")

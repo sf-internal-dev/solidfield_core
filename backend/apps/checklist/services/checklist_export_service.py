@@ -1,5 +1,5 @@
 """
-Exportação tabular de checklists + respostas para BI / planilha (MVP pesca / operações).
+Tabular export of checklists and answers for BI / spreadsheets (fishing / operations MVP).
 """
 
 from __future__ import annotations

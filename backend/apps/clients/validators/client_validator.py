@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 
 def validate_person_type(value: Optional[str]) -> Tuple[bool, List[str]]:
     if not value:
-        return True, []  # permitido em branco
+        return True, []  # blank is allowed
     if value not in ["individual", "company"]:
         return False, ["invalid_person_type"]
     return True, []
@@ -21,7 +21,7 @@ def validate_name(value: Optional[str]) -> Tuple[bool, List[str]]:
     s = (value or "").strip()
     if not (1 <= len(s) <= 200):
         return False, ["invalid_name_length"]
-    # Aceita letras, números, espaços e alguns sinais básicos
+    # Accepts letters, numbers, spaces, and a few basic punctuation marks
     if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿ0-9\s\.\,\-\_]+", s):
         return False, ["invalid_name_charset"]
     return True, []
@@ -30,7 +30,7 @@ def validate_name(value: Optional[str]) -> Tuple[bool, List[str]]:
 def validate_document_id(value: Optional[str]) -> Tuple[bool, List[str]]:
     s = (value or "").strip()
     if not s:
-        return True, []  # permitido em branco
+        return True, []  # blank is allowed
     if not re.fullmatch(r"[0-9\.\-\/]+", s):
         return False, ["invalid_document_format"]
     if len(s) > 30:
@@ -51,7 +51,7 @@ def validate_phone(value: Optional[str]) -> Tuple[bool, List[str]]:
     s = (value or "").strip()
     if not s:
         return True, []
-    # Aceita dígitos, +, -, espaço e ()
+    # Accepts digits, +, -, space, and ()
     if not re.fullmatch(r"[0-9\+\-\(\)\s]+", s):
         return False, ["invalid_phone_format"]
     if len(s) > 30:
@@ -131,7 +131,7 @@ def validate_postal_code(value: Optional[str]) -> Tuple[bool, List[str]]:
         return False, ["missing_postal_code"]
     if len(s) > 20:
         return False, ["invalid_postal_code_length"]
-    # Aceita dígitos e hífen (CEP no formato 12345-678 ou simples)
+    # Accepts digits and a hyphen (postal code as 12345-678 or plain digits)
     if not re.fullmatch(r"[0-9\-]+", s):
         return False, ["invalid_postal_code_format"]
     return True, []

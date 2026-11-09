@@ -27,13 +27,13 @@ def validate_checklist_template_payload(payload: Dict[str, Any]) -> Tuple[bool, 
     elif not _only_printable_no_ctrl(st):
         errors.append("invalid_service_type_chars")
 
-    # is_active / is_global (aceita bool ou string bool-ish)
+    # is_active / is_global (accepts bool or a bool-ish string)
     if "is_active" in payload and not _is_boolish(payload.get("is_active")):
         errors.append("invalid_is_active_type")
     if "is_global" in payload and not _is_boolish(payload.get("is_global")):
         errors.append("invalid_is_global_type")
 
-    # aggroupments (lista de ids positiva) — NÃO verifica existência em DB
+    # aggroupments (list of positive ids) — does NOT check existence in the DB
     ags = payload.get("aggroupments")
     if ags is not None:
         if not isinstance(ags, (list, tuple)):
@@ -44,7 +44,7 @@ def validate_checklist_template_payload(payload: Dict[str, Any]) -> Tuple[bool, 
                     errors.append("invalid_aggroupment_id")
                     break
 
-    # version é gerenciado por service; se vier no form e quiser checar formato:
+    # version is managed by the service; if it comes on the form and you want to check the format:
     if "version" in payload and not _is_positive_int(payload.get("version")):
         errors.append("invalid_version_value")
 
@@ -64,7 +64,7 @@ def validate_checklist_item_template_payload(
 ) -> Tuple[bool, List[str]]:
     errors: List[str] = []
 
-    # order (opcional; se ausente, service calcula)
+    # order (optional; if absent, the service calculates it)
     if "order" in payload and not _is_positive_int(payload.get("order")):
         errors.append("invalid_order_value")
 
@@ -85,7 +85,7 @@ def validate_checklist_item_template_payload(
     if "required" in payload and not _is_boolish(payload.get("required")):
         errors.append("invalid_required_type")
 
-    # choice_options (formato)
+    # choice_options (format)
     if at == "choice":
         opts = _split_choice_options(payload.get("choice_options"))
         if not opts:
@@ -119,7 +119,7 @@ def validate_checklist_item_answer_payload(
 ) -> Tuple[bool, List[str]]:
     errors: List[str] = []
 
-    # value format per type (sem regra de required aqui)
+    # value format per type (no required rule here)
     if answer_type == "bool":
         if not _is_boolish(value):
             errors.append("invalid_bool_value")
@@ -141,7 +141,7 @@ def validate_checklist_item_answer_payload(
                 errors.append("invalid_choice_chars")
 
     else:
-        # trata todos numéricos/medidas como number-like
+        # treats all numeric values and measurements as number-like
         if isinstance(value, (int, float)):
             pass
         elif isinstance(value, str):
@@ -152,7 +152,7 @@ def validate_checklist_item_answer_payload(
         else:
             errors.append("invalid_number_value")
 
-    # note (opcional; apenas bloqueia ctrl)
+    # note (optional; only blocks control characters)
     if note is not None and isinstance(note, str) and not _only_printable_no_ctrl(note):
         errors.append("invalid_note_chars")
 

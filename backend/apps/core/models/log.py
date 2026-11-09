@@ -5,15 +5,15 @@ from .technician import Technician
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
-# auditlog terá um util nesse reference id que reconhecerá o modelo relacionado ao action
-# o action por sua vez um esquema (provavelmente como workflow json) pra relacionar cada action com algum modelo
-# reconhecendo por exemplo action: status_transition model: service order, então eu vou relacionar o reference id com o model 
-# pra acesso
+# auditlog will have a util on this reference id that recognizes the model related to the action
+# the action will in turn have a schema (probably like workflow json) to relate each action to some model
+# recognizing for example action: status_transition model: service order, then I will relate the reference id to the model
+# for access
 class AuditLog(TenantOwnedModel):
     technician = models.ForeignKey(Technician, on_delete=models.SET_NULL, null=True)
     action = models.CharField(max_length=150)  # Ex: "status_update", "photo_upload"
-    # Esse reference_id pode ser pra varias coisas, como a ServiceOrder quando mudar um status e também 
-    # TemporaryDelegation quando for feita um delegação de permissão
+    # This reference_id can be for several things, such as the ServiceOrder when a status changes and also
+    # TemporaryDelegation when a permission delegation is made
     content_type = models.ForeignKey(ContentType,null=True,blank=True, on_delete=models.CASCADE)
     object_id = models.CharField(max_length=100)
     reference = GenericForeignKey("content_type", "object_id")

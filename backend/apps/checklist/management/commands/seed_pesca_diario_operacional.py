@@ -10,8 +10,8 @@ from backend.apps.core.models.technician import Technician
 
 class Command(BaseCommand):
     help = (
-        "Cria o checklist template versionado "
-        "'Diário Operacional — Pesca Industrial' (diesel, gelo, temperatura) para um tenant."
+        "Creates the versioned checklist template "
+        "'Daily Operational Log — Industrial Fishing' (diesel, ice, temperature) for a tenant."
     )
 
     def add_arguments(self, parser):
@@ -19,18 +19,18 @@ class Command(BaseCommand):
             "--tenant-id",
             type=int,
             default=None,
-            help="ID do CompanyTenant. Se omitido, usa o primeiro tenant ativo.",
+            help="CompanyTenant ID. If omitted, uses the first active tenant.",
         )
         parser.add_argument(
             "--technician-id",
             type=int,
             default=None,
-            help="ID do Technician (created_by). Se omitido, usa o primeiro técnico ativo do tenant.",
+            help="Technician ID (created_by). If omitted, uses the tenant's first active technician.",
         )
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Apenas indica se criaria o template; não grava no banco.",
+            help="Only reports whether the template would be created; does not write to the database.",
         )
 
     def handle(self, *args, **options):
@@ -42,12 +42,12 @@ class Command(BaseCommand):
             try:
                 tenant = CompanyTenant.objects.get(pk=tenant_id, is_active=True)
             except CompanyTenant.DoesNotExist as exc:
-                raise CommandError(f"Tenant id={tenant_id} não encontrado ou inativo.") from exc
+                raise CommandError(f"Tenant id={tenant_id} not found or inactive.") from exc
         else:
             tenant = CompanyTenant.objects.filter(is_active=True).order_by("id").first()
             if not tenant:
                 raise CommandError(
-                    "Nenhum tenant ativo encontrado. Crie um tenant ou passe --tenant-id."
+                    "No active tenant found. Create a tenant or pass --tenant-id."
                 )
 
         if technician_id is not None:
@@ -59,7 +59,7 @@ class Command(BaseCommand):
                 )
             except Technician.DoesNotExist as exc:
                 raise CommandError(
-                    f"Técnico id={technician_id} não encontrado, inativo ou de outro tenant."
+                    f"Technician id={technician_id} not found, inactive, or from another tenant."
                 ) from exc
         else:
             technician = (
@@ -67,8 +67,8 @@ class Command(BaseCommand):
             )
             if not technician:
                 raise CommandError(
-                    f"Nenhum técnico ativo para tenant id={tenant.id}. "
-                    "Cadastre um técnico ou passe --technician-id."
+                    f"No active technician for tenant id={tenant.id}. "
+                    "Register a technician or pass --technician-id."
                 )
 
         template, status = ensure_pesca_diario_operacional_template(
@@ -80,7 +80,7 @@ class Command(BaseCommand):
         if status == "skipped":
             self.stdout.write(
                 self.style.WARNING(
-                    f"Template já existe: {TEMPLATE_NAME!r} v1 (tenant_id={tenant.id}). Nada alterado."
+                    f"Template already exists: {TEMPLATE_NAME!r} v1 (tenant_id={tenant.id}). Nothing changed."
                 )
             )
             return
@@ -88,15 +88,15 @@ class Command(BaseCommand):
         if status == "would_create":
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"[dry-run] Seria criado template {TEMPLATE_NAME!r} v1 "
-                    f"com 7 itens (tenant_id={tenant.id}, created_by technician_id={technician.id})."
+                    f"[dry-run] Would create template {TEMPLATE_NAME!r} v1 "
+                    f"with 7 items (tenant_id={tenant.id}, created_by technician_id={technician.id})."
                 )
             )
             return
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Criado template id={template.id} {TEMPLATE_NAME!r} v1 "
+                f"Created template id={template.id} {TEMPLATE_NAME!r} v1 "
                 f"(tenant_id={tenant.id}, service_type=pesca_industrial_diario)."
             )
         )

@@ -1,6 +1,6 @@
 from typing import Set
 
-# --- Types catalog (alinhar com seu FIELD_TYPE atual) ---
+# --- Types catalog (keep aligned with the current FIELD_TYPE) ---
 NUMERIC_TYPES: Set[str] = {
     "number", "degree",
     # Metric

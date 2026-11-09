@@ -46,7 +46,7 @@ def _error_response(request, messages, technician_operating, manager_account_ope
 @extend_schema(
     tags=[TAG_OFFLINE],
     operation_id="publicV1OfflineSyncEnqueue",
-    summary="Enfileira mutação offline (payload + client_mutation_id opcional)",
+    summary="Enqueues an offline mutation (payload + optional client_mutation_id)",
     request={
         "application/json": {
             "type": "object",
@@ -54,7 +54,7 @@ def _error_response(request, messages, technician_operating, manager_account_ope
             "properties": {
                 "payload": {
                     "type": "object",
-                    "description": "Deve incluir action e body; ver OFFLINE_SYNC_QUEUE.md",
+                    "description": "Must include action and body; see OFFLINE_SYNC_QUEUE.md",
                 },
                 "client_mutation_id": {"type": "string", "nullable": True, "maxLength": 64},
                 "queue_owner_technician_id": {"type": "integer", "nullable": True},
@@ -131,7 +131,7 @@ def enqueue_offline_sync_api(request):
 @extend_schema(
     tags=[TAG_OFFLINE],
     operation_id="publicV1OfflineSyncList",
-    summary="Lista itens da fila offline do técnico autenticado",
+    summary="Lists offline queue items for the authenticated technician",
     parameters=[
         OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY, description="pending|conflict|success"),
         OpenApiParameter("limit", OpenApiTypes.INT, OpenApiParameter.QUERY),
@@ -194,7 +194,7 @@ def list_offline_sync_api(request):
 @extend_schema(
     tags=[TAG_OFFLINE],
     operation_id="publicV1OfflineSyncProcess",
-    summary="Processa um item da fila (aplica checklist_batch_answers ou checklist_submit)",
+    summary="Processes a queue item (applies checklist_batch_answers or checklist_submit)",
     responses={
         200: {
             "type": "object",

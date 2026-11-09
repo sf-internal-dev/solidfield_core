@@ -1,11 +1,11 @@
 # App: Checklist
 
-## Descrição
-Responsável pela configuração, versionamento e preenchimento de Listas de Verificação (Checklists) dentro das Ordens de Serviço.
+## Description
+Owns configuration, versioning, and completion of checklists inside work orders.
 
-## Principais Funcionalidades
-- Templates de Lista de Verificação
-- Versionamento de Templates
-- Campos dinâmicos (Sim/Não, Texto, Número, Upload de Imagem, Condicional)
-- Preenchimento de checklists vinculado ao técnico e à Ordem de Serviço
-- Exportação de checklist para PDF (via app Reporting)
+## Main features
+- Checklist templates
+- Template versioning
+- Dynamic fields (Yes/No, Text, Number, Image upload, Conditional)
+- Checklist completion linked to the technician and the work order
+- Checklist export to PDF (via the Reporting app)

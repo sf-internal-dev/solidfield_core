@@ -27,7 +27,7 @@ class Client(TenantOwnedModel, SoftDeletableModel):
 class ClientAddress(BaseModel):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="addresses")
 
-    label = models.CharField(max_length=100, help_text="Ex: Matriz, Filial Zona Norte, Residência")
+    label = models.CharField(max_length=100, help_text="E.g.: Headquarters, North Zone branch, Residence")
     street = models.CharField(max_length=200)
     number = models.CharField(max_length=20)
     complement = models.CharField(max_length=100, blank=True)

@@ -4,7 +4,7 @@ from .technician import Technician
 
 
 class OfflineSyncQueue(BaseModel):
-    """Fila de mutações feitas offline; o cliente aplica `process` quando há rede."""
+    """Queue of mutations made offline; the client applies `process` when there is a network."""
 
     technician = models.ForeignKey(
         Technician,
@@ -27,7 +27,7 @@ class OfflineSyncQueue(BaseModel):
         null=True,
         blank=True,
         db_index=True,
-        help_text="Idempotência: mesmo valor + mesmo técnico não duplica sucesso (ex.: UUID do app).",
+        help_text="Idempotency: the same value + the same technician does not duplicate success (e.g. app UUID).",
     )
 
     class Meta:

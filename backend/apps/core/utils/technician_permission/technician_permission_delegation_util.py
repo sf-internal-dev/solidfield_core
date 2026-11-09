@@ -44,18 +44,18 @@ def get_effective_action_objects_for_level(level_key: str, visited=None) -> list
     visited.add(level_key)
     schema = ACTIONS_BY_PERMISSION_SCHEMA.get(level_key, {})
     
-    # ações próprias do nível
+    # own actions for this level
     effective_actions: dict[str, dict] = {
         action["code"]: action for action in schema.get("actions", [])
     }
 
-    # heranças seletivas
+    # selective inheritance
     inherited = schema.get("inherits_selectively_from", {})
     for inherited_level, actions in inherited.items():
         inherited_effective = get_effective_action_objects_for_level(inherited_level, visited)
         
         for action in inherited_effective:
-            if action["code"] in actions:  # só herda se o código está listado
+            if action["code"] in actions:  # only inherits if the code is listed
                 effective_actions.setdefault(action["code"], action)
 
     return list(effective_actions.values())

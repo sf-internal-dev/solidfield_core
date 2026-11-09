@@ -1,33 +1,33 @@
-# Fila de sincronização offline (`OfflineSyncQueue`)
+# Offline sync queue (`OfflineSyncQueue`)
 
-Para **gravação só no aparelho** e só depois `enqueue` + `process`, ver o roteiro do cliente em **`CLIENT_OFFLINE_LOCAL_SYNC_ESQUEMA.md`** (estados, campos sugeridos no SQLite/IndexedDB, diagrama e pseudo-código de sync).
+For **device-only writes** that later call `enqueue` + `process`, see the client guide in **`CLIENT_OFFLINE_LOCAL_SYNC_SCHEMA.md`** (states, suggested SQLite/IndexedDB fields, diagram, and sync pseudo-code).
 
-## Modelo
+## Model
 
-- `technician`: dono da fila (normalmente o técnico do dispositivo).
+- `technician`: queue owner (normally the device technician).
 - `status`: `pending` | `conflict` | `success`.
-- `payload`: JSON com a mutação (ver contrato abaixo).
-- `client_mutation_id`: opcional, para **idempotência** (ex.: UUID gerado no app); único por técnico quando preenchido.
-- `synced_at`: preenchido ao aplicar com sucesso.
+- `payload`: JSON with the mutation (see the contract below).
+- `client_mutation_id`: optional, for **idempotency** (for example a UUID generated in the app); unique per technician when set.
+- `synced_at`: set when the item is applied successfully.
 
-Migração: `core.0004_offlinesyncqueue_client_mutation`.
+Migration: `core.0004_offlinesyncqueue_client_mutation`.
 
-## Permissões (schema)
+## Permissions (schema)
 
-- `enqueue_offline_sync` — enfileirar e listar a própria fila.
-- `process_offline_sync` — processar itens pendentes (ou re-tentar `conflict`).
+- `enqueue_offline_sync` — enqueue items and list one's own queue.
+- `process_offline_sync` — process pending items (or retry `conflict`).
 
-Herdadas em L1; L2 e L3 incluem essas ações via herança seletiva no `permission_schemas`.
+Inherited at L1; L2 and L3 include these actions through selective inheritance in `permission_schemas`.
 
 ## APIs (`backend/apps/apis/urls.py`)
 
-| Método | Caminho | Uso |
-|--------|---------|-----|
-| POST | `enqueue_offline_sync_api/` | Corpo: `payload` (objeto), opcional `client_mutation_id`, opcional `queue_owner_technician_id`. |
-| GET | `list_offline_sync_api/` | Query: `status`, `limit`, `offset`. Lista só itens do técnico autenticado. |
-| POST | `process_offline_sync_api/<queue_id>/` | Aplica uma entrada `pending` ou reprocessa `conflict`. `success` é idempotente. |
+| Method | Path | Use |
+|--------|------|-----|
+| POST | `enqueue_offline_sync_api/` | Body: `payload` (object), optional `client_mutation_id`, optional `queue_owner_technician_id`. |
+| GET | `list_offline_sync_api/` | Query: `status`, `limit`, `offset`. Lists only items for the authenticated technician. |
+| POST | `process_offline_sync_api/<queue_id>/` | Applies one `pending` entry or reprocesses `conflict`. `success` is idempotent. |
 
-## Contrato de `payload`
+## `payload` contract
 
 ```json
 {
@@ -42,18 +42,18 @@ Herdadas em L1; L2 e L3 incluem essas ações via herança seletiva no `permissi
 }
 ```
 
-Outra ação suportada:
+Another supported action:
 
-- `checklist_submit` — `body`: `{ "checklist_id": 123 }` (equivale a `submit_checklist` no servidor).
+- `checklist_submit` — `body`: `{ "checklist_id": 123 }` (equivalent to `submit_checklist` on the server).
 
-Novas ações podem ser adicionadas em `core/services/offline_sync_service.py` (`process_offline_sync_item`).
+New actions can be added in `core/services/offline_sync_service.py` (`process_offline_sync_item`).
 
-## Fluxo recomendado no app
+## Recommended app flow
 
-1. Sem rede: gravar localmente e, se possível, chamar `enqueue` com o mesmo payload quando a API estiver acessível **ou** guardar só local e enviar lote de `enqueue` ao reconectar.
-2. Com rede: `process_offline_sync_api` para cada `queue_id` pendente (ou em série).
-3. Usar sempre `client_mutation_id` (UUID) por mutação para evitar duplicar respostas ao repetir submit.
+1. Offline: persist locally and, when possible, call `enqueue` with the same payload once the API is reachable, **or** keep the data local only and send a batch of `enqueue` calls on reconnect.
+2. Online: call `process_offline_sync_api` for each pending `queue_id` (or in series).
+3. Always use a `client_mutation_id` (UUID) per mutation so repeated submits do not duplicate answers.
 
-## Serviço
+## Service
 
-Implementação: `backend/apps/core/services/offline_sync_service.py`.
+Implementation: `backend/apps/core/services/offline_sync_service.py`.

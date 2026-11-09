@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 blank=True,
                 db_index=True,
-                help_text="Idempotência: mesmo valor + mesmo técnico não duplica sucesso (ex.: UUID do app).",
+                help_text="Idempotency: the same value + the same technician does not duplicate success (e.g. app UUID).",
                 max_length=64,
                 null=True,
             ),
